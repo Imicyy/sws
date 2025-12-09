@@ -2190,10 +2190,10 @@ exports.updateYouth = async (req, res) => {
       changes: changes
     };
 
-    // Update the youth record
+    // Update the youth record using $set operator to properly handle array fields
     const updatedYouth = await Youth.findByIdAndUpdate(
       youthId,
-      updateData,
+      { $set: updateData },
       { new: true, runValidators: true }
     );
 

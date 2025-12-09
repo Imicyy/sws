@@ -1623,37 +1623,38 @@ Thank you!</textarea>
 						}
 					}
 					
-					// Collect form data
+					// Collect form data - scope checkboxes to the edit modal form only
+					const editForm = $('#editYouthForm');
 					const formData = {
-						youthId: $('#editYouthId').val(),
-						first_name: $('#editFirstName').val(),
-						middle_name: $('#editMiddleName').val(),
-						last_name: $('#editLastName').val(),
-						barangay: $('#editBarangay').val(),
-						purok: $('#editPurok').val(),
-						contact: $('#editContact').val(),
-						birthday: $('#editBirthday').val(),
+						youthId: editForm.find('#editYouthId').val(),
+						first_name: editForm.find('#editFirstName').val(),
+						middle_name: editForm.find('#editMiddleName').val(),
+						last_name: editForm.find('#editLastName').val(),
+						barangay: editForm.find('#editBarangay').val(),
+						purok: editForm.find('#editPurok').val(),
+						contact: editForm.find('#editContact').val(),
+						birthday: editForm.find('#editBirthday').val(),
 						age: age,
-						gender: $('#editGender').val(),
-						place_of_birth: $('#editPlaceOfBirth').val(),
-						education_level: $('#editEducationLevel').val(),
-						registered_sk: $('#editRegisteredSk').val(),
-						voted_sk: $('#editVotedSk').val() || null,
-						registered_national: $('#editRegisteredNational').val(),
-						employment_status: $('#editEmploymentStatus').val(),
-						employment_category: $('#editEmploymentCategory').val() || null,
-						employment_type: $('#editEmploymentType').val() || null,
-						Assembly: $('#editAssembly').val(),
-						sk_times: $('#editSkTimes').val() || null,
-						reason: $('#editReason').val() || null,
-						youth_classification: $('input[name="youth_classification"]:checked').map(function() {
+						gender: editForm.find('#editGender').val(),
+						place_of_birth: editForm.find('#editPlaceOfBirth').val(),
+						education_level: editForm.find('#editEducationLevel').val(),
+						registered_sk: editForm.find('#editRegisteredSk').val(),
+						voted_sk: editForm.find('#editVotedSk').val() || null,
+						registered_national: editForm.find('#editRegisteredNational').val(),
+						employment_status: editForm.find('#editEmploymentStatus').val(),
+						employment_category: editForm.find('#editEmploymentCategory').val() || null,
+						employment_type: editForm.find('#editEmploymentType').val() || null,
+						Assembly: editForm.find('#editAssembly').val(),
+						sk_times: editForm.find('#editSkTimes').val() || null,
+						reason: editForm.find('#editReason').val() || null,
+						youth_classification: editForm.find('input[name="youth_classification"]:checked').map(function() {
 							return this.value;
 						}).get(),
-						youth_classification_other: $('#editYouthClassificationOther').val() || null,
-						youth_age_group: $('input[name="youth_age_group"]:checked').map(function() {
+						youth_classification_other: editForm.find('#editYouthClassificationOther').val() || null,
+						youth_age_group: editForm.find('input[name="youth_age_group"]:checked').map(function() {
 							return this.value;
 						}).get(),
-						youth_age_group_other: $('#editYouthAgeGroupOther').val() || null,
+						youth_age_group_other: editForm.find('#editYouthAgeGroupOther').val() || null,
 						// Add edit tracking information (will be overridden by backend session for security)
 						edited_by: '<%= (user && user.email) ? user.email : "Unknown" %>',
 						edited_at: new Date().toISOString()
@@ -1708,6 +1709,17 @@ Thank you!</textarea>
 							btn.data('updating', '0').prop('disabled', false).html(originalText);
 						}
 					});
+				});
+				
+				// Reset form when modal is hidden
+				$('#editModal').on('hidden.bs.modal', function() {
+					const editForm = $('#editYouthForm');
+					if (editForm.length) {
+						editForm[0].reset();
+						// Explicitly uncheck all checkboxes
+						editForm.find('input[type="checkbox"]').prop('checked', false);
+						editForm.find('input[type="hidden"]').val('');
+					}
 				});
 			});
 		</script>
