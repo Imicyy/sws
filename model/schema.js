@@ -92,7 +92,12 @@ const SeniorCitizenSchema = new mongoose.Schema({
 
   edit_log: {
     edited_by: { type: String },
-    edited_at: { type: Date }
+    edited_at: { type: Date },
+    changes: [{
+      field: { type: String },
+      old_value: { type: mongoose.Schema.Types.Mixed },
+      new_value: { type: mongoose.Schema.Types.Mixed }
+    }]
   }
 
 }, { timestamps: true });
@@ -215,7 +220,12 @@ const pwdRegistrationSchema = new mongoose.Schema({
 
   edit_log: {
     edited_by: { type: String },
-    edited_at: { type: Date }
+    edited_at: { type: Date },
+    changes: [{
+      field: { type: String },
+      old_value: { type: mongoose.Schema.Types.Mixed },
+      new_value: { type: mongoose.Schema.Types.Mixed }
+    }]
   }
 }, { timestamps: true });
 
@@ -372,7 +382,12 @@ const youthSchema = new mongoose.Schema({
 
   edit_log: {
     edited_by: { type: String },
-    edited_at: { type: Date }
+    edited_at: { type: Date },
+    changes: [{
+      field: { type: String },
+      old_value: { type: mongoose.Schema.Types.Mixed },
+      new_value: { type: mongoose.Schema.Types.Mixed }
+    }]
   },
 
   // Timestamps

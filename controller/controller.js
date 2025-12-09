@@ -444,10 +444,52 @@ exports.updatePwd = async (req, res) => {
     delete updateData.edited_by;
     delete updateData.edited_at;
     
-    // Add edit log
+    // Get the current PWD record to compare changes
+    const currentPwd = await PWD.findById(pwd_id);
+    const changes = [];
+    
+    if (currentPwd) {
+      // Helper function for deep comparison
+      const areValuesEqual = (oldVal, newVal) => {
+        if (oldVal === newVal) return true;
+        
+        // Handle arrays - sort and compare
+        if (Array.isArray(oldVal) && Array.isArray(newVal)) {
+          if (oldVal.length !== newVal.length) return false;
+          return JSON.stringify(oldVal.sort()) === JSON.stringify(newVal.sort());
+        }
+        
+        // Handle Dates
+        if (oldVal instanceof Date && newVal instanceof Date) {
+          return oldVal.getTime() === newVal.getTime();
+        }
+        
+        // Convert to string and compare for mixed types
+        const oldStr = Array.isArray(oldVal) ? oldVal.join(', ') : String(oldVal || '');
+        const newStr = Array.isArray(newVal) ? newVal.join(', ') : String(newVal || '');
+        return oldStr === newStr;
+      };
+      
+      // Compare each field in updateData with current values
+      for (const [field, newValue] of Object.entries(updateData)) {
+        const oldValue = currentPwd[field];
+        
+        // Only add to changes if values are actually different
+        if (!areValuesEqual(oldValue, newValue)) {
+          changes.push({
+            field: field,
+            old_value: oldValue,
+            new_value: newValue
+          });
+        }
+      }
+    }
+    
+    // Add edit log with changes
     updateData.edit_log = {
       edited_by: editorEmail,
-      edited_at: new Date(editTimestamp)
+      edited_at: new Date(editTimestamp),
+      changes: changes
     };
 
     // Update the PWD record
@@ -1625,14 +1667,84 @@ exports.updateSenior = async (req, res) => {
     const editorEmail = req.session?.user?.email || updateData.edited_by || 'Unknown';
     const editTimestamp = updateData.edited_at || new Date().toISOString();
     
-    // Remove these from updateObject as they're not part of the schema
+    // Remove these from updateData as they're not part of the schema
     delete updateData.edited_by;
     delete updateData.edited_at;
     
-    // Add edit log
+    // Get the current senior record to compare changes
+    const currentSenior = await SeniorCitizen.findById(residentId);
+    const changes = [];
+    
+    if (currentSenior) {
+      // Helper function for deep comparison
+      const areValuesEqual = (oldVal, newVal) => {
+        if (oldVal === newVal) return true;
+        
+        // Handle arrays
+        if (Array.isArray(oldVal) && Array.isArray(newVal)) {
+          if (oldVal.length !== newVal.length) return false;
+          return JSON.stringify(oldVal.sort()) === JSON.stringify(newVal.sort());
+        }
+        
+        // Handle Dates
+        if (oldVal instanceof Date && newVal instanceof Date) {
+          return oldVal.getTime() === newVal.getTime();
+        }
+        
+        // Convert to string and compare for mixed types (e.g., array vs string)
+        const oldStr = Array.isArray(oldVal) ? oldVal.join(', ') : String(oldVal || '');
+        const newStr = Array.isArray(newVal) ? newVal.join(', ') : String(newVal || '');
+        return oldStr === newStr;
+      };
+      
+      // Map updateObject paths to field names for tracking
+      const fieldsToCheck = {
+        'identifying_information.name.first_name': 'first_name',
+        'identifying_information.name.middle_name': 'middle_name',
+        'identifying_information.name.last_name': 'last_name',
+        'identifying_information.address.barangay': 'barangay',
+        'identifying_information.address.purok': 'purok',
+        'identifying_information.gender': 'gender',
+        'identifying_information.date_of_birth': 'birthday',
+        'identifying_information.age': 'age',
+        'identifying_information.marital_status': 'marital_status',
+        'identifying_information.place_of_birth': 'place_of_birth',
+        'identifying_information.osca_id_number': 'osca_id',
+        'identifying_information.gsis_sss': 'gsis_sss',
+        'identifying_information.philhealth': 'philhealth',
+        'identifying_information.tin': 'tin',
+        'family_composition.spouse.name': 'spouse_name',
+        'family_composition.father.first_name': 'fatherFirstName',
+        'family_composition.mother.first_name': 'motherFirstName',
+        'identifying_information.contacts': 'contacts'
+      };
+      
+      for (const [path, fieldName] of Object.entries(fieldsToCheck)) {
+        const newValue = updateObject[path];
+        if (newValue !== undefined) {
+          const pathParts = path.split('.');
+          let oldValue = currentSenior;
+          for (const part of pathParts) {
+            oldValue = oldValue?.[part];
+          }
+          
+          // Only add to changes if values are actually different
+          if (!areValuesEqual(oldValue, newValue)) {
+            changes.push({
+              field: fieldName,
+              old_value: oldValue,
+              new_value: newValue
+            });
+          }
+        }
+      }
+    }
+    
+    // Add edit log with changes
     updateObject['edit_log'] = {
       edited_by: editorEmail,
-      edited_at: new Date(editTimestamp)
+      edited_at: new Date(editTimestamp),
+      changes: changes
     };
 
     console.log('Update object:', updateObject);
@@ -2030,10 +2142,52 @@ exports.updateYouth = async (req, res) => {
     delete updateData.edited_by;
     delete updateData.edited_at;
     
-    // Add edit log
+    // Get the current youth record to compare changes
+    const currentYouth = await Youth.findById(youthId);
+    const changes = [];
+    
+    if (currentYouth) {
+      // Helper function for deep comparison
+      const areValuesEqual = (oldVal, newVal) => {
+        if (oldVal === newVal) return true;
+        
+        // Handle arrays - sort and compare
+        if (Array.isArray(oldVal) && Array.isArray(newVal)) {
+          if (oldVal.length !== newVal.length) return false;
+          return JSON.stringify(oldVal.sort()) === JSON.stringify(newVal.sort());
+        }
+        
+        // Handle Dates
+        if (oldVal instanceof Date && newVal instanceof Date) {
+          return oldVal.getTime() === newVal.getTime();
+        }
+        
+        // Convert to string and compare for mixed types
+        const oldStr = Array.isArray(oldVal) ? oldVal.join(', ') : String(oldVal || '');
+        const newStr = Array.isArray(newVal) ? newVal.join(', ') : String(newVal || '');
+        return oldStr === newStr;
+      };
+      
+      // Compare each field in updateData with current values
+      for (const [field, newValue] of Object.entries(updateData)) {
+        const oldValue = currentYouth[field];
+        
+        // Only add to changes if values are actually different
+        if (!areValuesEqual(oldValue, newValue)) {
+          changes.push({
+            field: field,
+            old_value: oldValue,
+            new_value: newValue
+          });
+        }
+      }
+    }
+    
+    // Add edit log with changes
     updateData.edit_log = {
       edited_by: editorEmail,
-      edited_at: new Date(editTimestamp)
+      edited_at: new Date(editTimestamp),
+      changes: changes
     };
 
     // Update the youth record
