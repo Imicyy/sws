@@ -3227,11 +3227,50 @@ exports.addPurok = async (req, res) => {
 };
 
 
-exports.renderSuperAdminAlert = async (req, res) => {
+exports.renderAdminAlert = async (req, res) => {
   try {
-    res.render('superadmin/superadmin_alert');
+    res.render('admin/admin_alert');
   } catch (error) {
     
+  }
+};
+
+exports.sendAlert = async (req, res) => {
+  try {
+    const { message, room } = req.body;
+
+    // Validate input
+    if (!message || !room) {
+      return res.status(400).json({
+        success: false,
+        error: "Message and room are required"
+      });
+    }
+
+    // Validate room
+    if (room !== 'staff' && room !== 'youth') {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid room. Must be 'staff' or 'youth'"
+      });
+    }
+
+    // Emit alert to the specified room
+    req.io.to(room).emit('receive-alert', {
+      message: message,
+      timestamp: new Date(),
+      from: 'Admin'
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Alert sent to ${room} room successfully`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 };
 

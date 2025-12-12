@@ -140,18 +140,18 @@
 											<span class="pcoded-mtext">Dashboard</span>
 										</a>
 										<ul class="pcoded-submenu">
-											<li class="">
-												<a href="/index-superadmin">
-													<span class="">ADMIN</span>
+												<li class="">
+												<a href="/Index">
+													<span class="">PDAO TABLE</span>
 												</a>
 											</li>
 											<li class="">
-												<a href="/superadmin-users">
-													<span class="">USER</span>
+												<a href="/Analytics">
+													<span class="">OSCA TABLE</span>
 												</a>
 											</li>
 											<li class="active">
-												<a href="/superadmin-alert">
+												<a href="/admin-alert">
 													<span class="">ALERT</span>
 												</a>
 											</li>
@@ -165,9 +165,44 @@
 								<div class="main-body">
 									<div class="page-wrapper">
 										<div class="admin-container">
-											
-											
-											
+											<div class="container mt-5">
+												<div class="row">
+													<div class="col-md-8 offset-md-2">
+														<h2>Send Alert to Staff or Youth</h2>
+														<div class="card mt-4">
+															<div class="card-body">
+																<form id="alertForm">
+																	<div class="form-group">
+																		<label for="message">Message</label>
+																		<textarea class="form-control" id="message" rows="4" placeholder="Enter your alert message" required></textarea>
+																	</div>
+																	<div class="form-group">
+																		<label for="room">Send To</label>
+																		<select class="form-control" id="room" required>
+																			<option value="">-- Select --</option>
+																			<option value="staff">Staff</option>
+																			<option value="youth">Youth</option>
+																		</select>
+																	</div>
+																	<button type="submit" class="btn btn-primary">Send Alert</button>
+																</form>
+															</div>
+														</div>
+
+														<!-- Alert Display Section -->
+														<div class="card mt-5">
+															<div class="card-header bg-info text-white">
+																<h5 class="mb-0">Alert Log</h5>
+															</div>
+															<div class="card-body">
+																<div id="alertContainer" style="max-height: 400px; overflow-y: auto;">
+																	<p class="text-muted">No alerts sent yet.</p>
+																</div>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -233,6 +268,101 @@
 			}
 			gtag('js', new Date());
 			gtag('config', 'UA-23581568-13');
+		</script>
+
+		<!-- Socket.io script -->
+		<script src="/socket.io/socket.io.js"></script>
+		<script>
+			// Initialize Socket.io connection
+			const socket = io();
+
+			// Handle alert form submission
+			document.getElementById('alertForm').addEventListener('submit', async (e) => {
+				e.preventDefault();
+
+				const message = document.getElementById('message').value;
+				const room = document.getElementById('room').value;
+
+				if (!message || !room) {
+					alert('Please fill in all fields');
+					return;
+				}
+
+				try {
+					const response = await fetch('/send-alert', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({ message, room })
+					});
+
+					// Check if response is OK
+					if (!response.ok) {
+						const errorText = await response.text();
+						console.error('Server error:', errorText);
+						throw new Error(`Server error: ${response.status}`);
+					}
+
+					const contentType = response.headers.get('content-type');
+					if (!contentType || !contentType.includes('application/json')) {
+						const text = await response.text();
+						console.error('Invalid response content-type:', contentType);
+						console.error('Response body:', text);
+						throw new Error('Invalid response format from server');
+					}
+
+					const data = await response.json();
+
+					if (data.success) {
+						// Add to alert log
+						addAlertLog(message, room);
+						// Clear form
+						document.getElementById('message').value = '';
+						document.getElementById('room').value = '';
+						Swal.fire({
+							icon: 'success',
+							title: 'Success',
+							text: data.message
+						});
+					} else {
+						Swal.fire({
+							icon: 'error',
+							title: 'Error',
+							text: data.error
+						});
+					}
+				} catch (error) {
+					console.error('Alert error:', error);
+					Swal.fire({
+						icon: 'error',
+						title: 'Error',
+						text: 'Failed to send alert: ' + error.message
+					});
+				}
+			});
+
+			// Function to add alert to log
+			function addAlertLog(message, room) {
+				const container = document.getElementById('alertContainer');
+				const now = new Date().toLocaleTimeString();
+
+				// Clear "No alerts" message if first alert
+				if (container.innerHTML.includes('No alerts sent yet')) {
+					container.innerHTML = '';
+				}
+
+				const alertItem = document.createElement('div');
+				alertItem.className = 'alert alert-info alert-dismissible fade show';
+				alertItem.innerHTML = `
+					<strong>To ${room.toUpperCase()}:</strong> ${message}
+					<br>
+					<small class="text-muted">${now}</small>
+					<button type="button" class="close" data-dismiss="alert">&times;</button>
+				`;
+
+				container.insertBefore(alertItem, container.firstChild);
+			}
 		</script>
 	</body>
 </html>

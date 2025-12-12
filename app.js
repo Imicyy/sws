@@ -5,8 +5,12 @@ const bodyParser = require("body-parser");
 const routes = require("./routes/routes");
 const connection = require("./model/database");
 const session = require('express-session');
+const http = require('http');
+const socketIo = require('socket.io');
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
 const PORT = process.env.PORT || 3000;
 
 // Set EJS as the templating engine
@@ -31,6 +35,30 @@ app.use(session({
 //database connection
 connection();
 
+// Socket.io connection handling
+io.on('connection', (socket) => {
+    console.log('New user connected:', socket.id);
+
+    // Handle user joining a room
+    socket.on('join-room', (room) => {
+        if (room === 'staff' || room === 'youth') {
+            socket.join(room);
+            console.log(`User ${socket.id} joined ${room} room`);
+        }
+    });
+
+    // Handle disconnect
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+// Make io accessible to routes
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
+
 // Import routes
 app.use("/", routes);
 
@@ -40,7 +68,7 @@ app.use("/", routes);
 // });
 
 //hosted
-app.listen(PORT, '0.0.0.0',() => {
+server.listen(PORT, '0.0.0.0',() => {
     console.log(`Server is running`);
 });
 

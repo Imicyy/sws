@@ -95,7 +95,7 @@ router.get('/add_pwd', controller.renderAddPWD);
 router.get('/index-superadmin',controller.renderSuperAdminIndex);
 
 router.get('/superadmin-users',controller.renderSuperAdminUser);
-router.get('/superadmin-alert',controller.renderSuperAdminAlert);
+
 
 router.post('/update-user', requireAuth, controller.updateUser);
 router.post('/edit-user', requireAuth, controller.editUserStatus);
@@ -108,6 +108,9 @@ router.get('/pwd/:id/application-pdf', requireAuth, controller.generatePwdApplic
 router.get('/senior/:id/application-pdf', requireAuth, controller.generateSeniorApplicationPdf);
 router.get('/youth/:id/application-pdf', requireAuth, controller.generateYouthApplicationPdf);
 
+//admin alert
+router.get('/admin-alert',requireAuth,controller.renderAdminAlert);
+router.post('/send-alert', requireAuth, controller.sendAlert);
 //Youth routes
 router.get('', requireAuth, (req, res) => {
     res.render(youth/staff_youth);
