@@ -269,22 +269,27 @@ document.addEventListener('DOMContentLoaded', function() {
           });
       })
       .catch(error => {
-          let errorMessage = "There was a problem submitting your form. Please try again.";
-          
-          if (error.errors) {
-              // Handle validation errors
-              errorMessage = "Please correct the following errors:\n" + 
-                  error.errors.join("\n");
-          } else if (error.message) {
-              errorMessage = error.message;
+          // Check if server returned an alert object (for duplicate or validation errors)
+          if (error.alert) {
+              Swal.fire(error.alert);
+          } else {
+              let errorMessage = "There was a problem submitting your form. Please try again.";
+              
+              if (error.errors) {
+                  // Handle validation errors
+                  errorMessage = "Please correct the following errors:\n" + 
+                      error.errors.join("\n");
+              } else if (error.message) {
+                  errorMessage = error.message;
+              }
+              
+              Swal.fire({
+                  title: "Error!",
+                  html: errorMessage.replace(/\n/g, '<br>'), // Convert newlines to <br>
+                  icon: "error",
+                  confirmButtonText: "OK"
+              });
           }
-          
-          Swal.fire({
-              title: "Error!",
-              html: errorMessage.replace(/\n/g, '<br>'), // Convert newlines to <br>
-              icon: "error",
-              confirmButtonText: "OK"
-          });
           
           // Scroll back to the first tab if there are errors
           currentTab = 0;

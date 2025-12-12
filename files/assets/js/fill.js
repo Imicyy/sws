@@ -366,11 +366,16 @@ async function submitForm() {
     });
   } catch (error) {
     console.error('Error:', error);
-    Swal.fire({
-      title: 'Error',
-      text: error.message || 'An error occurred while saving the data',
-      icon: 'error'
-    });
+    // Check if server returned an alert object (for duplicate or validation errors)
+    if (error.alert) {
+      Swal.fire(error.alert);
+    } else {
+      Swal.fire({
+        title: 'Error',
+        text: error.message || 'An error occurred while saving the data',
+        icon: 'error'
+      });
+    }
   } finally {
     submitButton.disabled = false;
   }

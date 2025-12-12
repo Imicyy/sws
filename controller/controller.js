@@ -153,6 +153,38 @@ exports.logout = (req, res) => {
     try {
       const body = req.body;
   
+      // Extract name and date of birth for duplicate check
+      const firstName = body.identifying_information?.name?.first_name || body.first_name;
+      const lastName = body.identifying_information?.name?.last_name || body.last_name;
+      const dateOfBirth = body.identifying_information?.date_of_birth || body.birthday || body.date_of_birth;
+      
+      // Check for duplicate Senior Citizen record (same first_name, last_name, and date_of_birth)
+      if (firstName && lastName && dateOfBirth) {
+        const dob = new Date(dateOfBirth);
+        const existingResident = await SeniorCitizen.findOne({
+          'identifying_information.name.first_name': firstName,
+          'identifying_information.name.last_name': lastName,
+          'identifying_information.date_of_birth': {
+            $gte: new Date(dob.getFullYear(), dob.getMonth(), dob.getDate()),
+            $lt: new Date(dob.getFullYear(), dob.getMonth(), dob.getDate() + 1)
+          },
+          status: 'Active'
+        });
+
+        if (existingResident) {
+          return res.status(400).json({
+            success: false,
+            alert: {
+              title: 'Duplicate Record Found',
+              text: `A Senior Citizen record with the name "${firstName} ${lastName}" and date of birth "${dob.toLocaleDateString()}" already exists in the system.`,
+              icon: 'warning',
+              showConfirmButton: true
+            },
+            isDuplicate: true
+          });
+        }
+      }
+  
       // Handle skill_other_text safely
       const skillOtherText = Array.isArray(body.education_hr_profile?.skill_other_text)
         ? body.education_hr_profile.skill_other_text.find(text => text && text.trim() !== '')
@@ -312,6 +344,30 @@ exports.registerPwd = async (req, res) => {
   try {
     console.log('Raw body:', req.body);
 
+    // Check for duplicate PWD record (same first_name, last_name, and birthday)
+    const birthday = new Date(req.body.birthday);
+    const existingPwd = await PWD.findOne({
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      birthday: {
+        $gte: new Date(birthday.getFullYear(), birthday.getMonth(), birthday.getDate()),
+        $lt: new Date(birthday.getFullYear(), birthday.getMonth(), birthday.getDate() + 1)
+      }
+    });
+
+    if (existingPwd) {
+      return res.status(400).json({
+        success: false,
+        alert: {
+          title: 'Duplicate Record Found',
+          text: `A PWD record with the name "${req.body.first_name} ${req.body.last_name}" and birthday "${birthday.toLocaleDateString()}" already exists in the system.`,
+          icon: 'warning',
+          showConfirmButton: true
+        },
+        isDuplicate: true
+      });
+    }
+
     // Transform the raw data to match your schema
     const pwdData = {
       first_name: req.body.first_name,
@@ -319,7 +375,7 @@ exports.registerPwd = async (req, res) => {
       last_name: req.body.last_name,
       barangay: req.body.barangay,
       purok: req.body.purok,
-      birthday: new Date(req.body.birthday), // Convert string to Date
+      birthday: birthday, // Convert string to Date
       age: parseInt(req.body.age), // Ensure age is a number
       gender: req.body.gender,
       place_of_birth: req.body.place_of_birth,
@@ -2028,6 +2084,30 @@ exports.createYouth = async (req, res) => {
   try {
     console.log('Raw body:', req.body);
 
+    // Check for duplicate Youth record (same first_name, last_name, and birthday)
+    const birthday = new Date(req.body.birthday);
+    const existingYouth = await Youth.findOne({
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      birthday: {
+        $gte: new Date(birthday.getFullYear(), birthday.getMonth(), birthday.getDate()),
+        $lt: new Date(birthday.getFullYear(), birthday.getMonth(), birthday.getDate() + 1)
+      }
+    });
+
+    if (existingYouth) {
+      return res.status(400).json({
+        success: false,
+        alert: {
+          title: 'Duplicate Record Found',
+          text: `A Youth record with the name "${req.body.first_name} ${req.body.last_name}" and birthday "${birthday.toLocaleDateString()}" already exists in the system.`,
+          icon: 'warning',
+          showConfirmButton: true
+        },
+        isDuplicate: true
+      });
+    }
+
     // Destructure req.body
     const {
       first_name,
@@ -2036,7 +2116,7 @@ exports.createYouth = async (req, res) => {
       barangay,
       purok,
       contact,
-      birthday,
+      birthday: birthdayFromBody,
       age,
       gender,
       place_of_birth,
@@ -2064,7 +2144,7 @@ exports.createYouth = async (req, res) => {
       barangay,
       purok,
       contact,
-      birthday: new Date(birthday), // ensure Date type
+      birthday: birthday, // use the already converted birthday Date object
       age: parseInt(age, 10), // ensure Number type
       gender,
       place_of_birth,
