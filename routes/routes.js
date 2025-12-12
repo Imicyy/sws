@@ -95,6 +95,7 @@ router.get('/add_pwd', controller.renderAddPWD);
 router.get('/index-superadmin',controller.renderSuperAdminIndex);
 
 router.get('/superadmin-users',controller.renderSuperAdminUser);
+router.get('/superadmin-alert',controller.renderSuperAdminAlert);
 
 router.post('/update-user', requireAuth, controller.updateUser);
 router.post('/edit-user', requireAuth, controller.editUserStatus);

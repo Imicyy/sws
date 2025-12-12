@@ -3227,4 +3227,13 @@ exports.addPurok = async (req, res) => {
 };
 
 
+exports.renderSuperAdminAlert = async (req, res) => {
+  try {
+    res.render('superadmin/superadmin_alert');
+  } catch (error) {
+    
+  }
+};
+
+
 
