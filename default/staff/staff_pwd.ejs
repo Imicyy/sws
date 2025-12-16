@@ -654,7 +654,21 @@
 																						</div>
 																					</div>
 																				</fieldset>
-																				
+
+																				<!-- Contact Information Section -->
+																				<fieldset class="mb-4">
+																					<legend>Contact Information</legend>
+																					<div id="editContactsContainer">
+																						<!-- Contact entries will be populated here dynamically -->
+																					</div>
+																					<div class="row mt-3">
+																						<div class="col-md-12">
+																							<button type="button" id="editAddContact" class="btn btn-sm btn-outline-primary">
+																								<i data-feather="plus"></i> Add Another Contact
+																							</button>
+																						</div>
+																					</div>
+																				</fieldset>
 
 																				<!-- Parent Information Section -->
 																				<fieldset class="mb-4">
@@ -1304,8 +1318,8 @@
 					$('.modal-backdrop').remove();
 					// Remove modal-open class from body
 					$('body').removeClass('modal-open');
-					// Remove inline styles that might block interaction
-					$('body').css('padding-right', '');
+					// Restore body overflow and padding
+					$('body').css({'overflow': '', 'padding-right': ''});
 					// Get fresh reference to print button
 					const printBtn = document.getElementById('printApplicationBtn');
 					if (printBtn) {
@@ -1481,6 +1495,139 @@
 								spouseRow.style.display = 'none';
 							}
 							
+							// Populate Contact Information
+							const contactsContainer = document.getElementById('editContactsContainer');
+							contactsContainer.innerHTML = ''; // Clear existing contacts
+							
+							if (pwdData.contacts && Array.isArray(pwdData.contacts)) {
+								pwdData.contacts.forEach((contact, index) => {
+									const contactEntry = document.createElement('div');
+									contactEntry.className = 'edit-contact-entry mb-3 p-3 border rounded';
+									contactEntry.dataset.contactIndex = index;
+									
+									contactEntry.innerHTML = `
+										<div class="row">
+											<div class="col-md-3">
+												<div class="form-group">
+													<label>Contact Type</label>
+													<select class="form-control edit-contact-type" name="contacts[${index}][type]" required>
+														<option value="primary" ${contact.type === 'primary' ? 'selected' : ''}>Primary</option>
+														<option value="secondary" ${contact.type === 'secondary' ? 'selected' : ''}>Secondary</option>
+														<option value="emergency" ${contact.type === 'emergency' ? 'selected' : ''}>Emergency</option>
+													</select>
+												</div>
+											</div>
+											<div class="col-md-3">
+												<div class="form-group">
+													<label>Full Name</label>
+													<input type="text" class="form-control edit-contact-name" name="contacts[${index}][name]" value="${contact.name || ''}" required maxlength="50">
+												</div>
+											</div>
+											<div class="col-md-3">
+												<div class="form-group">
+													<label>Relationship</label>
+													<input type="text" class="form-control edit-contact-relationship" name="contacts[${index}][relationship]" value="${contact.relationship || ''}" maxlength="30">
+												</div>
+											</div>
+											<div class="col-md-3">
+												<div class="form-group">
+													<label>Phone Number</label>
+													<input type="tel" class="form-control edit-contact-phone" name="contacts[${index}][phone]" value="${contact.phone || ''}" maxlength="11" pattern="\\d{11}" title="Please enter exactly 11 digits">
+												</div>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col-md-6">
+												<div class="form-group">
+													<label>Email Address</label>
+													<input type="email" class="form-control edit-contact-email" name="contacts[${index}][email]" value="${contact.email || ''}" maxlength="50">
+												</div>
+											</div>
+											<div class="col-md-6">
+												<div class="form-group">
+													<button type="button" class="btn btn-sm btn-danger edit-remove-contact" ${index === 0 ? 'disabled' : ''} style="margin-top: 32px;">
+														<i data-feather="trash-2"></i> Remove
+													</button>
+												</div>
+											</div>
+										</div>
+									`;
+									
+									contactsContainer.appendChild(contactEntry);
+									
+									// Add remove button handler
+									if (index > 0) {
+										contactEntry.querySelector('.edit-remove-contact').addEventListener('click', function(e) {
+											e.preventDefault();
+											contactEntry.remove();
+											updateContactIndices();
+										});
+									}
+								});
+							} else {
+								// Create default contact entry if no contacts exist
+								const defaultContactEntry = document.createElement('div');
+								defaultContactEntry.className = 'edit-contact-entry mb-3 p-3 border rounded';
+								defaultContactEntry.dataset.contactIndex = 0;
+								
+								defaultContactEntry.innerHTML = `
+									<div class="row">
+										<div class="col-md-3">
+											<div class="form-group">
+												<label>Contact Type</label>
+												<select class="form-control edit-contact-type" name="contacts[0][type]" required>
+													<option value="primary" selected>Primary</option>
+													<option value="secondary">Secondary</option>
+													<option value="emergency">Emergency</option>
+												</select>
+											</div>
+										</div>
+										<div class="col-md-3">
+											<div class="form-group">
+												<label>Full Name</label>
+												<input type="text" class="form-control edit-contact-name" name="contacts[0][name]" required maxlength="50">
+											</div>
+										</div>
+										<div class="col-md-3">
+											<div class="form-group">
+												<label>Relationship</label>
+												<input type="text" class="form-control edit-contact-relationship" name="contacts[0][relationship]" maxlength="30">
+											</div>
+										</div>
+										<div class="col-md-3">
+											<div class="form-group">
+												<label>Phone Number</label>
+												<input type="tel" class="form-control edit-contact-phone" name="contacts[0][phone]" maxlength="11" pattern="\\d{11}" title="Please enter exactly 11 digits" required>
+											</div>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-md-6">
+											<div class="form-group">
+												<label>Email Address</label>
+												<input type="email" class="form-control edit-contact-email" name="contacts[0][email]" maxlength="50">
+											</div>
+										</div>
+										<div class="col-md-6">
+											<div class="form-group">
+												<button type="button" class="btn btn-sm btn-danger edit-remove-contact" disabled style="margin-top: 32px;">
+													<i data-feather="trash-2"></i> Remove
+												</button>
+											</div>
+										</div>
+									</div>
+								`;
+								
+								contactsContainer.appendChild(defaultContactEntry);
+							}
+							
+							// Re-initialize feather icons for the new contact entries
+							if (typeof feather !== 'undefined' && feather.replace) {
+								try {
+									feather.replace();
+								} catch (e) {}
+							}
+							
 							// Parent information
 							document.getElementById('editFatherFirstName').value = pwdData.fatherFirstName || '';
 							document.getElementById('editFatherMiddleName').value = pwdData.fatherMiddleName || '';
@@ -1632,6 +1779,28 @@
 								}
 							}
 							
+							// Collect contacts
+							const contacts = [];
+							const contactEntries = document.querySelectorAll('.edit-contact-entry');
+							contactEntries.forEach((entry, index) => {
+								const contactType = entry.querySelector('.edit-contact-type').value;
+								const contactName = entry.querySelector('.edit-contact-name').value;
+								const contactRelationship = entry.querySelector('.edit-contact-relationship').value;
+								const contactPhone = entry.querySelector('.edit-contact-phone').value;
+								const contactEmail = entry.querySelector('.edit-contact-email').value;
+								
+								if (contactName && contactPhone) {
+									contacts.push({
+										type: contactType,
+										name: contactName,
+										relationship: contactRelationship,
+										phone: contactPhone,
+										email: contactEmail
+									});
+								}
+							});
+							updateData.contacts = contacts;
+							
 							// Get disability checkboxes
 							const disabilityCheckboxes = document.querySelectorAll('#editDisabilityTypes input[type="checkbox"]:checked');
 							updateData.disability = Array.from(disabilityCheckboxes).map(cb => cb.value);
@@ -1712,6 +1881,118 @@
 					});
 				}
 
+				// CONTACT MANAGEMENT FUNCTIONS FOR EDIT MODAL
+				function updateContactIndices() {
+					const contactsContainer = document.getElementById('editContactsContainer');
+					const contactEntries = contactsContainer.querySelectorAll('.edit-contact-entry');
+					
+					contactEntries.forEach((entry, index) => {
+						entry.dataset.contactIndex = index;
+						
+						// Update all name attributes with new index
+						const inputs = entry.querySelectorAll('input, select');
+						inputs.forEach(input => {
+							const name = input.getAttribute('name');
+							if (name && name.startsWith('contacts[')) {
+								const newName = name.replace(/contacts\[\d+\]/, `contacts[${index}]`);
+								input.setAttribute('name', newName);
+							}
+						});
+						
+						// Update remove button state and handler
+						const removeBtn = entry.querySelector('.edit-remove-contact');
+						if (index === 0) {
+							removeBtn.disabled = true;
+						} else {
+							removeBtn.disabled = false;
+							removeBtn.onclick = null; // Clear old handler
+							removeBtn.addEventListener('click', function(e) {
+								e.preventDefault();
+								entry.remove();
+								updateContactIndices();
+							});
+						}
+					});
+				}
+				
+				// Add Another Contact Button Handler
+				const editAddContactBtn = document.getElementById('editAddContact');
+				if (editAddContactBtn) {
+					editAddContactBtn.addEventListener('click', function(e) {
+						e.preventDefault();
+						const contactsContainer = document.getElementById('editContactsContainer');
+						const nextIndex = contactsContainer.querySelectorAll('.edit-contact-entry').length;
+						
+						const newContactEntry = document.createElement('div');
+						newContactEntry.className = 'edit-contact-entry mb-3 p-3 border rounded';
+						newContactEntry.dataset.contactIndex = nextIndex;
+						
+						newContactEntry.innerHTML = `
+							<div class="row">
+								<div class="col-md-3">
+									<div class="form-group">
+										<label>Contact Type</label>
+										<select class="form-control edit-contact-type" name="contacts[${nextIndex}][type]" required>
+											<option value="primary">Primary</option>
+											<option value="secondary" selected>Secondary</option>
+											<option value="emergency">Emergency</option>
+										</select>
+									</div>
+								</div>
+								<div class="col-md-3">
+									<div class="form-group">
+										<label>Full Name</label>
+										<input type="text" class="form-control edit-contact-name" name="contacts[${nextIndex}][name]" required maxlength="50">
+									</div>
+								</div>
+								<div class="col-md-3">
+									<div class="form-group">
+										<label>Relationship</label>
+										<input type="text" class="form-control edit-contact-relationship" name="contacts[${nextIndex}][relationship]" maxlength="30">
+									</div>
+								</div>
+								<div class="col-md-3">
+									<div class="form-group">
+										<label>Phone Number</label>
+										<input type="tel" class="form-control edit-contact-phone" name="contacts[${nextIndex}][phone]" maxlength="11" pattern="\\d{11}" title="Please enter exactly 11 digits" required>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>Email Address</label>
+										<input type="email" class="form-control edit-contact-email" name="contacts[${nextIndex}][email]" maxlength="50">
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<button type="button" class="btn btn-sm btn-danger edit-remove-contact" style="margin-top: 32px;">
+											<i data-feather="trash-2"></i> Remove
+										</button>
+									</div>
+								</div>
+							</div>
+						`;
+						
+						contactsContainer.appendChild(newContactEntry);
+						
+						// Add remove handler
+						newContactEntry.querySelector('.edit-remove-contact').addEventListener('click', function(e) {
+							e.preventDefault();
+							newContactEntry.remove();
+							updateContactIndices();
+						});
+						
+						// Reinitialize feather icons
+						if (typeof feather !== 'undefined' && feather.replace) {
+							try {
+								feather.replace();
+							} catch (e) {}
+						}
+					});
+				}
+
 				// Add dynamic behavior to edit modal
 				// Auto-calculate age when birthday changes
 				const editBirthdayInput = document.getElementById('editBirthday');
@@ -1765,8 +2046,8 @@
 					$('.modal-backdrop').remove();
 					// Remove modal-open class from body
 					$('body').removeClass('modal-open');
-					// Remove inline styles that might block interaction
-					$('body').css('padding-right', '');
+					// Restore body overflow and padding
+					$('body').css({'overflow': '', 'padding-right': ''});
 				});
 
 				// SMS Functionality
@@ -1977,6 +2258,10 @@
 						const form = document.getElementById('smsForm');
 						if (form) form.reset();
 						updateCharCount();
+						// Clean up modal backdrop and body styles
+						$('.modal-backdrop').remove();
+						$('body').removeClass('modal-open');
+						$('body').css({'overflow': '', 'padding-right': ''});
 					});
 				}
 
@@ -2178,6 +2463,14 @@
 					}
 				});
 			}
+			
+			// SMS History Modal cleanup handler
+			$('#smsHistoryModal').on('hidden.bs.modal', function () {
+				// Clean up modal backdrop and body styles
+				$('.modal-backdrop').remove();
+				$('body').removeClass('modal-open');
+				$('body').css({'overflow': '', 'padding-right': ''});
+			});
 
 			// ARCHIVE FUNCTIONALITY
 			const archiveButtons = document.querySelectorAll('.archive-btn');
@@ -2236,6 +2529,21 @@
 						}
 					});
 				});
+			});
+
+			// Global Modal Cleanup - catch any modals that close
+			// This ensures body scroll is restored even if individual handlers fail
+			$(document).on('hidden.bs.modal', '.modal', function() {
+				// Check if there are any open modals left
+				const openModals = $('.modal.show').length;
+				if (openModals === 0) {
+					// Remove all leftover backdrop elements
+					$('.modal-backdrop').remove();
+					// Remove modal-open class from body
+					$('body').removeClass('modal-open');
+					// Restore body overflow and padding
+					$('body').css({'overflow': '', 'padding-right': ''});
+				}
 			});
 
 			// Initialize Feather Icons
