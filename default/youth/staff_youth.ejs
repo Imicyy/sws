@@ -791,11 +791,12 @@ Thank you!</textarea>
 																				<th>Purok</th>
 																				<th style="max-width: 300px; min-width: 200px;">Message</th>
 																				<th>Status</th>
+																				<th>Received</th>
 																			</tr>
 																		</thead>
 																		<tbody id="smsHistoryTableBody">
 																			<tr>
-																				<td colspan="7" class="text-center">Loading...</td>
+																				<td colspan="8" class="text-center">Loading...</td>
 																			</tr>
 																		</tbody>
 																	</table>
@@ -1866,7 +1867,7 @@ Thank you!</textarea>
 							const tableBody = document.getElementById('smsHistoryTableBody');
 							
 							if (!data || data.length === 0) {
-								tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No SMS history found</td></tr>';
+								tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No SMS history found</td></tr>';
 								return;
 							}
 							
@@ -1881,6 +1882,8 @@ Thank you!</textarea>
 									? '<span class="badge badge-danger">Error</span>'
 									: '<span class="badge badge-warning">Skipped</span>';
 								
+								const receivedCheckbox = `<input type="checkbox" class="sms-received-checkbox" data-sms-id="${record._id}" ${record.received ? 'checked' : ''} />`;
+								
 								row.innerHTML = `
 									<td>${sentDate.toLocaleString()}</td>
 									<td>${record.phone_number || 'N/A'}</td>
@@ -1889,8 +1892,39 @@ Thank you!</textarea>
 									<td>${record.purok || 'N/A'}</td>
 									<td style="max-width: 300px; min-width: 200px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.4;">${record.message || 'N/A'}</td>
 									<td>${statusBadge}</td>
+									<td class="text-center">${receivedCheckbox}</td>
 								`;
 								tableBody.appendChild(row);
+							});
+							
+							// Add event listeners to the checkboxes
+							document.querySelectorAll('.sms-received-checkbox').forEach(checkbox => {
+								checkbox.addEventListener('change', async function() {
+									const smsId = this.getAttribute('data-sms-id');
+									const isChecked = this.checked;
+									
+									try {
+										const response = await fetch('/update-sms-received', {
+											method: 'PUT',
+											headers: {
+												'Content-Type': 'application/json'
+											},
+											body: JSON.stringify({
+												smsId: smsId,
+												received: isChecked
+											})
+										});
+										
+										if (!response.ok) {
+											alert('Failed to update SMS received status');
+											this.checked = !isChecked;
+										}
+									} catch (error) {
+										console.error('Error updating SMS received status:', error);
+										alert('Error updating SMS received status');
+										this.checked = !isChecked;
+									}
+								});
 							});
 						}
 						

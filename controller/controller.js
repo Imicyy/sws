@@ -2351,7 +2351,8 @@ exports.sendSms = async (req, res) => {
             purok: r.purok || '',
             message: message,
             status: 'skipped',
-            sent_by: sentBy
+            sent_by: sentBy,
+            received: false
           });
         }
         continue;
@@ -2400,7 +2401,8 @@ exports.sendSms = async (req, res) => {
           purok: r.purok || '',
           message: message,
           status: smsStatus,
-          sent_by: sentBy
+          sent_by: sentBy,
+          received: false
         });
       }
     }
@@ -3274,5 +3276,35 @@ exports.sendAlert = async (req, res) => {
   }
 };
 
-
+// Update SMS received status
+exports.updateSmsReceived = async (req, res) => {
+  const { SmsHistory } = require('../model/schema');
+  
+  try {
+    const { smsId, received } = req.body;
+    
+    if (!smsId) {
+      return res.status(400).json({ success: false, message: 'SMS ID is required' });
+    }
+    
+    const updatedRecord = await SmsHistory.findByIdAndUpdate(
+      smsId,
+      { received: Boolean(received) },
+      { new: true }
+    );
+    
+    if (!updatedRecord) {
+      return res.status(404).json({ success: false, message: 'SMS record not found' });
+    }
+    
+    res.json({
+      success: true,
+      message: 'SMS received status updated successfully',
+      data: updatedRecord
+    });
+  } catch (err) {
+    console.error('updateSmsReceived error:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
 

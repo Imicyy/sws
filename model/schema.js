@@ -457,6 +457,10 @@ const SmsHistorySchema = new mongoose.Schema({
   sent_at: {
     type: Date,
     default: Date.now
+  },
+  received: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

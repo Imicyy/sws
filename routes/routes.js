@@ -21,6 +21,8 @@ router.get('/logout', controller.logout);
 router.post('/send-sms', requireAuth, controller.sendSms);
 // SMS history endpoint
 router.get('/sms-history', requireAuth, controller.getSmsHistory);
+// Update SMS received status
+router.put('/update-sms-received', requireAuth, controller.updateSmsReceived);
 
 // Admin routes
 router.get('/Index', requireAuth, (req, res) => {
