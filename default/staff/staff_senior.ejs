@@ -1352,6 +1352,17 @@
                                         if (val.length === 0) {
                                             return '<em style="color: #999;">(empty)</em>';
                                         }
+                                        // Check if it's an array of objects (like contacts)
+                                        if (val.length > 0 && typeof val[0] === 'object') {
+                                            return val.map(item => {
+                                                if (item.name && item.phone) {
+                                                    return `${item.name} (${item.phone})`;
+                                                } else if (item.name) {
+                                                    return item.name;
+                                                }
+                                                return JSON.stringify(item);
+                                            }).join('; ');
+                                        }
                                         return val.join(', ');
                                     }
                                     if (val instanceof Object && !(val instanceof Date)) {
