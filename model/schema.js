@@ -90,6 +90,11 @@ const SeniorCitizenSchema = new mongoose.Schema({
     default: 'Active'
   },
 
+  archive_reason: {
+    type: String,
+    default: null
+  },
+
   edit_log: {
     edited_by: { type: String },
     edited_at: { type: Date },
@@ -216,6 +221,11 @@ const pwdRegistrationSchema = new mongoose.Schema({
     type: String,
     enum: ['Active', 'Archived'],
     default: 'Active'
+  },
+
+  archive_reason: {
+    type: String,
+    default: null
   },
 
   edit_log: {
@@ -378,6 +388,11 @@ const youthSchema = new mongoose.Schema({
     type: String,
     enum: ['Active', 'Archived'],
     default: 'Active'
+  },
+
+  archive_reason: {
+    type: String,
+    default: null
   },
 
   edit_log: {

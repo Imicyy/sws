@@ -589,7 +589,7 @@ exports.updatePwd = async (req, res) => {
 // Archive PWD record
 exports.archivePwd = async (req, res) => {
   try {
-    const { pwd_id } = req.body;
+    const { pwd_id, reason } = req.body;
     
     if (!pwd_id) {
       return res.status(400).json({
@@ -598,10 +598,13 @@ exports.archivePwd = async (req, res) => {
       });
     }
 
-    // Update the PWD record status to Archived
+    // Update the PWD record status to Archived with reason
     const archivedPwd = await PWD.findByIdAndUpdate(
       pwd_id,
-      { status: 'Archived' },
+      { 
+        status: 'Archived',
+        archive_reason: reason || null
+      },
       { new: true, runValidators: true }
     );
 
@@ -631,7 +634,7 @@ exports.archivePwd = async (req, res) => {
 // Unarchive PWD record
 exports.unarchivePwd = async (req, res) => {
   try {
-    const { pwd_id } = req.body;
+    const { pwd_id, reason } = req.body;
     
     if (!pwd_id) {
       return res.status(400).json({
@@ -640,10 +643,13 @@ exports.unarchivePwd = async (req, res) => {
       });
     }
 
-    // Update the PWD record status to Active
+    // Update the PWD record status to Active and clear archive reason
     const unarchivedPwd = await PWD.findByIdAndUpdate(
       pwd_id,
-      { status: 'Active' },
+      { 
+        status: 'Active',
+        archive_reason: null
+      },
       { new: true, runValidators: true }
     );
 
@@ -919,7 +925,7 @@ exports.generatePwdApplicationPdf = async (req, res) => {
 // Archive Senior Citizen record
 exports.archiveSenior = async (req, res) => {
   try {
-    const { senior_id } = req.body;
+    const { senior_id, reason } = req.body;
     
     if (!senior_id) {
       return res.status(400).json({
@@ -928,10 +934,13 @@ exports.archiveSenior = async (req, res) => {
       });
     }
 
-    // Update the Senior Citizen record status to Archived
+    // Update the Senior Citizen record status to Archived with reason
     const archivedSenior = await SeniorCitizen.findByIdAndUpdate(
       senior_id,
-      { status: 'Archived' },
+      { 
+        status: 'Archived',
+        archive_reason: reason || null
+      },
       { new: true, runValidators: true }
     );
 
@@ -961,7 +970,7 @@ exports.archiveSenior = async (req, res) => {
 // Unarchive Senior Citizen record
 exports.unarchiveSenior = async (req, res) => {
   try {
-    const { senior_id } = req.body;
+    const { senior_id, reason } = req.body;
     
     if (!senior_id) {
       return res.status(400).json({
@@ -970,10 +979,13 @@ exports.unarchiveSenior = async (req, res) => {
       });
     }
 
-    // Update the Senior Citizen record status to Active
+    // Update the Senior Citizen record status to Active and clear archive reason
     const unarchivedSenior = await SeniorCitizen.findByIdAndUpdate(
       senior_id,
-      { status: 'Active' },
+      { 
+        status: 'Active',
+        archive_reason: null
+      },
       { new: true, runValidators: true }
     );
 
@@ -1003,7 +1015,7 @@ exports.unarchiveSenior = async (req, res) => {
 // Archive Youth record
 exports.archiveYouth = async (req, res) => {
   try {
-    const { youth_id } = req.body;
+    const { youth_id, reason } = req.body;
     
     if (!youth_id) {
       return res.status(400).json({
@@ -1012,10 +1024,13 @@ exports.archiveYouth = async (req, res) => {
       });
     }
 
-    // Update the Youth record status to Archived
+    // Update the Youth record status to Archived with reason
     const archivedYouth = await Youth.findByIdAndUpdate(
       youth_id,
-      { status: 'Archived' },
+      { 
+        status: 'Archived',
+        archive_reason: reason || null
+      },
       { new: true, runValidators: true }
     );
 
@@ -1045,7 +1060,7 @@ exports.archiveYouth = async (req, res) => {
 // Unarchive Youth record
 exports.unarchiveYouth = async (req, res) => {
   try {
-    const { youth_id } = req.body;
+    const { youth_id, reason } = req.body;
     
     if (!youth_id) {
       return res.status(400).json({
@@ -1054,10 +1069,13 @@ exports.unarchiveYouth = async (req, res) => {
       });
     }
 
-    // Update the Youth record status to Active
+    // Update the Youth record status to Active and clear archive reason
     const unarchivedYouth = await Youth.findByIdAndUpdate(
       youth_id,
-      { status: 'Active' },
+      { 
+        status: 'Active',
+        archive_reason: null
+      },
       { new: true, runValidators: true }
     );
 
