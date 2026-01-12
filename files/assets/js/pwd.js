@@ -90,7 +90,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 isValid = false; // Ensure we don't override this
             }
         } else {
-            input.style.borderColor = '';
+            // HTML validity (pattern, type, length, etc.)
+            if (!input.checkValidity()) {
+                input.style.borderColor = 'red';
+                isValid = false;
+                if (isValid) {
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else {
+                input.style.borderColor = '';
+            }
         }
     });
     
@@ -106,6 +115,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     entryValid = false;
                     field.style.borderColor = 'red';
                     // scroll to first invalid field
+                    if (isValid) field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (!field.checkValidity()) {
+                    entryValid = false;
+                    field.style.borderColor = 'red';
                     if (isValid) field.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else {
                     field.style.borderColor = '';
@@ -376,14 +389,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="form-group">
                     <label>Phone Number</label>
-                    <input type="tel" name="contacts[${contactCounter}][phone]" required>
+                <input
+                    type="tel"
+                    name="contacts[${contactCounter}][phone]"
+                    maxlength="11"
+                    pattern="09\\d{9}"
+                    title="Phone number must start with 09 and be 11 digits"
+                    required
+                >
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
                     <label>Email Address</label>
-                    <input type="email" name="contacts[${contactCounter}][email]">
+                <input
+                    type="email"
+                    name="contacts[${contactCounter}][email]"
+                    maxlength="25"
+                    pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+                    title="Please enter a valid email address"
+                >
                 </div>
                 <div class="form-group">
                     <button type="button" class="remove-contact">Remove</button>

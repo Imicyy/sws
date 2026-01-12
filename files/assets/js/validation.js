@@ -38,10 +38,15 @@ function attachContactValidation(container) {
     });
 
     container.querySelectorAll('input[name*="[phone]"]').forEach(input => {
+        input.maxLength = 11;
+        input.pattern = "09\\d{9}";
+        input.title = "Phone number must start with 09 and be 11 digits";
         input.addEventListener('input', () => onlyNumbers(input));
     });
 
     container.querySelectorAll('input[name*="[email]"]').forEach(input => {
+        input.pattern = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$";
+        input.title = "Please enter a valid email address";
         input.addEventListener('input', () => emailFilter(input));
     });
 
@@ -108,14 +113,27 @@ document.getElementById("addContact").addEventListener("click", function () {
             </div>
             <div class="form-group">
                 <label>Phone Number</label>
-                <input type="tel" name="contacts[${contactCount}][phone]" maxlength="11" required>
+            <input
+                type="tel"
+                name="contacts[${contactCount}][phone]"
+                maxlength="11"
+                pattern="09\\d{9}"
+                title="Phone number must start with 09 and be 11 digits"
+                required
+            >
             </div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
                 <label>Email Address</label>
-                <input type="email" name="contacts[${contactCount}][email]" maxlength="25">
+            <input
+                type="email"
+                name="contacts[${contactCount}][email]"
+                maxlength="25"
+                pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+                title="Please enter a valid email address"
+            >
             </div>
             <div class="form-group">
                 <button type="button" class="remove-contact">Remove</button>

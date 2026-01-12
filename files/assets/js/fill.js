@@ -44,6 +44,7 @@ function calculateAge() {
 // Form validation function
 function validateCurrentStep(currentStep) {
   let isValid = true;
+  const errorMessages = [];
   const currentFieldset = document.getElementsByTagName('fieldset')[currentStep];
   const requiredInputs = currentFieldset.querySelectorAll('[required]');
   
@@ -69,6 +70,10 @@ function validateCurrentStep(currentStep) {
       const name = entry.querySelector('input[name$="[name]"]').value.trim();
       const relationship = entry.querySelector('input[name$="[relationship]"]').value.trim();
       const phone = entry.querySelector('input[name$="[phone]"]').value.trim();
+      const emailInput = entry.querySelector('input[name$="[email]"]');
+      const email = emailInput ? emailInput.value.trim() : '';
+      const phonePattern = /^09\d{9}$/;
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       // If the entire entry is empty, skip validation for this entry
       if (!name && !relationship && !phone) {
@@ -80,6 +85,14 @@ function validateCurrentStep(currentStep) {
       if (!name || !relationship || !phone) {
         isValid = false;
         entry.style.border = '1px solid red';
+      } else if (!phonePattern.test(phone)) {
+        isValid = false;
+        entry.style.border = '1px solid red';
+        errorMessages.push('Phone numbers must be 11 digits and start with 09.');
+      } else if (email && !emailPattern.test(email)) {
+        isValid = false;
+        entry.style.border = '1px solid red';
+        errorMessages.push('Please provide a valid email address.');
       } else {
         entry.style.border = '';
       }
@@ -88,8 +101,8 @@ function validateCurrentStep(currentStep) {
   
   if (!isValid) {
     Swal.fire({
-      title: "Missing Information",
-      text: "Please complete all required fields before proceeding.",
+      title: "Validation Error",
+      text: errorMessages.join(' ') || "Please complete all required fields before proceeding.",
       icon: "error"
     });
   }
