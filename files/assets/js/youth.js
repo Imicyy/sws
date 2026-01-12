@@ -237,6 +237,7 @@ function fixStepIndicator(n) {
 // Form validation
 function validateCurrentStep(currentStep) {
     let isValid = true;
+    const errorMessages = [];
     const currentFieldset = document.getElementsByTagName('fieldset')[currentStep];
     const requiredInputs = currentFieldset.querySelectorAll('[required]');
     
@@ -253,10 +254,36 @@ function validateCurrentStep(currentStep) {
         }
     });
     
+    // Additional validation for contact (Personal Information step)
+    if (currentStep === 0) {
+        const phoneInput = document.getElementById('contact');
+        const emailInput = document.querySelector('input[type="email"]');
+        const phonePattern = /^09\d{9}$/;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (phoneInput) {
+            const phone = phoneInput.value.trim();
+            if (phone && !phonePattern.test(phone)) {
+                phoneInput.style.borderColor = 'red';
+                isValid = false;
+                errorMessages.push('Contact number must be 11 digits and start with 09.');
+            }
+        }
+
+        if (emailInput) {
+            const email = emailInput.value.trim();
+            if (email && !emailPattern.test(email)) {
+                emailInput.style.borderColor = 'red';
+                isValid = false;
+                errorMessages.push('Please provide a valid email address.');
+            }
+        }
+    }
+    
     if (!isValid) {
         Swal.fire({
-            title: "Missing Information",
-            text: "Please complete all required fields before proceeding.",
+            title: "Validation Error",
+            text: errorMessages.join(' ') || "Please complete all required fields before proceeding.",
             icon: "error"
         });
     }
