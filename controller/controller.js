@@ -1557,6 +1557,60 @@ exports.getSeniorCitizensForReport = async (req, res) => {
   }
 };
 
+// Get senior citizens (essential fields) for a specific barangay
+exports.getSeniorCitizensByBarangay = async (req, res) => {
+  try {
+    const { barangay } = req.params;
+
+    if (!barangay) {
+      return res.status(400).json({ success: false, message: 'Barangay is required' });
+    }
+
+    const seniors = await SeniorCitizen.find(
+      {
+        'identifying_information.address.barangay': barangay,
+        status: { $ne: 'Archived' }
+      },
+      'identifying_information.name identifying_information.age identifying_information.gender identifying_information.contacts'
+    ).lean();
+
+    const data = seniors.map((senior) => {
+      const name = senior.identifying_information?.name || {};
+      const contacts = Array.isArray(senior.identifying_information?.contacts)
+        ? senior.identifying_information.contacts
+        : [];
+
+      const contactNumber =
+        contacts.find((c) => c?.phone)?.phone ||
+        contacts.find((c) => c?.type === 'primary' && c?.phone)?.phone ||
+        '';
+
+      const fullName = [
+        name.last_name,
+        name.first_name,
+        name.middle_name,
+        name.extension
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      return {
+        id: senior._id,
+        fullName: fullName || 'Unnamed',
+        gender: senior.identifying_information?.gender || 'N/A',
+        age: senior.identifying_information?.age ?? 'N/A',
+        contact: contactNumber || 'N/A'
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching senior citizens by barangay:', err);
+    res.status(500).json({ success: false, message: 'Failed to load barangay senior citizens' });
+  }
+};
+
 // Analytics: PDAO (PWD) counts and gender breakdown by barangay
 exports.getPdaoAnalytics = async (req, res) => {
   try {

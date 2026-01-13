@@ -118,6 +118,7 @@ function renderTable() {
     document.getElementById('pagination').style.display = 'flex';
 
     pageData.forEach(item => {
+        const safeBarangay = item.name.replace(/"/g, '&quot;');
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="barangay-name">${item.name}</td>
@@ -125,6 +126,9 @@ function renderTable() {
             <td>
                 <button class="view-chart-btn" onclick="showChart(${item.id})">
                      View Chart
+                </button>
+                <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="openBarangayPrint(this.dataset.barangay, this)">
+                     Print
                 </button>
             </td>
         `;
@@ -362,6 +366,121 @@ function showChart(barangayId) {
     document.getElementById('tableContainer').style.display = 'none';
 
     updateChart();
+}
+
+// Open printable view for a barangay's senior citizens
+async function openBarangayPrint(barangayName, btnEl) {
+    if (!barangayName) return;
+
+    // Provide lightweight UI feedback
+    const originalText = btnEl ? btnEl.innerHTML : '';
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = 'Loading...';
+    }
+
+    try {
+        const res = await fetch(`/api/senior-citizens/barangay/${encodeURIComponent(barangayName)}`, {
+            credentials: 'same-origin'
+        });
+        if (!res.ok) throw new Error('Unable to load senior citizens');
+
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message || 'Failed to load data');
+
+        const printHtml = buildBarangayPrintHtml(barangayName, json.data || []);
+
+        const newWin = window.open('', '_blank', 'width=1200,height=900,scrollbars=yes');
+        if (!newWin) {
+            alert('Popup blocked! Please allow popups to view the print page.');
+            return;
+        }
+        newWin.document.open();
+        newWin.document.write(printHtml);
+        newWin.document.close();
+    } catch (err) {
+        console.error(err);
+        alert(err.message || 'Error opening print view');
+    } finally {
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalText;
+        }
+    }
+}
+
+// Build printable HTML for barangay seniors
+function buildBarangayPrintHtml(barangayName, seniors) {
+    const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const rows = (seniors && seniors.length
+        ? seniors
+        : []).map((senior, idx) => `
+            <tr>
+                <td>${idx + 1}</td>
+                <td>${esc(senior.fullName || 'N/A')}</td>
+                <td>${esc(senior.contact || 'N/A')}</td>
+                <td>${esc(senior.gender || 'N/A')}</td>
+                <td>${esc(senior.age ?? 'N/A')}</td>
+            </tr>
+        `).join('');
+
+    const emptyState = `
+        <tr>
+            <td colspan="5" class="text-center">No senior citizens found for this barangay.</td>
+        </tr>
+    `;
+
+    return `<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${esc(barangayName)} - Senior Citizens</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
+    <style>
+        body { padding: 30px; font-family: Arial, sans-serif; }
+        .print-actions { text-align: right; margin-bottom: 20px; }
+        .print-actions button { margin-left: 10px; }
+        .table thead th { white-space: nowrap; }
+        @media print {
+            .print-actions { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.close()">Close</button>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">Print</button>
+    </div>
+    <div class="container-fluid">
+        <div class="mb-3">
+            <h3 class="mb-0">Senior Citizens - ${esc(barangayName)}</h3>
+            <small class="text-muted">Essential information: Name, Contact, Gender, Age</small>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Contact</th>
+                        <th>Gender</th>
+                        <th>Age</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows || emptyState}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-end text-muted">
+            Generated: ${new Date().toLocaleString()}
+        </div>
+    </div>
+</body>
+</html>`;
 }
 
 // Close modal functionality
