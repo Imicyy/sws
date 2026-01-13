@@ -1648,6 +1648,56 @@ exports.getPdaoAnalytics = async (req, res) => {
   }
 };
 
+// Get PWDs (essential fields) for a specific barangay
+exports.getPwdsByBarangay = async (req, res) => {
+  try {
+    const { barangay } = req.params;
+
+    if (!barangay) {
+      return res.status(400).json({ success: false, message: 'Barangay is required' });
+    }
+
+    const pwds = await PWD.find(
+      {
+        barangay,
+        status: { $ne: 'Archived' }
+      },
+      'first_name middle_name last_name age gender contacts'
+    ).lean();
+
+    const data = pwds.map((pwd) => {
+      const contacts = Array.isArray(pwd.contacts) ? pwd.contacts : [];
+
+      const contactNumber =
+        contacts.find((c) => c?.phone)?.phone ||
+        contacts.find((c) => c?.type === 'primary' && c?.phone)?.phone ||
+        '';
+
+      const fullName = [
+        pwd.last_name,
+        pwd.first_name,
+        pwd.middle_name
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      return {
+        id: pwd._id,
+        fullName: fullName || 'Unnamed',
+        gender: pwd.gender || 'N/A',
+        age: pwd.age ?? 'N/A',
+        contact: contactNumber || 'N/A'
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching PWDs by barangay:', err);
+    res.status(500).json({ success: false, message: 'Failed to load barangay PWDs' });
+  }
+};
+
 // Fetch barangays and their puroks from the database
 async function fetchBarangays() {
   const barangayList = await Barangay.find({});

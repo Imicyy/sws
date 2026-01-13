@@ -133,6 +133,7 @@ router.get('/api/analytics/youth', controller.getYouthAnalytics);
 router.get('/api/pwds', requireAuth, controller.getAllPwds);
 router.get('/api/senior-citizens-for-report', requireAuth, controller.getSeniorCitizensForReport);
 router.get('/api/senior-citizens/barangay/:barangay', requireAuth, controller.getSeniorCitizensByBarangay);
+router.get('/api/pwds/barangay/:barangay', requireAuth, controller.getPwdsByBarangay);
 
 // Barangay and Purok APIs
 router.get('/api/barangays', requireAuth, controller.getBarangays);
