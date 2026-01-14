@@ -409,23 +409,77 @@ async function openPwdBarangayPrint(barangayName, btnEl) {
 function buildPwdBarangayPrintHtml(barangayName, pwds) {
     const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+    // Calculate summary statistics
+    let totalCount = 0;
+    let totalMale = 0;
+    let totalFemale = 0;
+    const disabilityCounts = {};
+
     const rows = (pwds && pwds.length
         ? pwds
-        : []).map((pwd, idx) => `
+        : []).map((pwd, idx) => {
+            totalCount++;
+            const gender = (pwd.gender || '').toString().toLowerCase();
+            if (gender === 'male') {
+                totalMale++;
+            } else if (gender === 'female') {
+                totalFemale++;
+            }
+
+            // Count disabilities
+            if (pwd.disability && pwd.disability !== 'N/A') {
+                const disabilities = pwd.disability.split(',').map(d => d.trim()).filter(Boolean);
+                disabilities.forEach(disability => {
+                    disabilityCounts[disability] = (disabilityCounts[disability] || 0) + 1;
+                });
+            }
+
+            return `
             <tr>
                 <td>${idx + 1}</td>
                 <td>${esc(pwd.fullName || 'N/A')}</td>
                 <td>${esc(pwd.contact || 'N/A')}</td>
                 <td>${esc(pwd.gender || 'N/A')}</td>
                 <td>${esc(pwd.age ?? 'N/A')}</td>
+                <td>${esc(pwd.disability || 'N/A')}</td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
     const emptyState = `
         <tr>
-            <td colspan="5" class="text-center">No PWDs found for this barangay.</td>
+            <td colspan="6" class="text-center">No PWDs found for this barangay.</td>
         </tr>
     `;
+
+    // Build disability summary HTML
+    const disabilitySummaryRows = Object.entries(disabilityCounts)
+        .sort((a, b) => b[1] - a[1]) // Sort by count descending
+        .map(([disability, count]) => `
+            <tr>
+                <td>${esc(disability)}</td>
+                <td><strong>${count}</strong></td>
+            </tr>
+        `).join('');
+
+    const disabilitySummary = disabilitySummaryRows ? `
+        <div class="mt-4">
+            <h5>Disability Summary</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Disability Type</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${disabilitySummaryRows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    ` : '';
 
     return `<!doctype html>
 <html>
@@ -439,6 +493,24 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
         .print-actions { text-align: right; margin-bottom: 20px; }
         .print-actions button { margin-left: 10px; }
         .table thead th { white-space: nowrap; }
+        .summary-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        .summary-box h5 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        .summary-item {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .summary-item strong {
+            color: #212529;
+        }
         @media print {
             .print-actions { display: none; }
             body { padding: 0; }
@@ -453,8 +525,20 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
     <div class="container-fluid">
         <div class="mb-3">
             <h3 class="mb-0">PWDs - ${esc(barangayName)}</h3>
-            <small class="text-muted">Essential information: Name, Contact, Gender, Age</small>
+            <small class="text-muted">Essential information: Name, Contact, Gender, Age, Disability</small>
         </div>
+        
+        <div class="summary-box">
+            <h5>Report Summary</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="summary-item"><strong>Total Count:</strong> ${totalCount}</div>
+                    <div class="summary-item"><strong>Total Male:</strong> ${totalMale}</div>
+                    <div class="summary-item"><strong>Total Female:</strong> ${totalFemale}</div>
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-dark">
@@ -464,6 +548,7 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
                         <th>Contact</th>
                         <th>Gender</th>
                         <th>Age</th>
+                        <th>Disability</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -471,6 +556,9 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
                 </tbody>
             </table>
         </div>
+        
+        ${disabilitySummary}
+        
         <div class="text-end text-muted">
             Generated: ${new Date().toLocaleString()}
         </div>

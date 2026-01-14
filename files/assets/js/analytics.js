@@ -413,9 +413,23 @@ async function openBarangayPrint(barangayName, btnEl) {
 function buildBarangayPrintHtml(barangayName, seniors) {
     const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+    // Calculate summary statistics
+    let totalCount = 0;
+    let totalMale = 0;
+    let totalFemale = 0;
+
     const rows = (seniors && seniors.length
         ? seniors
-        : []).map((senior, idx) => `
+        : []).map((senior, idx) => {
+            totalCount++;
+            const gender = (senior.gender || '').toString().toLowerCase();
+            if (gender === 'male') {
+                totalMale++;
+            } else if (gender === 'female') {
+                totalFemale++;
+            }
+
+            return `
             <tr>
                 <td>${idx + 1}</td>
                 <td>${esc(senior.fullName || 'N/A')}</td>
@@ -423,7 +437,8 @@ function buildBarangayPrintHtml(barangayName, seniors) {
                 <td>${esc(senior.gender || 'N/A')}</td>
                 <td>${esc(senior.age ?? 'N/A')}</td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
     const emptyState = `
         <tr>
@@ -443,6 +458,24 @@ function buildBarangayPrintHtml(barangayName, seniors) {
         .print-actions { text-align: right; margin-bottom: 20px; }
         .print-actions button { margin-left: 10px; }
         .table thead th { white-space: nowrap; }
+        .summary-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        .summary-box h5 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        .summary-item {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .summary-item strong {
+            color: #212529;
+        }
         @media print {
             .print-actions { display: none; }
             body { padding: 0; }
@@ -459,6 +492,18 @@ function buildBarangayPrintHtml(barangayName, seniors) {
             <h3 class="mb-0">Senior Citizens - ${esc(barangayName)}</h3>
             <small class="text-muted">Essential information: Name, Contact, Gender, Age</small>
         </div>
+        
+        <div class="summary-box">
+            <h5>Report Summary</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="summary-item"><strong>Total Count:</strong> ${totalCount}</div>
+                    <div class="summary-item"><strong>Total Male:</strong> ${totalMale}</div>
+                    <div class="summary-item"><strong>Total Female:</strong> ${totalFemale}</div>
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-dark">

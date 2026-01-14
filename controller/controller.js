@@ -1662,7 +1662,7 @@ exports.getPwdsByBarangay = async (req, res) => {
         barangay,
         status: { $ne: 'Archived' }
       },
-      'first_name middle_name last_name age gender contacts'
+      'first_name middle_name last_name age gender contacts disability'
     ).lean();
 
     const data = pwds.map((pwd) => {
@@ -1682,12 +1682,17 @@ exports.getPwdsByBarangay = async (req, res) => {
         .join(' ')
         .trim();
 
+      const disabilities = Array.isArray(pwd.disability) && pwd.disability.length > 0
+        ? pwd.disability.join(', ')
+        : 'N/A';
+
       return {
         id: pwd._id,
         fullName: fullName || 'Unnamed',
         gender: pwd.gender || 'N/A',
         age: pwd.age ?? 'N/A',
-        contact: contactNumber || 'N/A'
+        contact: contactNumber || 'N/A',
+        disability: disabilities
       };
     });
 
