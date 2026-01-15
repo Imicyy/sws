@@ -478,7 +478,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="editContact">Contact:</label>
-                                <input type="text" class="form-control" id="editContact" name="contact" required>
+                                <input type="tel" class="form-control" id="editContact" name="contact" required maxlength="11" pattern="\\d{11}" title="Please enter exactly 11 digits" inputmode="numeric">
                             </div>
                             <div class="form-group">
                                 <label for="editBirthday">Birthday:</label>
@@ -504,11 +504,18 @@
                             </div>
                             <div class="form-group">
                                 <label for="editBarangay">Barangay:</label>
-                                <input type="text" class="form-control" id="editBarangay" name="barangay" required>
+                                <select class="form-control" id="editBarangay" name="barangay" required>
+                                    <option value="">Select Barangay</option>
+                                    <% Object.keys(barangays).forEach(barangay => { %>
+                                        <option value="<%= barangay %>"><%= barangay %></option>
+                                    <% }) %>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="editPurok">Purok:</label>
-                                <input type="text" class="form-control" id="editPurok" name="purok" required>
+                                <select class="form-control" id="editPurok" name="purok" required disabled>
+                                    <option value="">First select a Barangay</option>
+                                </select>
                             </div>
                     </fieldset>
                         
@@ -1487,8 +1494,44 @@ Thank you!</textarea>
 					$('#editFirstName').val(data.firstName || '');
 					$('#editMiddleName').val(data.middleName || '');
 					$('#editLastName').val(data.lastName || '');
-					$('#editBarangay').val(data.barangay || '');
-					$('#editPurok').val(data.purok || '');
+					
+					// Handle Barangay and Purok dropdowns with cascading behavior
+					const editBarangaySelect = $('#editBarangay');
+					const editPurokSelect = $('#editPurok');
+					const selectedBarangay = data.barangay || '';
+					const selectedPurok = data.purok || '';
+					
+					// Set barangay value
+					editBarangaySelect.val(selectedBarangay);
+					
+					// Get barangaysData from the filter section (it's defined in the same scope)
+					const barangaysData = <%- JSON.stringify(barangays) %>;
+					
+					// Populate purok dropdown based on selected barangay
+					editPurokSelect.empty().append('<option value="">Select Purok</option>');
+					
+					if (selectedBarangay && barangaysData[selectedBarangay]) {
+						editPurokSelect.prop('disabled', false);
+						barangaysData[selectedBarangay].forEach(function(purok) {
+							const option = $('<option></option>').attr('value', purok).text(purok);
+							if (purok === selectedPurok) {
+								option.prop('selected', true);
+							}
+							editPurokSelect.append(option);
+						});
+						// Set purok value if it exists
+						if (selectedPurok) {
+							editPurokSelect.val(selectedPurok);
+						}
+					} else {
+						editPurokSelect.prop('disabled', true);
+						if (selectedPurok) {
+							// If purok exists but barangay doesn't match, add it as an option
+							editPurokSelect.append($('<option></option>').attr('value', selectedPurok).text(selectedPurok).prop('selected', true));
+							editPurokSelect.prop('disabled', false);
+						}
+					}
+					
 					$('#editContact').val(data.contact || '');
 					
 					// Handle birthday - try multiple formats
@@ -1734,6 +1777,32 @@ Thank you!</textarea>
 					});
 				});
 				
+				// Handle Barangay and Purok cascading dropdowns in edit modal
+				const editBarangayDropdown = $('#editBarangay');
+				const editPurokDropdown = $('#editPurok');
+				const barangaysDataForEdit = <%- JSON.stringify(barangays) %>;
+				
+				if (editBarangayDropdown.length && editPurokDropdown.length) {
+					// Initialize purok dropdown as disabled
+					if (!editBarangayDropdown.val()) {
+						editPurokDropdown.prop('disabled', true);
+					}
+					
+					// Barangay change event handler
+					editBarangayDropdown.on('change', function() {
+						const selectedBarangay = $(this).val();
+						editPurokDropdown.empty().append('<option value="">Select Purok</option>');
+						
+						editPurokDropdown.prop('disabled', !selectedBarangay);
+						
+						if (selectedBarangay && barangaysDataForEdit[selectedBarangay]) {
+							barangaysDataForEdit[selectedBarangay].forEach(function(purok) {
+								editPurokDropdown.append($('<option></option>').attr('value', purok).text(purok));
+							});
+						}
+					});
+				}
+				
 				// Reset form when modal is hidden
 				$('#editModal').on('hidden.bs.modal', function() {
 					const editForm = $('#editYouthForm');
@@ -1742,6 +1811,8 @@ Thank you!</textarea>
 						// Explicitly uncheck all checkboxes
 						editForm.find('input[type="checkbox"]').prop('checked', false);
 						editForm.find('input[type="hidden"]').val('');
+						// Reset purok dropdown
+						editPurokDropdown.empty().append('<option value="">First select a Barangay</option>').prop('disabled', true);
 					}
 				});
 			});
