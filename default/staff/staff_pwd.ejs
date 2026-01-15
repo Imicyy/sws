@@ -639,13 +639,20 @@
 																						<div class="col-md-4">
 																							<div class="form-group">
 																								<label for="editBarangay">Barangay *</label>
-																								<input type="text" class="form-control" id="editBarangay" name="barangay" required>
+																								<select class="form-control" id="editBarangay" name="barangay" required>
+																									<option value="">Select Barangay</option>
+																									<% Object.keys(barangays).forEach(barangay => { %>
+																										<option value="<%= barangay %>"><%= barangay %></option>
+																									<% }) %>
+																								</select>
 																							</div>
 																						</div>
 																						<div class="col-md-4">
 																							<div class="form-group">
 																								<label for="editPurok">Purok</label>
-																								<input type="text" class="form-control" id="editPurok" name="purok">
+																								<select class="form-control" id="editPurok" name="purok">
+																									<option value="">First select a Barangay</option>
+																								</select>
 																							</div>
 																						</div>
 																						<div class="col-md-4">
@@ -1513,8 +1520,50 @@
 								civilStatusSelect.value = pwdData.civil_status;
 							}
 							
-							document.getElementById('editBarangay').value = pwdData.barangay || '';
-							document.getElementById('editPurok').value = pwdData.purok || '';
+							// Handle Barangay and Purok dropdowns
+							const editBarangaySelect = document.getElementById('editBarangay');
+							const editPurokSelect = document.getElementById('editPurok');
+							const selectedBarangay = pwdData.barangay || '';
+							const selectedPurok = pwdData.purok || '';
+							
+							// Set barangay value
+							editBarangaySelect.value = selectedBarangay;
+							
+							// Populate purok dropdown based on selected barangay
+							editPurokSelect.innerHTML = '';
+							const defaultPurokOption = document.createElement('option');
+							defaultPurokOption.value = '';
+							defaultPurokOption.textContent = 'Select Purok';
+							editPurokSelect.appendChild(defaultPurokOption);
+							
+							if (selectedBarangay && barangaysData[selectedBarangay]) {
+								editPurokSelect.disabled = false;
+								barangaysData[selectedBarangay].forEach(purok => {
+									const option = document.createElement('option');
+									option.value = purok;
+									option.textContent = purok;
+									if (purok === selectedPurok) {
+										option.selected = true;
+									}
+									editPurokSelect.appendChild(option);
+								});
+								// Set purok value if it exists
+								if (selectedPurok) {
+									editPurokSelect.value = selectedPurok;
+								}
+							} else {
+								editPurokSelect.disabled = true;
+								if (selectedPurok) {
+									// If purok exists but barangay doesn't match, add it as an option
+									const option = document.createElement('option');
+									option.value = selectedPurok;
+									option.textContent = selectedPurok;
+									option.selected = true;
+									editPurokSelect.appendChild(option);
+									editPurokSelect.disabled = false;
+								}
+							}
+							
 							document.getElementById('editPlaceOfBirth').value = pwdData.place_of_birth || '';
 							document.getElementById('editSpouseName').value = pwdData.spouse_name || '';
 							
@@ -2076,12 +2125,49 @@
 					});
 				}
 				
+				// Handle Barangay and Purok cascading dropdowns in edit modal
+				const editBarangayDropdown = document.getElementById('editBarangay');
+				const editPurokDropdown = document.getElementById('editPurok');
+				
+				if (editBarangayDropdown && editPurokDropdown) {
+					// Initialize purok dropdown as disabled
+					editPurokDropdown.disabled = !editBarangayDropdown.value;
+					
+					// Barangay change event handler
+					editBarangayDropdown.addEventListener('change', function() {
+						const selectedBarangay = this.value;
+						editPurokDropdown.innerHTML = '';
+						
+						const defaultOption = document.createElement('option');
+						defaultOption.value = '';
+						defaultOption.textContent = 'Select Purok';
+						editPurokDropdown.appendChild(defaultOption);
+						
+						editPurokDropdown.disabled = !selectedBarangay;
+						
+						if (selectedBarangay && barangaysData[selectedBarangay]) {
+							barangaysData[selectedBarangay].forEach(purok => {
+								const option = document.createElement('option');
+								option.value = purok;
+								option.textContent = purok;
+								editPurokDropdown.appendChild(option);
+							});
+						}
+					});
+				}
+				
 				// Add cleanup handler for edit modal to remove backdrop
 				$('#editModal').on('hidden.bs.modal', function () {
 					// Remove any leftover backdrop elements
 					$('.modal-backdrop').remove();
 					// Remove modal-open class from body
 					$('body').removeClass('modal-open');
+					// Reset purok dropdown
+					const editPurokDropdown = document.getElementById('editPurok');
+					if (editPurokDropdown) {
+						editPurokDropdown.innerHTML = '<option value="">First select a Barangay</option>';
+						editPurokDropdown.disabled = true;
+					}
 					// Restore body overflow and padding
 					$('body').css({'overflow': '', 'padding-right': ''});
 				});

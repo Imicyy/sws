@@ -1609,13 +1609,13 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label>Phone Number</label>
-                                <input type="tel" class="form-control" name="contacts[${index}][phone]" value="${contact.phone || ''}">
+                                <input type="tel" class="form-control" name="contacts[${index}][phone]" value="${contact.phone || ''}" maxlength="11" pattern="\\d{11}" title="Please enter exactly 11 digits" inputmode="numeric">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label>Email</label>
-                                <input type="email" class="form-control" name="contacts[${index}][email]" value="${contact.email || ''}">
+                                <input type="email" class="form-control" name="contacts[${index}][email]" value="${contact.email || ''}" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Please enter a valid email address">
                             </div>
                         </div>
                     </div>
@@ -1688,6 +1688,42 @@
             // Update button handler
             document.getElementById('updateBtn').addEventListener('click', function() {
                 const form = document.getElementById('editResidentForm');
+                
+                // Validate email fields before submission
+                const emailInputs = form.querySelectorAll('input[name*="contacts"][name*="email"]');
+                let isValid = true;
+                let invalidEmailField = null;
+                
+                emailInputs.forEach(function(emailInput) {
+                    const emailValue = emailInput.value.trim();
+                    if (emailValue) {
+                        // Email validation regex pattern
+                        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                        if (!emailPattern.test(emailValue)) {
+                            isValid = false;
+                            if (!invalidEmailField) {
+                                invalidEmailField = emailInput;
+                            }
+                        }
+                    }
+                });
+                
+                // If validation fails, show error and focus on invalid field
+                if (!isValid) {
+                    alert('Please enter a valid email address for all contact email fields.');
+                    if (invalidEmailField) {
+                        invalidEmailField.focus();
+                        invalidEmailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return; // Stop form submission
+                }
+                
+                // Check HTML5 validation
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return; // Stop form submission
+                }
+                
                 const formData = new FormData(form);
                 
                 // Convert FormData to JSON
