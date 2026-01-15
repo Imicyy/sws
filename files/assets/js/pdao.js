@@ -488,81 +488,213 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
     <title>${esc(barangayName)} - PWDs</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
+
     <style>
-        body { padding: 30px; font-family: Arial, sans-serif; }
-        .print-actions { text-align: right; margin-bottom: 20px; }
-        .print-actions button { margin-left: 10px; }
-        .table thead th { white-space: nowrap; }
+        /* ================= PAGE ================= */
+        @page {
+            size: A4 portrait; /* change to: legal portrait if needed */
+            margin: 15mm 12mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* ================= ACTION BUTTONS ================= */
+        .print-actions {
+            text-align: right;
+            margin: 15px;
+        }
+
+        .print-actions button {
+            margin-left: 10px;
+        }
+
+        /* ================= PRINT LAYOUT TABLE ================= */
+        .print-layout {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .print-layout thead {
+            display: table-header-group;
+        }
+
+        /* ================= HEADER ================= */
+        .header-wrapper {
+            position: relative;
+            height: 120px;
+        }
+
+        .logo-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 85px;
+        }
+
+        .logo-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 110px;
+        }
+
+        .main-header {
+            text-align: center;
+            padding-top: 10px;
+        }
+
+        .main-header h4 {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .main-header h2 {
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .main-header p {
+            font-size: 12px;
+            margin: 0;
+        }
+
+        /* ================= CONTENT ================= */
+        .content {
+            padding: 10px;
+        }
+
+        .table thead th {
+            white-space: nowrap;
+        }
+
+        table {
+            page-break-inside: auto;
+        }
+
+        tr {
+            page-break-inside: avoid;
+        }
+
+        /* ================= SUMMARY ================= */
         .summary-box {
             background-color: #f8f9fa;
-            padding: 20px;
+            padding: 15px;
             border-radius: 5px;
-            margin-bottom: 20px;
             border: 1px solid #dee2e6;
-        }
-        .summary-box h5 {
             margin-bottom: 15px;
-            color: #495057;
+            page-break-inside: avoid;
         }
-        .summary-item {
-            margin: 8px 0;
+
+        .summary-box h5 {
             font-size: 14px;
+            margin-bottom: 10px;
         }
-        .summary-item strong {
-            color: #212529;
+
+        .summary-item {
+            font-size: 12px;
+            margin-bottom: 5px;
         }
+
+        .generated-date {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* ================= PRINT ================= */
         @media print {
-            .print-actions { display: none; }
-            body { padding: 0; }
+            .print-actions {
+                display: none;
+            }
         }
     </style>
 </head>
+
 <body>
+
+    <!-- ACTION BUTTONS -->
     <div class="print-actions">
         <button class="btn btn-secondary btn-sm" onclick="window.close()">Close</button>
         <button class="btn btn-primary btn-sm" onclick="window.print()">Print</button>
     </div>
-    <div class="container-fluid">
-        <div class="mb-3">
-            <h3 class="mb-0">PWDs - ${esc(barangayName)}</h3>
-            <small class="text-muted">Essential information: Name, Contact, Gender, Age, Disability</small>
-        </div>
-        
-        <div class="summary-box">
-            <h5>Report Summary</h5>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="summary-item"><strong>Total Count:</strong> ${totalCount}</div>
-                    <div class="summary-item"><strong>Total Male:</strong> ${totalMale}</div>
-                    <div class="summary-item"><strong>Total Female:</strong> ${totalFemale}</div>
-                </div>
-            </div>
-        </div>
 
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Contact</th>
-                        <th>Gender</th>
-                        <th>Age</th>
-                        <th>Disability</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rows || emptyState}
-                </tbody>
-            </table>
-        </div>
-        
-        ${disabilitySummary}
-        
-        <div class="text-end text-muted">
-            Generated: ${new Date().toLocaleString()}
-        </div>
+    <!-- PRINT LAYOUT TABLE -->
+    <table class="print-layout">
+        <thead>
+            <tr>
+                <td>
+                    <!-- OFFICIAL HEADER -->
+                    <div class="header-wrapper">
+                        <img src="/assets/images/SilayLogo.jpg" class="logo-left">
+                        <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+
+                        <div class="main-header">
+                            <h4>Republic of the Philippines</h4>
+                            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+                            <p>Persons with Disability Affairs Office</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td class="content">
+
+                    <!-- TITLE -->
+                    <div class="text-center mb-2">
+                        <h5 class="mb-0">PWDs – ${esc(barangayName)}</h5>
+                        <small class="text-muted">
+                            Essential information: Name, Contact, Gender, Age, Disability
+                        </small>
+                    </div>
+
+                    
+
+                    <!-- TABLE -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Contact</th>
+                                    <th>Gender</th>
+                                    <th>Age</th>
+                                    <th>Disability</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows || emptyState}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SUMMARY -->
+                    <div class="summary-box">
+                        <h5>Report Summary</h5>
+                        <div class="summary-item"><strong>Total Count:</strong> ${totalCount}</div>
+                        <div class="summary-item"><strong>Total Male:</strong> ${totalMale}</div>
+                        <div class="summary-item"><strong>Total Female:</strong> ${totalFemale}</div>
+                    </div>
+
+                    <!-- DISABILITY SUMMARY -->
+                    ${disabilitySummary}
+
+                    <!-- GENERATED DATE -->
+                    <div class="text-center generated-date">
+        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
     </div>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
 </body>
 </html>`;
 }
