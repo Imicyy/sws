@@ -622,7 +622,7 @@
                             <strong>Last Edited At:</strong>
                             <span id="displayEditedAt">N/A</span>
                         </p>
-                        <div id="displayChanges" style="margin-top: 1rem;">
+                        <div id="displayChanges" style="margin-top: 1rem; word-wrap: break-word; overflow-wrap: break-word; overflow-x: auto;">
                             <!-- Changes will be populated here -->
                         </div>
                     </div>
@@ -1325,19 +1325,26 @@
                             if (seniorData.edit_log.changes && seniorData.edit_log.changes.length > 0) {
                                 const changesList = document.createElement('div');
                                 changesList.style.marginTop = '1rem';
+                                changesList.style.overflowX = 'auto';
+                                changesList.style.wordWrap = 'break-word';
+                                changesList.style.overflowWrap = 'break-word';
                                 changesList.innerHTML = '<strong style="display: block; margin-bottom: 0.5rem;">Fields Changed:</strong>';
                                 
                                 const table = document.createElement('table');
                                 table.className = 'table table-sm table-bordered';
                                 table.style.marginTop = '0.5rem';
                                 table.style.fontSize = '0.95rem';
+                                table.style.width = '100%';
+                                table.style.tableLayout = 'auto';
+                                table.style.wordWrap = 'break-word';
+                                table.style.overflowWrap = 'break-word';
                                 
                                 const thead = document.createElement('thead');
                                 thead.innerHTML = `
                                     <tr style="background-color: #f5f5f5;">
-                                        <th style="width: 25%;">Field</th>
-                                        <th style="width: 37.5%;">Old Value</th>
-                                        <th style="width: 37.5%;">New Value</th>
+                                        <th style="width: 25%; word-wrap: break-word; overflow-wrap: break-word;">Field</th>
+                                        <th style="width: 37.5%; word-wrap: break-word; overflow-wrap: break-word;">Old Value</th>
+                                        <th style="width: 37.5%; word-wrap: break-word; overflow-wrap: break-word;">New Value</th>
                                     </tr>
                                 `;
                                 table.appendChild(thead);
@@ -1388,9 +1395,9 @@
                                 seniorData.edit_log.changes.forEach(change => {
                                     const row = document.createElement('tr');
                                     row.innerHTML = `
-                                        <td><strong>${formatFieldName(change.field)}</strong></td>
-                                        <td>${formatValue(change.old_value)}</td>
-                                        <td>${formatValue(change.new_value)}</td>
+                                        <td style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 0;"><strong>${formatFieldName(change.field)}</strong></td>
+                                        <td style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 0;">${formatValue(change.old_value)}</td>
+                                        <td style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 0;">${formatValue(change.new_value)}</td>
                                     `;
                                     tbody.appendChild(row);
                                 });

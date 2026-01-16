@@ -543,7 +543,7 @@
                             <strong>Last Edited At:</strong>
                             <span id="displayEditedAt">N/A</span>
                         </p>
-                        <div id="displayChanges" style="margin-top: 1rem;">
+                        <div id="displayChanges" style="margin-top: 1rem; word-wrap: break-word; overflow-wrap: break-word; overflow-x: auto;">
                             <!-- Changes will be populated here -->
                         </div>
                     </div>
@@ -1245,78 +1245,85 @@
 								const changesContainer = document.getElementById('displayChanges');
 								changesContainer.innerHTML = '';
 								
-								if (pwdData.edit_log.changes && pwdData.edit_log.changes.length > 0) {
-									const changesList = document.createElement('div');
-									changesList.style.marginTop = '1rem';
-									changesList.innerHTML = '<strong style="display: block; margin-bottom: 0.5rem;">Fields Changed:</strong>';
+							if (pwdData.edit_log.changes && pwdData.edit_log.changes.length > 0) {
+								const changesList = document.createElement('div');
+								changesList.style.marginTop = '1rem';
+								changesList.style.overflowX = 'auto';
+								changesList.style.wordWrap = 'break-word';
+								changesList.style.overflowWrap = 'break-word';
+								changesList.innerHTML = '<strong style="display: block; margin-bottom: 0.5rem;">Fields Changed:</strong>';
 									
-									const table = document.createElement('table');
-									table.className = 'table table-sm table-bordered';
-									table.style.marginTop = '0.5rem';
-									table.style.fontSize = '0.95rem';
-									
-									const thead = document.createElement('thead');
-									thead.innerHTML = `
-										<tr style="background-color: #f5f5f5;">
-											<th style="width: 25%;">Field</th>
-											<th style="width: 37.5%;">Old Value</th>
-											<th style="width: 37.5%;">New Value</th>
-										</tr>
-									`;
-									table.appendChild(thead);
-									
-									const tbody = document.createElement('tbody');
-									
-									// Helper function to format field names
-									const formatFieldName = (field) => {
-										return field
-											.replace(/_/g, ' ')
-											.replace(/([A-Z])/g, ' $1')
-											.replace(/\b\w/g, l => l.toUpperCase())
-											.trim();
-									};
-									
-									// Helper function to format values for display
-									const formatValue = (val) => {
-										if (val === null || val === undefined) {
+								const table = document.createElement('table');
+								table.className = 'table table-sm table-bordered';
+								table.style.marginTop = '0.5rem';
+								table.style.fontSize = '0.95rem';
+								table.style.width = '100%';
+								table.style.tableLayout = 'auto';
+								table.style.wordWrap = 'break-word';
+								table.style.overflowWrap = 'break-word';
+								
+								const thead = document.createElement('thead');
+								thead.innerHTML = `
+									<tr style="background-color: #f5f5f5;">
+										<th style="width: 25%; word-wrap: break-word; overflow-wrap: break-word;">Field</th>
+										<th style="width: 37.5%; word-wrap: break-word; overflow-wrap: break-word;">Old Value</th>
+										<th style="width: 37.5%; word-wrap: break-word; overflow-wrap: break-word;">New Value</th>
+									</tr>
+								`;
+								table.appendChild(thead);
+								
+								const tbody = document.createElement('tbody');
+								
+								// Helper function to format field names
+								const formatFieldName = (field) => {
+									return field
+										.replace(/_/g, ' ')
+										.replace(/([A-Z])/g, ' $1')
+										.replace(/\b\w/g, l => l.toUpperCase())
+										.trim();
+								};
+								
+								// Helper function to format values for display
+								const formatValue = (val) => {
+									if (val === null || val === undefined) {
+										return '<em style="color: #999;">(empty)</em>';
+									}
+									if (Array.isArray(val)) {
+										if (val.length === 0) {
 											return '<em style="color: #999;">(empty)</em>';
 										}
-										if (Array.isArray(val)) {
-											if (val.length === 0) {
-												return '<em style="color: #999;">(empty)</em>';
-											}
-											// Check if it's an array of objects (like contacts)
-											if (val.length > 0 && typeof val[0] === 'object') {
-												return val.map(item => {
-													if (item.name && item.phone) {
-														return `${item.name} (${item.phone})`;
-													} else if (item.name) {
-														return item.name;
-													}
-													return JSON.stringify(item);
-												}).join('; ');
-											}
-											return val.join(', ');
+										// Check if it's an array of objects (like contacts)
+										if (val.length > 0 && typeof val[0] === 'object') {
+											return val.map(item => {
+												if (item.name && item.phone) {
+													return `${item.name} (${item.phone})`;
+												} else if (item.name) {
+													return item.name;
+												}
+												return JSON.stringify(item);
+											}).join('; ');
 										}
-										if (val instanceof Object && !(val instanceof Date)) {
-											return JSON.stringify(val);
-										}
-										if (val instanceof Date || (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val))) {
-											const dateObj = val instanceof Date ? val : new Date(val);
-											return dateObj.toLocaleDateString();
-										}
-										return String(val);
-									};
-									
-									pwdData.edit_log.changes.forEach(change => {
-										const row = document.createElement('tr');
-										row.innerHTML = `
-											<td><strong>${formatFieldName(change.field)}</strong></td>
-											<td>${formatValue(change.old_value)}</td>
-											<td>${formatValue(change.new_value)}</td>
-										`;
-										tbody.appendChild(row);
-									});
+										return val.join(', ');
+									}
+									if (val instanceof Object && !(val instanceof Date)) {
+										return JSON.stringify(val);
+									}
+									if (val instanceof Date || (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val))) {
+										const dateObj = val instanceof Date ? val : new Date(val);
+										return dateObj.toLocaleDateString();
+									}
+									return String(val);
+								};
+								
+								pwdData.edit_log.changes.forEach(change => {
+									const row = document.createElement('tr');
+									row.innerHTML = `
+										<td style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 0;"><strong>${formatFieldName(change.field)}</strong></td>
+										<td style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 0;">${formatValue(change.old_value)}</td>
+										<td style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 0;">${formatValue(change.new_value)}</td>
+									`;
+									tbody.appendChild(row);
+								});
 									
 									table.appendChild(tbody);
 									changesList.appendChild(table);
