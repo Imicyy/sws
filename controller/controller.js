@@ -1545,8 +1545,28 @@ exports.getOscaAnalytics = async (req, res) => {
 // Get senior citizens data for report generation (with gender information)
 exports.getSeniorCitizensForReport = async (req, res) => {
   try {
+    const { month, year } = req.query; // Support month and year filters
+    
+    // Build query filter
+    const queryFilter = { status: { $ne: 'Archived' } };
+    
+    // Add date filter if month is provided (for monthly reports)
+    if (month) {
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year) || new Date().getFullYear();
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    } else if (year) {
+      // For annual reports, filter by year
+      const yearNum = parseInt(year);
+      const startDate = new Date(yearNum, 0, 1);
+      const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    }
+    
     const seniors = await SeniorCitizen.find(
-      { status: { $ne: 'Archived' } },
+      queryFilter,
       'identifying_information.address.barangay identifying_information.gender'
     );
     
@@ -1561,16 +1581,35 @@ exports.getSeniorCitizensForReport = async (req, res) => {
 exports.getSeniorCitizensByBarangay = async (req, res) => {
   try {
     const { barangay } = req.params;
+    const { month, year } = req.query; // Support month and year filters
 
     if (!barangay) {
       return res.status(400).json({ success: false, message: 'Barangay is required' });
     }
 
+    // Build query filter
+    const queryFilter = {
+      'identifying_information.address.barangay': barangay,
+      status: { $ne: 'Archived' }
+    };
+
+    // Add date filter if month is provided (for monthly reports)
+    if (month) {
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year) || new Date().getFullYear();
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    } else if (year) {
+      // For annual reports, filter by year
+      const yearNum = parseInt(year);
+      const startDate = new Date(yearNum, 0, 1);
+      const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    }
+
     const seniors = await SeniorCitizen.find(
-      {
-        'identifying_information.address.barangay': barangay,
-        status: { $ne: 'Archived' }
-      },
+      queryFilter,
       'identifying_information.name identifying_information.age identifying_information.gender identifying_information.contacts'
     ).lean();
 
@@ -1652,16 +1691,35 @@ exports.getPdaoAnalytics = async (req, res) => {
 exports.getPwdsByBarangay = async (req, res) => {
   try {
     const { barangay } = req.params;
+    const { month, year } = req.query; // Support month and year filters
 
     if (!barangay) {
       return res.status(400).json({ success: false, message: 'Barangay is required' });
     }
 
+    // Build query filter
+    const queryFilter = {
+      barangay,
+      status: { $ne: 'Archived' }
+    };
+
+    // Add date filter if month is provided (for monthly reports)
+    if (month) {
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year) || new Date().getFullYear();
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    } else if (year) {
+      // For annual reports, filter by year
+      const yearNum = parseInt(year);
+      const startDate = new Date(yearNum, 0, 1);
+      const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    }
+
     const pwds = await PWD.find(
-      {
-        barangay,
-        status: { $ne: 'Archived' }
-      },
+      queryFilter,
       'first_name middle_name last_name age gender contacts disability'
     ).lean();
 
@@ -2685,9 +2743,30 @@ exports.debugSeniorData = async (req, res) => {
 // Get PWD count data by barangay for the map
 exports.getAllPwds = async (req, res) => {
   try {
+    const { month, year } = req.query; // Support month and year filters
+    
     // Get all PWD records (including archived if needed)
     const statusFilter = req.query.status === 'all' ? {} : { status: { $ne: 'Archived' } };
-    const pwds = await PWD.find(statusFilter);
+    
+    // Build query filter
+    const queryFilter = { ...statusFilter };
+    
+    // Add date filter if month is provided (for monthly reports)
+    if (month) {
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year) || new Date().getFullYear();
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    } else if (year) {
+      // For annual reports, filter by year
+      const yearNum = parseInt(year);
+      const startDate = new Date(yearNum, 0, 1);
+      const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    }
+    
+    const pwds = await PWD.find(queryFilter);
     
     res.json({
       success: true,

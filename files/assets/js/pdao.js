@@ -716,9 +716,17 @@ document.querySelector('.close').onclick = closeModal;
 document.getElementById('searchInput').oninput = handleSearch;
 
 window.onclick = function(event) {
-    const modal = document.getElementById('chartModal');
-    if (event.target === modal) {
+    // Handle chart modal
+    const chartModal = document.getElementById('chartModal');
+    if (event.target === chartModal) {
         closeModal();
+        return;
+    }
+    // Handle report type modal
+    const reportModal = document.getElementById('reportTypeModal');
+    if (event.target === reportModal && typeof closeReportTypeModal === 'function') {
+        closeReportTypeModal();
+        return;
     }
 }
 
@@ -740,8 +748,13 @@ async function generatePwdBarangayReport(barangayName, btnEl) {
     }
 
     try {
-        // Fetch PWD data for this specific barangay
-        const res = await fetch(`/api/pwds/barangay/${encodeURIComponent(barangayName)}`, {
+        // Get current month and year for monthly report
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+        const currentYear = now.getFullYear();
+        
+        // Fetch PWD data for this specific barangay, filtered by current month
+        const res = await fetch(`/api/pwds/barangay/${encodeURIComponent(barangayName)}?month=${currentMonth}&year=${currentYear}`, {
             credentials: 'same-origin'
         });
         

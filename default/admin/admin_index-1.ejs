@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<title>ADMIN-PDAO</title>
@@ -263,6 +263,50 @@
 												</div>
 											</div>
 										</div>
+
+										<!-- Report Type Selection Modal -->
+										<div id="reportTypeModal" class="modal" style="display: none;">
+											<div class="modal-content" style="max-width: 500px;">
+												<div class="modal-header">
+													<span class="close" onclick="closeReportTypeModal()">&times;</span>
+													<h2>Select Report Type</h2>
+												</div>
+												<div style="padding: 20px;">
+													<div style="margin-bottom: 20px;">
+														<label style="display: block; margin-bottom: 10px; font-weight: bold;">Report Type:</label>
+														<select id="reportTypeSelect" style="width: 100%; padding: 8px; font-size: 14px;" onchange="toggleReportDateInputs()">
+															<option value="annual">Annual Report</option>
+															<option value="monthly">Monthly Report</option>
+														</select>
+													</div>
+													<div id="yearInputContainer" style="margin-bottom: 20px;">
+														<label style="display: block; margin-bottom: 10px; font-weight: bold;">Select Year:</label>
+														<input type="number" id="reportYear" style="width: 100%; padding: 8px; font-size: 14px;" min="2020" max="2100">
+													</div>
+													<div id="monthInputContainer" style="margin-bottom: 20px; display: none;">
+														<label style="display: block; margin-bottom: 10px; font-weight: bold;">Select Month:</label>
+														<select id="reportMonth" style="width: 100%; padding: 8px; font-size: 14px;">
+															<option value="1">January</option>
+															<option value="2">February</option>
+															<option value="3">March</option>
+															<option value="4">April</option>
+															<option value="5">May</option>
+															<option value="6">June</option>
+															<option value="7">July</option>
+															<option value="8">August</option>
+															<option value="9">September</option>
+															<option value="10">October</option>
+															<option value="11">November</option>
+															<option value="12">December</option>
+														</select>
+													</div>
+													<div style="text-align: right;">
+														<button class="btn btn-secondary" onclick="closeReportTypeModal()" style="margin-right: 10px;">Cancel</button>
+														<button class="btn btn-primary" onclick="generateReportWithSelection()">Generate Report</button>
+													</div>
+												</div>
+											</div>
+										</div>
 									
 
 										
@@ -387,35 +431,91 @@
 				if (generateReportBtn) {
 					console.log('Generate Report button found, adding event listener');
 					
-					generateReportBtn.addEventListener('click', async function() {
+					generateReportBtn.addEventListener('click', function() {
 						console.log('Generate Report button clicked');
+						// Show modal for report type selection
+						const modal = document.getElementById('reportTypeModal');
+						if (modal) {
+							modal.style.display = 'block';
+							// Set current year and month as defaults
+							const now = new Date();
+							const yearInput = document.getElementById('reportYear');
+							const monthInput = document.getElementById('reportMonth');
+							if (yearInput) yearInput.value = now.getFullYear();
+							if (monthInput) monthInput.value = now.getMonth() + 1;
+						}
+					});
+				} else {
+					console.error('Generate Report button not found in DOM!');
+				}
+
+				// Function to toggle date inputs based on report type
+				window.toggleReportDateInputs = function() {
+					const reportType = document.getElementById('reportTypeSelect').value;
+					const yearContainer = document.getElementById('yearInputContainer');
+					const monthContainer = document.getElementById('monthInputContainer');
+					
+					if (reportType === 'monthly') {
+						yearContainer.style.display = 'block';
+						monthContainer.style.display = 'block';
+					} else {
+						yearContainer.style.display = 'block';
+						monthContainer.style.display = 'none';
+					}
+				};
+
+				// Function to close report type modal
+				window.closeReportTypeModal = function() {
+					document.getElementById('reportTypeModal').style.display = 'none';
+				};
+
+				// Function to generate report with selected parameters
+				window.generateReportWithSelection = async function() {
+					const reportType = document.getElementById('reportTypeSelect').value;
+					const year = document.getElementById('reportYear').value;
+					const month = reportType === 'monthly' ? document.getElementById('reportMonth').value : null;
+					
+					// Close modal
+					closeReportTypeModal();
+					
+					try {
+						// Build query string
+						let queryString = '';
+						if (reportType === 'monthly' && month) {
+							queryString = `?month=${month}&year=${year}`;
+						} else if (reportType === 'annual') {
+							queryString = `?year=${year}`;
+						}
 						
-						try {
-							// Fetch PWD data from the server
-							const response = await fetch('/api/pwds', { credentials: 'same-origin' });
-							if (!response.ok) {
-								throw new Error('Failed to fetch PWD data');
-							}
-							const data = await response.json();
-							const pwdsData = data.pwds || data.data || [];
-							
-							if (!pwdsData || pwdsData.length === 0) {
-								alert('No PWD data available to generate report.');
-								return;
-							}
-							
-							// Build the report table HTML
-							const tableHtml = buildPwdsReportTableHtml(pwdsData);
-							
-							// Open new window for report
-							const newWin = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
-							
-							if (!newWin) {
-								alert('Popup blocked! Please allow popups for this site to view the report.');
-								return;
-							}
-							
-							const docHtml = `<!doctype html>
+						// Fetch PWD data from the server
+						const response = await fetch(`/api/pwds${queryString}`, { credentials: 'same-origin' });
+						if (!response.ok) {
+							throw new Error('Failed to fetch PWD data');
+						}
+						const data = await response.json();
+						const pwdsData = data.pwds || data.data || [];
+						
+						if (!pwdsData || pwdsData.length === 0) {
+							alert('No PWD data available for the selected period.');
+							return;
+						}
+						
+						// Build the report table HTML
+						const reportTitle = reportType === 'monthly' 
+							? `MONTHLY ACCOMPLISHMENT REPORT - ${getMonthName(parseInt(month))} ${year}`
+							: `ANNUAL ACCOMPLISHMENT REPORT - ${year}`;
+						
+						const tableHtml = buildPwdsReportTableHtml(pwdsData);
+						
+						// Open new window for report
+						const newWin = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
+						
+						if (!newWin) {
+							alert('Popup blocked! Please allow popups for this site to view the report.');
+							return;
+						}
+						
+						const docHtml = `<!doctype html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -542,7 +642,7 @@
 
     <div class="title-section">
         <h5>PERSONS WITH DISABILITY AFFAIRS OFFICE</h5>
-        <h5>ANNUAL ACCOMPLISHMENT REPORT</h5>
+        <h5>${reportTitle}</h5>
 		<small class="text-center">
             As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
         </small>
@@ -567,16 +667,37 @@
 							newWin.document.write(docHtml);
 							newWin.document.close();
 							
-							console.log('Report generated successfully');
-							
-						} catch (e) {
-							console.error('Error generating report:', e);
-							alert('Error generating report: ' + e.message);
-						}
-					});
-				} else {
-					console.error('Generate Report button not found in DOM!');
-				}
+						console.log('Report generated successfully');
+						
+					} catch (e) {
+						console.error('Error generating report:', e);
+						alert('Error generating report: ' + e.message);
+					}
+				};
+
+				// Helper function to get month name
+				window.getMonthName = function(monthNum) {
+					const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+						'July', 'August', 'September', 'October', 'November', 'December'];
+					return months[monthNum - 1] || '';
+				};
+
+				// Close modals when clicking outside
+				// Override window.onclick to handle both chartModal (from pdao.js) and reportTypeModal
+				window.onclick = function(event) {
+					// Handle report type modal
+					const reportModal = document.getElementById('reportTypeModal');
+					if (event.target === reportModal) {
+						closeReportTypeModal();
+						return;
+					}
+					// Handle chart modal (from pdao.js)
+					const chartModal = document.getElementById('chartModal');
+					if (event.target === chartModal && typeof closeModal === 'function') {
+						closeModal();
+						return;
+					}
+				};
 
 				// Build table HTML for report
 				function buildPwdsReportTableHtml(pwds) {

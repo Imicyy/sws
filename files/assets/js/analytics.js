@@ -675,16 +675,26 @@ document.addEventListener('keydown', function(event) {
 });
 
 // Generate Report Function
-async function generateSeniorCitizensReport() {
+async function generateSeniorCitizensReport(year = null, month = null) {
     try {
         // Show loading indicator
         const generateReportBtn = document.getElementById('generateReportBtn');
-        const originalText = generateReportBtn.innerHTML;
-        generateReportBtn.disabled = true;
-        generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Generating...';
+        const originalText = generateReportBtn ? generateReportBtn.innerHTML : '';
+        if (generateReportBtn) {
+            generateReportBtn.disabled = true;
+            generateReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Generating...';
+        }
+        
+        // Build query string
+        let queryString = '';
+        if (month) {
+            queryString = `?month=${month}&year=${year || new Date().getFullYear()}`;
+        } else if (year) {
+            queryString = `?year=${year}`;
+        }
         
         // Fetch all senior citizens data to get gender breakdown
-        const seniorDataResponse = await fetch('/api/senior-citizens-for-report', { credentials: 'same-origin' });
+        const seniorDataResponse = await fetch(`/api/senior-citizens-for-report${queryString}`, { credentials: 'same-origin' });
         
         let seniors = [];
         if (seniorDataResponse.ok) {
@@ -698,6 +708,11 @@ async function generateSeniorCitizensReport() {
         
         // Build report table HTML
         const tableHtml = buildSeniorCitizensReportTableHtml(seniors, allData);
+        
+        // Determine report title
+        const reportTitle = month 
+            ? `MONTHLY ACCOMPLISHMENT REPORT - ${getMonthName(parseInt(month))} ${year || new Date().getFullYear()}`
+            : `ANNUAL ACCOMPLISHMENT REPORT - ${year || new Date().getFullYear()}`;
         
         // Open new window for report
         const newWin = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
@@ -837,7 +852,7 @@ async function generateSeniorCitizensReport() {
 
     <div class="title-section">
         <h5>OFFICE OF SENIOR CITIZENS AFFAIRS</h5>
-        <h5>ANNUAL ACCOMPLISHMENT REPORT</h5>
+        <h5>${reportTitle}</h5>
         <small class="text-center">
             As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
         </small>
@@ -1011,8 +1026,13 @@ async function generateBarangayReport(barangayName, btnEl) {
     }
 
     try {
-        // Fetch senior citizens data for this specific barangay
-        const res = await fetch(`/api/senior-citizens/barangay/${encodeURIComponent(barangayName)}`, {
+        // Get current month and year for monthly report
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+        const currentYear = now.getFullYear();
+        
+        // Fetch senior citizens data for this specific barangay, filtered by current month
+        const res = await fetch(`/api/senior-citizens/barangay/${encodeURIComponent(barangayName)}?month=${currentMonth}&year=${currentYear}`, {
             credentials: 'same-origin'
         });
         
@@ -1287,7 +1307,20 @@ loadOscaData();
     function attachListener() {
         const generateReportBtn = document.getElementById('generateReportBtn');
         if (generateReportBtn) {
-            generateReportBtn.addEventListener('click', generateSeniorCitizensReport);
+            generateReportBtn.addEventListener('click', function() {
+                // Show modal for report type selection
+                const modal = document.getElementById('reportTypeModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    // Set current year and month as defaults
+                    const now = new Date();
+                    document.getElementById('reportYear').value = now.getFullYear();
+                    document.getElementById('reportMonth').value = now.getMonth() + 1;
+                } else {
+                    // Fallback: generate report directly if modal not found
+                    generateSeniorCitizensReport();
+                }
+            });
         } else {
             // Retry if button not found yet
             setTimeout(attachListener, 100);
@@ -1300,3 +1333,54 @@ loadOscaData();
         attachListener();
     }
 })();
+
+// Function to toggle date inputs based on report type
+window.toggleReportDateInputs = function() {
+    const reportType = document.getElementById('reportTypeSelect').value;
+    const yearContainer = document.getElementById('yearInputContainer');
+    const monthContainer = document.getElementById('monthInputContainer');
+    
+    if (reportType === 'monthly') {
+        yearContainer.style.display = 'block';
+        monthContainer.style.display = 'block';
+    } else {
+        yearContainer.style.display = 'block';
+        monthContainer.style.display = 'none';
+    }
+};
+
+// Function to close report type modal
+window.closeReportTypeModal = function() {
+    const modal = document.getElementById('reportTypeModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
+
+// Function to generate senior report with selected parameters
+window.generateSeniorReportWithSelection = async function() {
+    const reportType = document.getElementById('reportTypeSelect').value;
+    const year = document.getElementById('reportYear').value;
+    const month = reportType === 'monthly' ? document.getElementById('reportMonth').value : null;
+    
+    // Close modal
+    closeReportTypeModal();
+    
+    // Call the generate function with parameters
+    await generateSeniorCitizensReport(year, month);
+};
+
+// Helper function to get month name
+window.getMonthName = function(monthNum) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+        'July', 'August', 'September', 'October', 'November', 'December'];
+    return months[monthNum - 1] || '';
+};
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const reportModal = document.getElementById('reportTypeModal');
+    if (event.target === reportModal) {
+        closeReportTypeModal();
+    }
+});
