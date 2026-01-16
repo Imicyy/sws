@@ -107,6 +107,9 @@ function renderTable() {
                 <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="openPwdBarangayPrint(this.dataset.barangay, this)">
                      Print
                 </button>
+                <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="generatePwdBarangayReport(this.dataset.barangay, this)">
+                     Generate
+                </button>
             </td>
         `;
         tbody.appendChild(row);
@@ -725,6 +728,350 @@ document.addEventListener('keydown', function(event) {
         closeModal();
     }
 });
+
+// Generate Report for a specific barangay's PWDs
+async function generatePwdBarangayReport(barangayName, btnEl) {
+    if (!barangayName) return;
+
+    const originalText = btnEl ? btnEl.innerHTML : '';
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = 'Generating...';
+    }
+
+    try {
+        // Fetch PWD data for this specific barangay
+        const res = await fetch(`/api/pwds/barangay/${encodeURIComponent(barangayName)}`, {
+            credentials: 'same-origin'
+        });
+        
+        if (!res.ok) {
+            throw new Error('Unable to load PWD data');
+        }
+
+        const json = await res.json();
+        if (!json.success) {
+            throw new Error(json.message || 'Failed to load data');
+        }
+
+        const pwds = json.data || [];
+        
+        if (pwds.length === 0) {
+            alert('No PWD data available for this barangay.');
+            if (btnEl) {
+                btnEl.disabled = false;
+                btnEl.innerHTML = originalText;
+            }
+            return;
+        }
+
+        // Build report table HTML for this barangay
+        const tableHtml = buildPwdBarangayReportTableHtml(barangayName, pwds);
+        
+        // Open new window for report
+        const newWin = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
+        
+        if (!newWin) {
+            alert('Popup blocked! Please allow popups for this site to view the report.');
+            return;
+        }
+        
+        const docHtml = `<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>PWD Disability Report - ${barangayName}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
+    <style>
+        body { padding: 30px; font-family: Arial, sans-serif; }
+
+        .header-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+            min-height: 130px;
+        }
+
+        .logo-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 95px;
+        }
+
+        .logo-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+        }
+
+        .main-header {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .title-section { 
+            margin-top: 15px; 
+            text-align: center;
+        }
+
+        .report-info {
+            margin: 20px auto;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.8;
+            max-width: 800px;
+            white-space: nowrap;
+        }
+
+        .info-item {
+            display: inline-block;
+            margin: 0 15px;
+        }
+
+        .underline {
+            display: inline-block;
+            border-bottom: 1px solid #000;
+            width: 120px;
+            height: 14px;
+            vertical-align: bottom;
+            margin-left: 5px;
+        }
+
+        .address-underline {
+            width: 150px;
+        }
+
+        .generated-date {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .print-button-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .print-button-container button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .print-button-container button:hover {
+            background-color: #0056b3;
+        }
+
+        @media print {
+            .print-button-container {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="print-button-container">
+    <button onclick="window.print()">🖨️ Print Report</button>
+</div>
+
+<div class="container">
+    
+    <div class="header-wrapper">
+        <img src="/assets/images/SilayLogo.jpg" class="logo-left">
+        <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+
+        <div class="main-header">
+            <h4>Republic of the Philippines</h4>
+            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+            <p>Persons with Disability Affairs Office</p>
+        </div>
+    </div>
+
+    <div class="title-section">
+        <h5>PERSONS WITH DISABILITY AFFAIRS OFFICE</h5>
+        <h5>ANNUAL ACCOMPLISHMENT REPORT</h5>
+        <h5><strong>${barangayName}</strong></h5>
+    </div>
+
+    <div class="report-info">
+        <span class="info-item">Region: <span class="underline"></span></span>
+        <span class="info-item">Persons with Disability Statistics: <span class="underline"></span></span>
+        <span class="info-item">Address: <span class="underline address-underline"></span></span>
+    </div>
+
+    ${tableHtml}
+
+    <div class="text-center generated-date">
+        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+    </div>
+</div>
+
+</body>
+</html>`;
+        
+        newWin.document.open();
+        newWin.document.write(docHtml);
+        newWin.document.close();
+        
+        console.log('Barangay PWD report generated successfully');
+        
+    } catch (e) {
+        console.error('Error generating barangay PWD report:', e);
+        alert('Error generating report: ' + e.message);
+    } finally {
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalText;
+        }
+    }
+}
+
+// Build table HTML for barangay-specific PWD report
+function buildPwdBarangayReportTableHtml(barangayName, pwds) {
+    function esc(s){ 
+        return String(s === null || s === undefined ? '' : s)
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;'); 
+    }
+    
+    const mapping = {
+        'Hard of Hearing/Deaf': 'Deaf or Hard of Hearing',
+        'Visual/Blind': 'Visual Disability',
+        'Speech/Language Impairment': 'Speech and Language Impairment',
+        'Learning Disability': 'Learning Disability',
+        'Mental/Intellectual': 'Intellectual Disability',
+        'Physical Disability': 'Physical Disability (Orthopedic)',
+        'Psychosocial Disability': 'Psychosocial Disability',
+        'Cancer': 'Cancer (RA11215)',
+        'Rare Disease': 'Rare Disease (RA10747)',
+        'Multiple Disability': 'Multiple Disability',
+        'Other': 'Other'
+    };
+    
+    const stats = {};
+    const uniqueIds = new Set();
+    
+    // Process PWD data
+    pwds.forEach(p => {
+        if (p && (p._id || p.id)) uniqueIds.add(p._id || p.id);
+        const age = (typeof p.age === 'number') ? p.age : (p.age ? parseInt(p.age,10) : null);
+        const gender = (p.gender || 'Unknown').toString();
+        const disabilities = Array.isArray(p.disability) ? p.disability : (p.disability ? [p.disability] : []);
+        
+        disabilities.forEach(d => {
+            const key = mapping[d] || d || 'Other';
+            if (!stats[key]) {
+                stats[key] = { 
+                    count: 0, 
+                    male: 0, 
+                    female: 0, 
+                    otherGender: 0, 
+                    ages: [] 
+                };
+            }
+            stats[key].count += 1;
+            if (age !== null && !isNaN(age)) stats[key].ages.push(age);
+            if (/^male$/i.test(gender)) stats[key].male += 1;
+            else if (/^female$/i.test(gender)) stats[key].female += 1;
+            else stats[key].otherGender += 1;
+        });
+    });
+
+    const preferredOrder = [
+        'Deaf or Hard of Hearing', 'Intellectual Disability', 'Learning Disability', 
+        'Mental Disability', 'Physical Disability (Orthopedic)', 'Psychosocial Disability', 
+        'Speech and Language Impairment', 'Visual Disability', 'Cancer (RA11215)', 
+        'Rare Disease (RA10747)', 'Multiple Disability', 'Other'
+    ];
+    
+    const keys = Array.from(new Set([...preferredOrder, ...Object.keys(stats)]));
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Disability Type</th>
+                        <th>Age Range</th>
+                        <th>Total</th>
+                        <th>Male</th>
+                        <th>Female</th>
+                        <th>Other/Unknown</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+    
+    keys.forEach(k => {
+        if (!stats[k]) return;
+        const s = stats[k];
+        const minAge = s.ages.length ? Math.min(...s.ages) : 'N/A';
+        const maxAge = s.ages.length ? Math.max(...s.ages) : 'N/A';
+        const ageRange = s.ages.length ? `${minAge} - ${maxAge}` : 'N/A';
+        
+        html += `
+            <tr>
+                <td><strong>${esc(k)}</strong></td>
+                <td>${esc(ageRange)}</td>
+                <td><span class="badge bg-primary">${s.count}</span></td>
+                <td>${s.male}</td>
+                <td>${s.female}</td>
+                <td>${s.otherGender}</td>
+            </tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    
+    // Calculate totals
+    let totalMale = 0, totalFemale = 0, totalOther = 0, totalCount = 0;
+    Object.values(stats).forEach(s => { 
+        totalMale += s.male; 
+        totalFemale += s.female; 
+        totalOther += s.otherGender;
+        totalCount += s.count;
+    });
+    
+    const allAges = [].concat(...Object.values(stats).map(s => s.ages));
+    const overallAgeRange = allAges.length ? 
+        `${Math.min(...allAges)} - ${Math.max(...allAges)}` : 'N/A';
+    
+    html += `
+        <div class="summary">
+            <h5>Report Summary</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li><strong>Barangay:</strong> ${esc(barangayName)}</li>
+                        <li><strong>Unique PWDs:</strong> ${uniqueIds.size}</li>
+                        <li><strong>Total Disability Records:</strong> ${totalCount}</li>
+                        <li><strong>Overall Age Range:</strong> ${overallAgeRange}</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li><strong>Gender Distribution:</strong></li>
+                        <li>&nbsp;&nbsp;Male: ${totalMale}</li>
+                        <li>&nbsp;&nbsp;Female: ${totalFemale}</li>
+                        <li>&nbsp;&nbsp;Other/Unknown: ${totalOther}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>`;
+    
+    return html;
+}
 
 // Initialize the application
 loadPdaoData();

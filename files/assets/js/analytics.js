@@ -130,6 +130,9 @@ function renderTable() {
                 <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="openBarangayPrint(this.dataset.barangay, this)">
                      Print
                 </button>
+                <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="generateBarangayReport(this.dataset.barangay, this)">
+                     Generate
+                </button>
             </td>
         `;
         tbody.appendChild(row);
@@ -988,6 +991,285 @@ function buildSeniorCitizensReportTableHtml(seniors, barangayData) {
                 <div class="col-md-6">
                     <ul class="list-unstyled">
                         <li><strong>Number of Barangays:</strong> ${sortedBarangays.length}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>`;
+    
+    return html;
+}
+
+// Generate Report for a specific barangay
+async function generateBarangayReport(barangayName, btnEl) {
+    if (!barangayName) return;
+
+    const originalText = btnEl ? btnEl.innerHTML : '';
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = 'Generating...';
+    }
+
+    try {
+        // Fetch senior citizens data for this specific barangay
+        const res = await fetch(`/api/senior-citizens/barangay/${encodeURIComponent(barangayName)}`, {
+            credentials: 'same-origin'
+        });
+        
+        if (!res.ok) {
+            throw new Error('Unable to load senior citizens data');
+        }
+
+        const json = await res.json();
+        if (!json.success) {
+            throw new Error(json.message || 'Failed to load data');
+        }
+
+        const seniors = json.data || [];
+        
+        if (seniors.length === 0) {
+            alert('No senior citizens data available for this barangay.');
+            if (btnEl) {
+                btnEl.disabled = false;
+                btnEl.innerHTML = originalText;
+            }
+            return;
+        }
+
+        // Build report table HTML for this barangay
+        const tableHtml = buildBarangaySeniorCitizensReportTableHtml(barangayName, seniors);
+        
+        // Open new window for report
+        const newWin = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
+        
+        if (!newWin) {
+            alert('Popup blocked! Please allow popups for this site to view the report.');
+            return;
+        }
+        
+        const docHtml = `<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Senior Citizens Report - ${barangayName}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
+    <style>
+        body { padding: 30px; font-family: Arial, sans-serif; }
+
+        .header-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+            min-height: 130px;
+        }
+
+        .logo-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 95px;
+        }
+
+        .logo-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+        }
+
+        .main-header {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .title-section { 
+            margin-top: 15px; 
+            text-align: center;
+        }
+
+        .report-info {
+            margin: 20px auto;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.8;
+            max-width: 800px;
+            white-space: nowrap;
+        }
+
+        .info-item {
+            display: inline-block;
+            margin: 0 15px;
+        }
+
+        .underline {
+            display: inline-block;
+            border-bottom: 1px solid #000;
+            width: 120px;
+            height: 14px;
+            vertical-align: bottom;
+            margin-left: 5px;
+        }
+
+        .address-underline {
+            width: 150px;
+        }
+
+        .generated-date {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .print-button-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .print-button-container button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .print-button-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .table { margin-top: 20px; }
+        .summary { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 20px; }
+
+        @media print {
+            .print-button-container {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="print-button-container">
+    <button onclick="window.print()">🖨️ Print Report</button>
+</div>
+
+<div class="container">
+    
+    <div class="header-wrapper">
+        <img src="/assets/images/SilayLogo.jpg" class="logo-left">
+        <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+
+        <div class="main-header">
+            <h4>Republic of the Philippines</h4>
+            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+            <p>Office of Senior Citizens Affairs</p>
+        </div>
+    </div>
+
+    <div class="title-section">
+        <h5>OFFICE OF SENIOR CITIZENS AFFAIRS</h5>
+        <h5>ANNUAL ACCOMPLISHMENT REPORT</h5>
+        <h5><strong>${barangayName}</strong></h5>
+    </div>
+
+    <div class="report-info">
+        <span class="info-item">Region: <span class="underline"></span></span>
+        <span class="info-item">Senior Citizens Statistics: <span class="underline"></span></span>
+        <span class="info-item">Address: <span class="underline address-underline"></span></span>
+    </div>
+
+    ${tableHtml}
+    
+    <div class="text-center generated-date">
+        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+    </div>
+</div>
+
+</body>
+</html>`;
+        
+        newWin.document.open();
+        newWin.document.write(docHtml);
+        newWin.document.close();
+        
+        console.log('Barangay report generated successfully');
+        
+    } catch (e) {
+        console.error('Error generating barangay report:', e);
+        alert('Error generating report: ' + e.message);
+    } finally {
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalText;
+        }
+    }
+}
+
+// Build table HTML for barangay-specific senior citizens report
+function buildBarangaySeniorCitizensReportTableHtml(barangayName, seniors) {
+    function esc(s){ 
+        return String(s === null || s === undefined ? '' : s)
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;'); 
+    }
+    
+    // Count by gender
+    let totalMale = 0;
+    let totalFemale = 0;
+    let totalCount = seniors.length;
+    
+    seniors.forEach(senior => {
+        const gender = (senior.gender || 'Unknown').toString().toLowerCase();
+        if (gender === 'male') {
+            totalMale++;
+        } else if (gender === 'female') {
+            totalFemale++;
+        }
+    });
+    
+    // Build table HTML
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Barangay</th>
+                        <th>Male</th>
+                        <th>Female</th>
+                        <th>Total of Citizens</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>${esc(barangayName)}</strong></td>
+                        <td>${totalMale}</td>
+                        <td>${totalFemale}</td>
+                        <td><span class="badge bg-primary">${totalCount}</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>`;
+    
+    // Add summary
+    html += `
+        <div class="summary" style="margin-top: 20px;">
+            <hr>
+            <h5>Report Summary</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li><strong>Barangay:</strong> ${esc(barangayName)}</li>
+                        <li><strong>Total Senior Citizens:</strong> ${totalCount}</li>
+                        <li><strong>Total Male:</strong> ${totalMale}</li>
+                        <li><strong>Total Female:</strong> ${totalFemale}</li>
                     </ul>
                 </div>
             </div>
