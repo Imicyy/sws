@@ -124,6 +124,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     field.style.borderColor = '';
                 }
             });
+            
+            // Validate email fields even if not required (if they have a value, it must be valid)
+            const emailFields = entry.querySelectorAll('input[type="email"]');
+            emailFields.forEach(field => {
+                const value = (field.value || '').trim();
+                if (value) {
+                    // Email has a value, so it must be valid
+                    if (!field.checkValidity() || !validateEmail(value)) {
+                        entryValid = false;
+                        field.style.borderColor = 'red';
+                        if (isValid) field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        field.style.borderColor = '';
+                    }
+                } else {
+                    field.style.borderColor = '';
+                }
+            });
+            
             if (!entryValid) {
                 isValid = false;
                 entry.style.border = '1px solid red';
@@ -183,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById("prevBtn").style.display = "inline";
       }
       
-      if (n == x.length) {
+      if (n == x.length - 1) {
         document.getElementById("nextBtn").innerHTML = "Submit";
         document.getElementById("nextBtn").setAttribute("type", "button");
       } else {
@@ -406,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input
                     type="email"
                     name="contacts[${contactCounter}][email]"
-                    maxlength="25"
+                    maxlength="100"
                     pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
                     title="Please enter a valid email address"
                 >

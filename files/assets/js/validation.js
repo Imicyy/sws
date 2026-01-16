@@ -130,7 +130,7 @@ document.getElementById("addContact").addEventListener("click", function () {
             <input
                 type="email"
                 name="contacts[${contactCount}][email]"
-                maxlength="25"
+                maxlength="100"
                 pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
                 title="Please enter a valid email address"
             >
