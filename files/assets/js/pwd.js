@@ -75,6 +75,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Form validation function
   function validateCurrentStep(currentStep) {
     let isValid = true;
+    let errorMessage = "";
+    let firstInvalidField = null;
     const currentFieldset = document.getElementsByTagName('fieldset')[currentStep];
     const requiredInputs = currentFieldset.querySelectorAll('[required]');
     
@@ -83,19 +85,29 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!input.value.trim()) {
             input.style.borderColor = 'red';
             isValid = false;
-            
-            // Scroll to first invalid field
-            if (!isValid) {
-                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                isValid = false; // Ensure we don't override this
+            if (!firstInvalidField) {
+                firstInvalidField = input;
+                const label = input.closest('.form-group')?.querySelector('label')?.textContent || input.name;
+                errorMessage = `Please fill in the required field: ${label}`;
             }
         } else {
             // HTML validity (pattern, type, length, etc.)
             if (!input.checkValidity()) {
                 input.style.borderColor = 'red';
                 isValid = false;
-                if (isValid) {
-                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (!firstInvalidField) {
+                    firstInvalidField = input;
+                    const label = input.closest('.form-group')?.querySelector('label')?.textContent || input.name;
+                    // Check for specific validation errors
+                    if (input.type === 'tel' || input.name.includes('phone')) {
+                        errorMessage = `Invalid phone number format. ${input.title || 'Phone number must start with 09 and be 11 digits.'}`;
+                    } else if (input.type === 'email') {
+                        errorMessage = `Invalid email address format. ${input.title || 'Please enter a valid email address.'}`;
+                    } else if (input.validity.patternMismatch) {
+                        errorMessage = `Invalid format for ${label}. ${input.title || 'Please check the input format.'}`;
+                    } else {
+                        errorMessage = `Invalid value for ${label}. ${input.title || 'Please check the input.'}`;
+                    }
                 }
             } else {
                 input.style.borderColor = '';
@@ -114,12 +126,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!value) {
                     entryValid = false;
                     field.style.borderColor = 'red';
-                    // scroll to first invalid field
-                    if (isValid) field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (!firstInvalidField) {
+                        firstInvalidField = field;
+                        const label = field.closest('.form-group')?.querySelector('label')?.textContent || field.name;
+                        errorMessage = `Please fill in the required field: ${label}`;
+                    }
                 } else if (!field.checkValidity()) {
                     entryValid = false;
                     field.style.borderColor = 'red';
-                    if (isValid) field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (!firstInvalidField) {
+                        firstInvalidField = field;
+                        const label = field.closest('.form-group')?.querySelector('label')?.textContent || field.name;
+                        if (field.type === 'tel' || field.name.includes('phone')) {
+                            errorMessage = `Invalid phone number format. ${field.title || 'Phone number must start with 09 and be 11 digits.'}`;
+                        } else if (field.type === 'email') {
+                            errorMessage = `Invalid email address format. ${field.title || 'Please enter a valid email address.'}`;
+                        } else {
+                            errorMessage = `Invalid format for ${label}. ${field.title || 'Please check the input format.'}`;
+                        }
+                    }
                 } else {
                     field.style.borderColor = '';
                 }
@@ -134,7 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!field.checkValidity() || !validateEmail(value)) {
                         entryValid = false;
                         field.style.borderColor = 'red';
-                        if (isValid) field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        if (!firstInvalidField) {
+                            firstInvalidField = field;
+                            errorMessage = `Invalid email address format. ${field.title || 'Please enter a valid email address (e.g., name@example.com).'}`;
+                        }
                     } else {
                         field.style.borderColor = '';
                     }
@@ -158,13 +186,22 @@ document.addEventListener('DOMContentLoaded', function() {
         if (emailInput && emailInput.value.trim() && !validateEmail(emailInput.value.trim())) {
             emailInput.style.borderColor = 'red';
             isValid = false;
+            if (!firstInvalidField) {
+                firstInvalidField = emailInput;
+                errorMessage = `Invalid email address format. ${emailInput.title || 'Please enter a valid email address (e.g., name@example.com).'}`;
+            }
         }
     }
     
     if (!isValid) {
+        // Scroll to first invalid field
+        if (firstInvalidField) {
+            firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
         Swal.fire({
-            title: "Missing Information",
-            text: "Please complete all required fields before proceeding.",
+            title: errorMessage ? "Validation Error" : "Missing Information",
+            text: errorMessage || "Please complete all required fields before proceeding.",
             icon: "error"
         });
     }
