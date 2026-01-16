@@ -2365,6 +2365,9 @@ Thank you!</textarea>
     <div class="title-section">
         <h5>LOCAL YOUTH DEVELOPMENT OFFICE</h5>
         <h5>ANNUAL ACCOMPLISHMENT REPORT</h5>
+		<small class="text-center">
+            As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
+        </small>
     </div>
 
     <div class="report-info">
@@ -2375,9 +2378,7 @@ Thank you!</textarea>
 
     ${tableHtml}
 
-	<div class="text-center generated-date">
-        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
-    </div>
+
 </div>
 
 </body>

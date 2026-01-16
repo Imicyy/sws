@@ -131,7 +131,7 @@ function renderTable() {
                      Print
                 </button>
                 <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="generateBarangayReport(this.dataset.barangay, this)">
-                     Generate
+                     Monthly Report
                 </button>
             </td>
         `;
@@ -604,7 +604,7 @@ function buildBarangayPrintHtml(barangayName, seniors) {
                     <div class="text-center mb-2">
                         <h5 class="mb-0">Senior Citizens - ${esc(barangayName)}</h5>
                         <small class="text-center">
-                            As of - <p><strong>${new Date().toLocaleString()}</strong> </p>
+                            As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
                         </small>
                     </div>
 
@@ -838,6 +838,9 @@ async function generateSeniorCitizensReport() {
     <div class="title-section">
         <h5>OFFICE OF SENIOR CITIZENS AFFAIRS</h5>
         <h5>ANNUAL ACCOMPLISHMENT REPORT</h5>
+        <small class="text-center">
+            As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
+        </small>
     </div>
 
     <div class="report-info">
@@ -848,9 +851,7 @@ async function generateSeniorCitizensReport() {
 
     ${tableHtml}
     
-    <div class="text-center generated-date">
-        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
-    </div>
+
 </div>
 
 </body>
@@ -1175,15 +1176,14 @@ async function generateBarangayReport(barangayName, btnEl) {
 
     <div class="title-section">
         <h5>OFFICE OF SENIOR CITIZENS AFFAIRS</h5>
-        <h5>ANNUAL ACCOMPLISHMENT REPORT</h5>
+        <h5>MONTHLY ACCOMPLISHMENT REPORT</h5>
         <h5><strong>${barangayName}</strong></h5>
+        <small class="text-center">
+            As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
+        </small>
     </div>
 
-    <div class="report-info">
-        <span class="info-item">Region: <span class="underline"></span></span>
-        <span class="info-item">Senior Citizens Statistics: <span class="underline"></span></span>
-        <span class="info-item">Address: <span class="underline address-underline"></span></span>
-    </div>
+ 
 
     ${tableHtml}
     

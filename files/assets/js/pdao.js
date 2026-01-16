@@ -108,7 +108,7 @@ function renderTable() {
                      Print
                 </button>
                 <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="generatePwdBarangayReport(this.dataset.barangay, this)">
-                     Generate
+                     Monthly Report
                 </button>
             </td>
         `;
@@ -652,7 +652,7 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
                     <div class="text-center mb-2">
                         <h5 class="mb-0">Person With Disabilities - ${esc(barangayName)}</h5>
                         <small class="text-center">
-                            As of - <p><strong>${new Date().toLocaleString()}</strong> </p>
+                             As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
                         </small>
                     </div>
 
@@ -902,21 +902,22 @@ async function generatePwdBarangayReport(barangayName, btnEl) {
 
     <div class="title-section">
         <h5>PERSONS WITH DISABILITY AFFAIRS OFFICE</h5>
-        <h5>ANNUAL ACCOMPLISHMENT REPORT</h5>
+        <h5>MONTHLY ACCOMPLISHMENT REPORT</h5>
         <h5><strong>${barangayName}</strong></h5>
+         <small class="text-center">
+            As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
+        </small>
     </div>
 
-    <div class="report-info">
+     <div class="report-info">
         <span class="info-item">Region: <span class="underline"></span></span>
         <span class="info-item">Persons with Disability Statistics: <span class="underline"></span></span>
         <span class="info-item">Address: <span class="underline address-underline"></span></span>
     </div>
 
+
     ${tableHtml}
 
-    <div class="text-center generated-date">
-        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
-    </div>
 </div>
 
 </body>
