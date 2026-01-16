@@ -599,9 +599,9 @@ function buildBarangayPrintHtml(barangayName, seniors) {
 
                     <!-- TITLE -->
                     <div class="text-center mb-2">
-                        <h5 class="mb-0">Senior Citizens – ${esc(barangayName)}</h5>
-                        <small class="text-muted">
-                            Essential information: Name, Contact, Gender, Age
+                        <h5 class="mb-0">Senior Citizens - ${esc(barangayName)}</h5>
+                        <small class="text-center">
+                            As of - <p><strong>${new Date().toLocaleString()}</strong> </p>
                         </small>
                     </div>
 
@@ -631,9 +631,7 @@ function buildBarangayPrintHtml(barangayName, seniors) {
                         <div><strong>Total Female:</strong> ${totalFemale}</div>
                     </div>
 
-                    <div class="text-center generated-date">
-        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
-    </div>
+            
 
                 </td>
             </tr>

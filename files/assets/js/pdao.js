@@ -647,9 +647,9 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
 
                     <!-- TITLE -->
                     <div class="text-center mb-2">
-                        <h5 class="mb-0">PWDs – ${esc(barangayName)}</h5>
-                        <small class="text-muted">
-                            Essential information: Name, Contact, Gender, Age, Disability
+                        <h5 class="mb-0">Person With Disabilities - ${esc(barangayName)}</h5>
+                        <small class="text-center">
+                            As of - <p><strong>${new Date().toLocaleString()}</strong> </p>
                         </small>
                     </div>
 
@@ -685,10 +685,8 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
                     <!-- DISABILITY SUMMARY -->
                     ${disabilitySummary}
 
-                    <!-- GENERATED DATE -->
-                    <div class="text-center generated-date">
-        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
-    </div>
+                    
+                
 
                 </td>
             </tr>

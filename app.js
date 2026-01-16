@@ -72,3 +72,5 @@ server.listen(PORT, '0.0.0.0',() => {
     console.log(`Server is running`);
 });
 
+//to do
+//make a generate report per barangay just like generate report button and add where you can add month of report
