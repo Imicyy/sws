@@ -418,29 +418,30 @@ define([
 
       // Color coding
       let markerColor, markerSize, category;
-      if (b.youthCount >= 50) {
-        markerColor = [155, 89, 182]; // Purple
-        markerSize = "14px";
+      if (b.pwdCount >= 20) {
+        markerColor = [231, 76, 60];
+        markerSize = "24px";
         category = "High";
-      } else if (b.youthCount >= 25) {
-        markerColor = [52, 152, 219]; // Blue
-        markerSize = "12px";
+      } else if (b.pwdCount >= 10) {
+        markerColor = [241, 196, 15];
+        markerSize = "22px";
         category = "Medium";
       } else {
-        markerColor = [46, 204, 113]; // Green
-        markerSize = "10px";
+        markerColor = [46, 204, 113];
+        markerSize = "20px";
         category = "Low";
       }
 
       const markerSymbol = {
         type: "simple-marker",
-        color: markerColor,
+        color: markerColor,   // ✅ keeps your color logic
         size: markerSize,
-        outline: { 
-          color: "white", 
-          width: 2 
+        outline: {
+          color: "white",
+          width: 1.5
         },
-        style: "circle"
+        style: "path",
+        path: "M16 0C9.4 0 4 5.4 4 12c0 7.5 12 20 12 20s12-12.5 12-20C28 5.4 22.6 0 16 0z"
       };
 
       const youthPercentage = ((b.youthCount / b.population) * 100).toFixed(1);
