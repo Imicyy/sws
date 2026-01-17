@@ -2781,6 +2781,113 @@ exports.getAllPwds = async (req, res) => {
   }
 };
 
+exports.getAllYouths = async (req, res) => {
+  try {
+    const { month, year } = req.query; // Support month and year filters
+    
+    // Get all Youth records (including archived if needed)
+    const statusFilter = req.query.status === 'all' ? {} : { status: { $ne: 'Archived' } };
+    
+    // Build query filter
+    const queryFilter = { ...statusFilter };
+    
+    // Add date filter if month is provided (for monthly reports)
+    if (month) {
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year) || new Date().getFullYear();
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    } else if (year) {
+      // For annual reports, filter by year
+      const yearNum = parseInt(year);
+      const startDate = new Date(yearNum, 0, 1);
+      const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    }
+    
+    const youths = await Youth.find(queryFilter);
+    
+    res.json({
+      success: true,
+      youths: youths,
+      data: youths // Also include as 'data' for consistency
+    });
+  } catch (err) {
+    console.error('Error fetching Youth data:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch Youth data'
+    });
+  }
+};
+
+exports.getYouthsByBarangay = async (req, res) => {
+  try {
+    const { barangay } = req.params;
+    const { month, year } = req.query; // Support month and year filters
+
+    if (!barangay) {
+      return res.status(400).json({ success: false, message: 'Barangay is required' });
+    }
+
+    // Build query filter
+    const queryFilter = {
+      barangay,
+      status: { $ne: 'Archived' }
+    };
+
+    // Add date filter if month is provided (for monthly reports)
+    if (month) {
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year) || new Date().getFullYear();
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    } else if (year) {
+      // For annual reports, filter by year
+      const yearNum = parseInt(year);
+      const startDate = new Date(yearNum, 0, 1);
+      const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+    }
+
+    const youths = await Youth.find(
+      queryFilter,
+      'first_name middle_name last_name age gender contact education_level employment_status registered_sk voted_sk registered_national'
+    ).lean();
+
+    const data = youths.map((youth) => {
+      const fullName = [
+        youth.last_name,
+        youth.first_name,
+        youth.middle_name
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      return {
+        id: youth._id,
+        fullName: fullName || 'Unnamed',
+        gender: youth.gender || 'N/A',
+        age: youth.age ?? 'N/A',
+        contact: youth.contact || 'N/A',
+        education_level: youth.education_level || 'N/A',
+        employment_status: youth.employment_status || 'N/A',
+        registered_sk: youth.registered_sk ? 'Yes' : 'No',
+        voted_sk: youth.voted_sk ? 'Yes' : 'No',
+        registered_national: youth.registered_national ? 'Yes' : 'No'
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching Youths by barangay:', err);
+    res.status(500).json({ success: false, message: 'Failed to load barangay Youths' });
+  }
+};
+
 exports.getPwdMapData = async (req, res) => {
   try {
     console.log('🔍 Fetching PWD data from database...');

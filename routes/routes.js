@@ -131,9 +131,11 @@ router.get('/api/analytics/osca', requireAuth, controller.getOscaAnalytics);
 router.get('/api/analytics/pdao', requireAuth, controller.getPdaoAnalytics);
 router.get('/api/analytics/youth', controller.getYouthAnalytics);
 router.get('/api/pwds', requireAuth, controller.getAllPwds);
+router.get('/api/youths', requireAuth, controller.getAllYouths);
 router.get('/api/senior-citizens-for-report', requireAuth, controller.getSeniorCitizensForReport);
 router.get('/api/senior-citizens/barangay/:barangay', requireAuth, controller.getSeniorCitizensByBarangay);
 router.get('/api/pwds/barangay/:barangay', requireAuth, controller.getPwdsByBarangay);
+router.get('/api/youths/barangay/:barangay', requireAuth, controller.getYouthsByBarangay);
 
 // Barangay and Purok APIs
 router.get('/api/barangays', requireAuth, controller.getBarangays);

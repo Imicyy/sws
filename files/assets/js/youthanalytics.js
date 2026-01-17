@@ -331,12 +331,19 @@ function renderTable() {
 
   pageData.forEach(item => {
     const row = document.createElement('tr');
+    const safeBarangay = item.name.replace(/"/g, '&quot;');
     row.innerHTML = `
       <td class="barangay-name">${item.name}</td>
       <td class="lydo-count">${item.lydoCount.toLocaleString()}</td>
       <td>
         <button class="view-chart-btn" onclick="showChart(${item.id})">
           View Analytics
+        </button>
+        <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="openYouthBarangayPrint(this.dataset.barangay, this)" style="margin-left: 8px;">
+          Print
+        </button>
+        <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="generateYouthBarangayReport(this.dataset.barangay, this)" style="margin-left: 8px;">
+          Monthly Report
         </button>
       </td>
     `;
@@ -672,6 +679,853 @@ function closeModal() {
     currentChart = null;
   }
 }
+
+// ======= PRINT FUNCTIONALITY =======
+// Open printable view for a barangay's Youths
+async function openYouthBarangayPrint(barangayName, btnEl) {
+  if (!barangayName) return;
+
+  const originalText = btnEl ? btnEl.innerHTML : '';
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = 'Loading...';
+  }
+
+  try {
+    const res = await fetch(`/api/youths/barangay/${encodeURIComponent(barangayName)}`, {
+      credentials: 'same-origin'
+    });
+    if (!res.ok) throw new Error('Unable to load Youth data');
+
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || 'Failed to load data');
+
+    const printHtml = buildYouthBarangayPrintHtml(barangayName, json.data || []);
+
+    const newWin = window.open('', '_blank', 'width=1200,height=900,scrollbars=yes');
+    if (!newWin) {
+      alert('Popup blocked! Please allow popups to view the print page.');
+      return;
+    }
+    newWin.document.open();
+    newWin.document.write(printHtml);
+    newWin.document.close();
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Error opening print view');
+  } finally {
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = originalText;
+    }
+  }
+}
+
+// Build printable HTML for barangay Youths
+function buildYouthBarangayPrintHtml(barangayName, youths) {
+  const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // Calculate summary statistics
+  let totalCount = 0;
+  let totalMale = 0;
+  let totalFemale = 0;
+  const educationCounts = {};
+  const employmentCounts = {};
+  let skRegistered = 0;
+  let skVoted = 0;
+  let nationalRegistered = 0;
+
+  const rows = (youths && youths.length
+    ? youths
+    : []).map((youth, idx) => {
+      totalCount++;
+      const gender = (youth.gender || '').toString().toLowerCase();
+      if (gender === 'male') {
+        totalMale++;
+      } else if (gender === 'female') {
+        totalFemale++;
+      }
+
+      // Count education levels
+      const eduLevel = youth.education_level || 'Not Specified';
+      educationCounts[eduLevel] = (educationCounts[eduLevel] || 0) + 1;
+
+      // Count employment status
+      const empStatus = youth.employment_status || 'Not Specified';
+      employmentCounts[empStatus] = (employmentCounts[empStatus] || 0) + 1;
+
+      // Count registrations
+      if (youth.registered_sk === 'Yes' || youth.registered_sk === true) {
+        skRegistered++;
+      }
+      if (youth.voted_sk === 'Yes' || youth.voted_sk === true) {
+        skVoted++;
+      }
+      if (youth.registered_national === 'Yes' || youth.registered_national === true) {
+        nationalRegistered++;
+      }
+
+      return `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${esc(youth.fullName || 'N/A')}</td>
+          <td>${esc(youth.contact || 'N/A')}</td>
+          <td>${esc(youth.gender || 'N/A')}</td>
+          <td>${esc(youth.age ?? 'N/A')}</td>
+          <td>${esc(youth.education_level || 'N/A')}</td>
+          <td>${esc(youth.employment_status || 'N/A')}</td>
+        </tr>
+      `;
+    }).join('');
+
+  const emptyState = `
+    <tr>
+      <td colspan="7" class="text-center">No Youths found for this barangay.</td>
+    </tr>
+  `;
+
+  // Build education summary HTML
+  const educationSummaryRows = Object.entries(educationCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([edu, count]) => `
+      <tr>
+        <td>${esc(edu)}</td>
+        <td><strong>${count}</strong></td>
+      </tr>
+    `).join('');
+
+  const educationSummary = educationSummaryRows ? `
+    <div class="mt-4">
+      <h5>Education Level Summary</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+          <thead class="table-secondary">
+            <tr>
+              <th>Education Level</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${educationSummaryRows}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ` : '';
+
+  // Build employment summary HTML
+  const employmentSummaryRows = Object.entries(employmentCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([emp, count]) => `
+      <tr>
+        <td>${esc(emp)}</td>
+        <td><strong>${count}</strong></td>
+      </tr>
+    `).join('');
+
+  const employmentSummary = employmentSummaryRows ? `
+    <div class="mt-4">
+      <h5>Employment Status Summary</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+          <thead class="table-secondary">
+            <tr>
+              <th>Employment Status</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${employmentSummaryRows}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ` : '';
+
+  return `<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${esc(barangayName)} - Youths</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
+
+    <style>
+        /* ================= PAGE ================= */
+        @page {
+            size: A4 portrait;
+            margin: 15mm 12mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* ================= ACTION BUTTONS ================= */
+        .print-actions {
+            text-align: right;
+            margin: 15px;
+        }
+
+        .print-actions button {
+            margin-left: 10px;
+        }
+
+        /* ================= PRINT LAYOUT TABLE ================= */
+        .print-layout {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .print-layout thead {
+            display: table-header-group;
+        }
+
+        /* ================= HEADER ================= */
+        .header-wrapper {
+            position: relative;
+            height: 120px;
+        }
+
+        .logo-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 85px;
+        }
+
+        .logo-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 110px;
+        }
+
+        .main-header {
+            text-align: center;
+            padding-top: 10px;
+        }
+
+        .main-header h4 {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .main-header h2 {
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .main-header p {
+            font-size: 12px;
+            margin: 0;
+        }
+
+        /* ================= CONTENT ================= */
+        .content {
+            padding: 10px;
+        }
+
+        .table thead th {
+            white-space: nowrap;
+        }
+
+        table {
+            page-break-inside: auto;
+        }
+
+        tr {
+            page-break-inside: avoid;
+        }
+
+        /* ================= SUMMARY ================= */
+        .summary-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+
+        .summary-box h5 {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .summary-item {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .generated-date {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* ================= PRINT ================= */
+        @media print {
+            .print-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ACTION BUTTONS -->
+    <div class="print-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.close()">Close</button>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">Print</button>
+    </div>
+
+    <!-- PRINT LAYOUT TABLE -->
+    <table class="print-layout">
+        <thead>
+            <tr>
+                <td>
+                    <!-- OFFICIAL HEADER -->
+                    <div class="header-wrapper">
+                        <img src="/assets/images/SilayLogo.jpg" class="logo-left">
+                        <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+
+                        <div class="main-header">
+                            <h4>Republic of the Philippines</h4>
+                            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+                            <p>Local Youth Development Office</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td class="content">
+
+                    <!-- TITLE -->
+                    <div class="text-center mb-2">
+                        <h5 class="mb-0">Youth - ${esc(barangayName)}</h5>
+                        <small class="text-center">
+                             As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
+                        </small>
+                    </div>
+
+                    
+
+                    <!-- TABLE -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Contact</th>
+                                    <th>Gender</th>
+                                    <th>Age</th>
+                                    <th>Education Level</th>
+                                    <th>Employment Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows || emptyState}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SUMMARY -->
+                    <div class="summary-box">
+                        <h5>Report Summary</h5>
+                        <div class="summary-item"><strong>Total Count:</strong> ${totalCount}</div>
+                        <div class="summary-item"><strong>Total Male:</strong> ${totalMale}</div>
+                        <div class="summary-item"><strong>Total Female:</strong> ${totalFemale}</div>
+                        <div class="summary-item"><strong>SK Registered:</strong> ${skRegistered}</div>
+                        <div class="summary-item"><strong>SK Voted:</strong> ${skVoted}</div>
+                        <div class="summary-item"><strong>National Registered:</strong> ${nationalRegistered}</div>
+                    </div>
+
+                    <!-- EDUCATION SUMMARY -->
+                    ${educationSummary}
+
+                    <!-- EMPLOYMENT SUMMARY -->
+                    ${employmentSummary}
+
+                    
+
+                
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>`;
+}
+
+// Make function globally available
+window.openYouthBarangayPrint = openYouthBarangayPrint;
+
+// Generate Monthly Report for a specific barangay's Youths
+async function generateYouthBarangayReport(barangayName, btnEl) {
+  if (!barangayName) return;
+
+  const originalText = btnEl ? btnEl.innerHTML : '';
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = 'Generating...';
+  }
+
+  try {
+    // Get current month and year for monthly report
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+    const currentYear = now.getFullYear();
+    
+    // Fetch Youth data for this specific barangay, filtered by current month
+    const res = await fetch(`/api/youths/barangay/${encodeURIComponent(barangayName)}?month=${currentMonth}&year=${currentYear}`, {
+      credentials: 'same-origin'
+    });
+    
+    if (!res.ok) {
+      throw new Error('Unable to load Youth data');
+    }
+
+    const json = await res.json();
+    if (!json.success) {
+      throw new Error(json.message || 'Failed to load data');
+    }
+
+    const youths = json.data || [];
+    
+    if (youths.length === 0) {
+      alert('No Youth data available for this barangay for the current month.');
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.innerHTML = originalText;
+      }
+      return;
+    }
+
+    // Build report table HTML for this barangay
+    const tableHtml = buildYouthBarangayReportTableHtml(barangayName, youths);
+    
+    // Get month name
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthName = monthNames[currentMonth - 1];
+    
+    // Open new window for report
+    const newWin = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
+    
+    if (!newWin) {
+      alert('Popup blocked! Please allow popups for this site to view the report.');
+      return;
+    }
+    
+    const docHtml = `<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>LYDO Youth Report - ${barangayName}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
+    <style>
+        body { padding: 30px; font-family: Arial, sans-serif; }
+
+        .header-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+            min-height: 130px;
+        }
+
+        .logo-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 95px;
+        }
+
+        .logo-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+        }
+
+        .main-header {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .title-section { 
+            margin-top: 15px; 
+            text-align: center;
+        }
+
+        .report-info {
+            margin: 20px auto;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.8;
+            max-width: 800px;
+            white-space: nowrap;
+        }
+
+        .info-item {
+            display: inline-block;
+            margin: 0 15px;
+        }
+
+        .underline {
+            display: inline-block;
+            border-bottom: 1px solid #000;
+            width: 120px;
+            height: 14px;
+            vertical-align: bottom;
+            margin-left: 5px;
+        }
+
+        .address-underline {
+            width: 150px;
+        }
+
+        .generated-date {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .print-button-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .print-button-container button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .print-button-container button:hover {
+            background-color: #0056b3;
+        }
+
+        @media print {
+            .print-button-container {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="print-button-container">
+    <button onclick="window.print()">🖨️ Print Report</button>
+</div>
+
+<div class="container">
+    
+    <div class="header-wrapper">
+        <img src="/assets/images/SilayLogo.jpg" class="logo-left">
+        <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+
+        <div class="main-header">
+            <h4>Republic of the Philippines</h4>
+            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+            <p>Local Youth Development Office</p>
+        </div>
+    </div>
+
+    <div class="title-section">
+        <h5>LOCAL YOUTH DEVELOPMENT OFFICE</h5>
+        <h5>MONTHLY ACCOMPLISHMENT REPORT</h5>
+        <h5><strong>${barangayName}</strong></h5>
+         <small class="text-center">
+            As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
+        </small>
+    </div>
+
+     <div class="report-info">
+        <span class="info-item">Region: <span class="underline"></span></span>
+        <span class="info-item">Youth Statistics: <span class="underline"></span></span>
+        <span class="info-item">Address: <span class="underline address-underline"></span></span>
+    </div>
+
+
+    ${tableHtml}
+
+</div>
+
+</body>
+</html>`;
+        
+    newWin.document.open();
+    newWin.document.write(docHtml);
+    newWin.document.close();
+    
+    console.log('Barangay Youth report generated successfully');
+    
+  } catch (e) {
+    console.error('Error generating barangay Youth report:', e);
+    alert('Error generating report: ' + e.message);
+  } finally {
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = originalText;
+    }
+  }
+}
+
+// Build table HTML for barangay-specific Youth monthly report
+function buildYouthBarangayReportTableHtml(barangayName, youths) {
+  function esc(s){ 
+    return String(s === null || s === undefined ? '' : s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;'); 
+  }
+  
+  // Statistics by category
+  const stats = {
+    gender: { male: 0, female: 0, other: 0 },
+    education: {},
+    employment: {},
+    skRegistration: { registered: 0, notRegistered: 0 },
+    skVoting: { voted: 0, notVoted: 0 },
+    nationalRegistration: { registered: 0, notRegistered: 0 },
+    ageGroups: { '15-17': 0, '18-24': 0, '25-30': 0 }
+  };
+  
+  const uniqueIds = new Set();
+  const ages = [];
+  
+  // Process Youth data
+  youths.forEach(y => {
+    if (y && (y.id || y._id)) uniqueIds.add(y.id || y._id);
+    
+    const age = (typeof y.age === 'number') ? y.age : (y.age ? parseInt(y.age, 10) : null);
+    if (age !== null && !isNaN(age)) ages.push(age);
+    
+    const gender = (y.gender || 'Unknown').toString();
+    if (/^male$/i.test(gender)) stats.gender.male += 1;
+    else if (/^female$/i.test(gender)) stats.gender.female += 1;
+    else stats.gender.other += 1;
+    
+    // Education level
+    const eduLevel = y.education_level || 'Not Specified';
+    stats.education[eduLevel] = (stats.education[eduLevel] || 0) + 1;
+    
+    // Employment status
+    const empStatus = y.employment_status || 'Not Specified';
+    stats.employment[empStatus] = (stats.employment[empStatus] || 0) + 1;
+    
+    // SK Registration
+    if (y.registered_sk === 'Yes' || y.registered_sk === true) {
+      stats.skRegistration.registered += 1;
+    } else {
+      stats.skRegistration.notRegistered += 1;
+    }
+    
+    // SK Voting
+    if (y.voted_sk === 'Yes' || y.voted_sk === true) {
+      stats.skVoting.voted += 1;
+    } else {
+      stats.skVoting.notVoted += 1;
+    }
+    
+    // National Registration
+    if (y.registered_national === 'Yes' || y.registered_national === true) {
+      stats.nationalRegistration.registered += 1;
+    } else {
+      stats.nationalRegistration.notRegistered += 1;
+    }
+    
+    // Age groups
+    if (age !== null && !isNaN(age)) {
+      if (age >= 15 && age <= 17) stats.ageGroups['15-17'] += 1;
+      else if (age >= 18 && age <= 24) stats.ageGroups['18-24'] += 1;
+      else if (age >= 25 && age <= 30) stats.ageGroups['25-30'] += 1;
+    }
+  });
+
+  let html = `
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>Category</th>
+            <th>Details</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>`;
+  
+  // Gender Distribution
+  html += `
+      <tr>
+        <td rowspan="4"><strong>Gender Distribution</strong></td>
+        <td>Male</td>
+        <td><span class="badge bg-primary">${stats.gender.male}</span></td>
+      </tr>
+      <tr>
+        <td>Female</td>
+        <td><span class="badge bg-primary">${stats.gender.female}</span></td>
+      </tr>
+      <tr>
+        <td>Other/Unknown</td>
+        <td><span class="badge bg-primary">${stats.gender.other}</span></td>
+      </tr>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td><strong>${stats.gender.male + stats.gender.female + stats.gender.other}</strong></td>
+      </tr>`;
+  
+  // Age Groups
+  html += `
+      <tr>
+        <td rowspan="4"><strong>Age Groups</strong></td>
+        <td>15-17 years</td>
+        <td><span class="badge bg-info">${stats.ageGroups['15-17']}</span></td>
+      </tr>
+      <tr>
+        <td>18-24 years</td>
+        <td><span class="badge bg-info">${stats.ageGroups['18-24']}</span></td>
+      </tr>
+      <tr>
+        <td>25-30 years</td>
+        <td><span class="badge bg-info">${stats.ageGroups['25-30']}</span></td>
+      </tr>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td><strong>${stats.ageGroups['15-17'] + stats.ageGroups['18-24'] + stats.ageGroups['25-30']}</strong></td>
+      </tr>`;
+  
+  // Education Level
+  const eduKeys = Object.keys(stats.education);
+  if (eduKeys.length > 0) {
+    html += `<tr><td rowspan="${eduKeys.length + 1}"><strong>Education Level</strong></td>`;
+    eduKeys.forEach(edu => {
+      html += `
+      <tr>
+        <td>${esc(edu)}</td>
+        <td><span class="badge bg-success">${stats.education[edu]}</span></td>
+      </tr>`;
+    });
+    html += `<tr><td><strong>Total</strong></td><td><strong>${Object.values(stats.education).reduce((a, b) => a + b, 0)}</strong></td></tr></tr>`;
+  }
+  
+  // Employment Status
+  const empKeys = Object.keys(stats.employment);
+  if (empKeys.length > 0) {
+    html += `<tr><td rowspan="${empKeys.length + 1}"><strong>Employment Status</strong></td>`;
+    empKeys.forEach(emp => {
+      html += `
+      <tr>
+        <td>${esc(emp)}</td>
+        <td><span class="badge bg-warning">${stats.employment[emp]}</span></td>
+      </tr>`;
+    });
+    html += `<tr><td><strong>Total</strong></td><td><strong>${Object.values(stats.employment).reduce((a, b) => a + b, 0)}</strong></td></tr></tr>`;
+  }
+  
+  // SK Registration
+  html += `
+      <tr>
+        <td rowspan="3"><strong>SK Registration</strong></td>
+        <td>Registered</td>
+        <td><span class="badge bg-success">${stats.skRegistration.registered}</span></td>
+      </tr>
+      <tr>
+        <td>Not Registered</td>
+        <td><span class="badge bg-secondary">${stats.skRegistration.notRegistered}</span></td>
+      </tr>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td><strong>${stats.skRegistration.registered + stats.skRegistration.notRegistered}</strong></td>
+      </tr>`;
+  
+  // SK Voting
+  html += `
+      <tr>
+        <td rowspan="3"><strong>SK Voting</strong></td>
+        <td>Voted</td>
+        <td><span class="badge bg-success">${stats.skVoting.voted}</span></td>
+      </tr>
+      <tr>
+        <td>Not Voted</td>
+        <td><span class="badge bg-secondary">${stats.skVoting.notVoted}</span></td>
+      </tr>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td><strong>${stats.skVoting.voted + stats.skVoting.notVoted}</strong></td>
+      </tr>`;
+  
+  // National Registration
+  html += `
+      <tr>
+        <td rowspan="3"><strong>National Registration</strong></td>
+        <td>Registered</td>
+        <td><span class="badge bg-success">${stats.nationalRegistration.registered}</span></td>
+      </tr>
+      <tr>
+        <td>Not Registered</td>
+        <td><span class="badge bg-secondary">${stats.nationalRegistration.notRegistered}</span></td>
+      </tr>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td><strong>${stats.nationalRegistration.registered + stats.nationalRegistration.notRegistered}</strong></td>
+      </tr>`;
+  
+  html += '</tbody></table></div>';
+  
+  // Calculate totals
+  const totalYouths = uniqueIds.size;
+  const totalRecords = youths.length;
+  const overallAgeRange = ages.length ? 
+    `${Math.min(...ages)} - ${Math.max(...ages)}` : 'N/A';
+  
+  html += `
+    <div class="summary">
+      <h5>Report Summary</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <ul class="list-unstyled">
+            <li><strong>Barangay:</strong> ${esc(barangayName)}</li>
+            <li><strong>Unique Youth Records:</strong> ${totalYouths}</li>
+            <li><strong>Total Records:</strong> ${totalRecords}</li>
+            <li><strong>Overall Age Range:</strong> ${overallAgeRange}</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <ul class="list-unstyled">
+            <li><strong>Gender Distribution:</strong></li>
+            <li>&nbsp;&nbsp;Male: ${stats.gender.male}</li>
+            <li>&nbsp;&nbsp;Female: ${stats.gender.female}</li>
+            <li>&nbsp;&nbsp;Other/Unknown: ${stats.gender.other}</li>
+          </ul>
+        </div>
+      </div>
+    </div>`;
+  
+  return html;
+}
+
+// Make function globally available
+window.generateYouthBarangayReport = generateYouthBarangayReport;
 
 // ======= EVENT LISTENERS =======
 document.querySelector('.close').onclick = closeModal;

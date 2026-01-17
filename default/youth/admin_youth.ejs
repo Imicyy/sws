@@ -186,6 +186,10 @@
 													<h2 class="table-title">Barangay LYDO Table</h2>
 													<div class="search-container">
 														<input type="text" class="search-input" id="searchInput" placeholder="🔍 Search barangays...">
+														<button id="generateReportBtn" class="btn btn-info" type="button" style="margin-left: 12px;">
+															
+															 Generate Report
+														</button>
 													</div>
 												</div>
 
@@ -251,6 +255,50 @@
 									
 												<div class="chart-info" id="chartInfo">
 													<!-- Chart percentage info will be displayed here -->
+												</div>
+											</div>
+										</div>
+
+										<!-- Report Type Selection Modal -->
+										<div id="reportTypeModal" class="modal" style="display: none;">
+											<div class="modal-content" style="max-width: 500px;">
+												<div class="modal-header">
+													<span class="close" onclick="closeReportTypeModal()">&times;</span>
+													<h2>Select Report Type</h2>
+												</div>
+												<div style="padding: 20px;">
+													<div style="margin-bottom: 20px;">
+														<label style="display: block; margin-bottom: 10px; font-weight: bold;">Report Type:</label>
+														<select id="reportTypeSelect" style="width: 100%; padding: 8px; font-size: 14px;" onchange="toggleReportDateInputs()">
+															<option value="annual">Annual Report</option>
+															<option value="monthly">Monthly Report</option>
+														</select>
+													</div>
+													<div id="yearInputContainer" style="margin-bottom: 20px;">
+														<label style="display: block; margin-bottom: 10px; font-weight: bold;">Select Year:</label>
+														<input type="number" id="reportYear" style="width: 100%; padding: 8px; font-size: 14px;" min="2020" max="2100">
+													</div>
+													<div id="monthInputContainer" style="margin-bottom: 20px; display: none;">
+														<label style="display: block; margin-bottom: 10px; font-weight: bold;">Select Month:</label>
+														<select id="reportMonth" style="width: 100%; padding: 8px; font-size: 14px;">
+															<option value="1">January</option>
+															<option value="2">February</option>
+															<option value="3">March</option>
+															<option value="4">April</option>
+															<option value="5">May</option>
+															<option value="6">June</option>
+															<option value="7">July</option>
+															<option value="8">August</option>
+															<option value="9">September</option>
+															<option value="10">October</option>
+															<option value="11">November</option>
+															<option value="12">December</option>
+														</select>
+													</div>
+													<div style="text-align: right;">
+														<button class="btn btn-secondary" onclick="closeReportTypeModal()" style="margin-right: 10px;">Cancel</button>
+														<button class="btn btn-primary" onclick="generateReportWithSelection()">Generate Report</button>
+													</div>
 												</div>
 											</div>
 										</div>
@@ -356,6 +404,525 @@
 			}
 			gtag('js', new Date());
 			gtag('config', 'UA-23581568-13');
+		</script>
+		<script>
+			// Generate Report functionality
+			document.addEventListener('DOMContentLoaded', function() {
+				console.log('DOM loaded - initializing Generate Report button');
+				
+				// Initialize Generate Report Button
+				const generateReportBtn = document.getElementById('generateReportBtn');
+				
+				if (generateReportBtn) {
+					console.log('Generate Report button found, adding event listener');
+					
+					generateReportBtn.addEventListener('click', function() {
+						console.log('Generate Report button clicked');
+						// Show modal for report type selection
+						const modal = document.getElementById('reportTypeModal');
+						if (modal) {
+							modal.style.display = 'block';
+							// Set current year and month as defaults
+							const now = new Date();
+							const yearInput = document.getElementById('reportYear');
+							const monthInput = document.getElementById('reportMonth');
+							if (yearInput) yearInput.value = now.getFullYear();
+							if (monthInput) monthInput.value = now.getMonth() + 1;
+						}
+					});
+				} else {
+					console.error('Generate Report button not found in DOM!');
+				}
+
+				// Function to toggle date inputs based on report type
+				window.toggleReportDateInputs = function() {
+					const reportType = document.getElementById('reportTypeSelect').value;
+					const yearContainer = document.getElementById('yearInputContainer');
+					const monthContainer = document.getElementById('monthInputContainer');
+					
+					if (reportType === 'monthly') {
+						yearContainer.style.display = 'block';
+						monthContainer.style.display = 'block';
+					} else {
+						yearContainer.style.display = 'block';
+						monthContainer.style.display = 'none';
+					}
+				};
+
+				// Function to close report type modal
+				window.closeReportTypeModal = function() {
+					document.getElementById('reportTypeModal').style.display = 'none';
+				};
+
+				// Function to generate report with selected parameters
+				window.generateReportWithSelection = async function() {
+					const reportType = document.getElementById('reportTypeSelect').value;
+					const year = document.getElementById('reportYear').value;
+					const month = reportType === 'monthly' ? document.getElementById('reportMonth').value : null;
+					
+					// Close modal
+					closeReportTypeModal();
+					
+					try {
+						// Build query string
+						let queryString = '';
+						if (reportType === 'monthly' && month) {
+							queryString = `?month=${month}&year=${year}`;
+						} else if (reportType === 'annual') {
+							queryString = `?year=${year}`;
+						}
+						
+						// Fetch Youth data from the server
+						const response = await fetch(`/api/youths${queryString}`, { credentials: 'same-origin' });
+						if (!response.ok) {
+							throw new Error('Failed to fetch Youth data');
+						}
+						const data = await response.json();
+						const youthsData = data.youths || data.data || [];
+						
+						if (!youthsData || youthsData.length === 0) {
+							alert('No Youth data available for the selected period.');
+							return;
+						}
+						
+						// Build the report table HTML
+						const reportTitle = reportType === 'monthly' 
+							? `MONTHLY ACCOMPLISHMENT REPORT - ${getMonthName(parseInt(month))} ${year}`
+							: `ANNUAL ACCOMPLISHMENT REPORT - ${year}`;
+						
+						const tableHtml = buildYouthsReportTableHtml(youthsData);
+						
+						// Open new window for report
+						const newWin = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
+						
+						if (!newWin) {
+							alert('Popup blocked! Please allow popups for this site to view the report.');
+							return;
+						}
+						
+						const docHtml = `<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>LYDO Youth Report</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
+    <style>
+        body { padding: 30px; font-family: Arial, sans-serif; }
+
+        .header-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+            min-height: 130px;
+        }
+
+        .logo-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 95px;
+        }
+
+        .logo-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+        }
+
+        .main-header {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .title-section { 
+            margin-top: 15px; 
+            text-align: center;
+        }
+
+        .report-info {
+            margin: 20px auto;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.8;
+            max-width: 800px;
+            white-space: nowrap;
+        }
+
+        .info-item {
+            display: inline-block;
+            margin: 0 15px;
+        }
+
+        .underline {
+            display: inline-block;
+            border-bottom: 1px solid #000;
+            width: 120px;
+            height: 14px;
+            vertical-align: bottom;
+            margin-left: 5px;
+        }
+
+        .address-underline {
+            width: 150px;
+        }
+
+        .generated-date {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .print-button-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .print-button-container button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .print-button-container button:hover {
+            background-color: #0056b3;
+        }
+
+        @media print {
+            .print-button-container {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="print-button-container">
+    <button onclick="window.print()">🖨️ Print Report</button>
+</div>
+
+<div class="container">
+	  
+	
+    <div class="header-wrapper">
+        <img src="/assets/images/SilayLogo.jpg" class="logo-left">
+        <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+
+        <div class="main-header">
+            <h4>Republic of the Philippines</h4>
+            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+            <p>Local Youth Development Office</p>
+        </div>
+    </div>
+
+    <div class="title-section">
+        <h5>LOCAL YOUTH DEVELOPMENT OFFICE</h5>
+        <h5>${reportTitle}</h5>
+		<small class="text-center">
+            As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
+        </small>
+    </div>
+
+    <div class="report-info">
+        <span class="info-item">Region: <span class="underline"></span></span>
+        <span class="info-item">Youth Statistics: <span class="underline"></span></span>
+        <span class="info-item">Address: <span class="underline address-underline"></span></span>
+    </div>
+
+  
+
+    ${tableHtml}
+
+</div>
+
+</body>
+</html>`;
+							
+							newWin.document.open();
+							newWin.document.write(docHtml);
+							newWin.document.close();
+							
+						console.log('Report generated successfully');
+						
+					} catch (e) {
+						console.error('Error generating report:', e);
+						alert('Error generating report: ' + e.message);
+					}
+				};
+
+				// Helper function to get month name
+				window.getMonthName = function(monthNum) {
+					const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+						'July', 'August', 'September', 'October', 'November', 'December'];
+					return months[monthNum - 1] || '';
+				};
+
+				// Close modals when clicking outside
+				// Override window.onclick to handle both chartModal (from youthanalytics.js) and reportTypeModal
+				window.onclick = function(event) {
+					// Handle report type modal
+					const reportModal = document.getElementById('reportTypeModal');
+					if (event.target === reportModal) {
+						closeReportTypeModal();
+						return;
+					}
+					// Handle chart modal (from youthanalytics.js)
+					const chartModal = document.getElementById('chartModal');
+					if (event.target === chartModal && typeof closeModal === 'function') {
+						closeModal();
+						return;
+					}
+				};
+
+				// Build table HTML for report
+				function buildYouthsReportTableHtml(youths) {
+					function esc(s){ 
+						return String(s === null || s === undefined ? '' : s)
+							.replace(/&/g,'&amp;')
+							.replace(/</g,'&lt;')
+							.replace(/>/g,'&gt;'); 
+					}
+					
+					// Statistics by category
+					const stats = {
+						gender: { male: 0, female: 0, other: 0 },
+						education: {},
+						employment: {},
+						skRegistration: { registered: 0, notRegistered: 0 },
+						skVoting: { voted: 0, notVoted: 0 },
+						nationalRegistration: { registered: 0, notRegistered: 0 },
+						ageGroups: { '15-17': 0, '18-24': 0, '25-30': 0 },
+						barangays: {}
+					};
+					
+					const uniqueIds = new Set();
+					const ages = [];
+					
+					// Process Youth data
+					youths.forEach(y => {
+						if (y && (y._id || y.id)) uniqueIds.add(y._id || y.id);
+						
+						const age = (typeof y.age === 'number') ? y.age : (y.age ? parseInt(y.age, 10) : null);
+						if (age !== null && !isNaN(age)) ages.push(age);
+						
+						const gender = (y.gender || 'Unknown').toString();
+						if (/^male$/i.test(gender)) stats.gender.male += 1;
+						else if (/^female$/i.test(gender)) stats.gender.female += 1;
+						else stats.gender.other += 1;
+						
+						// Education level
+						const eduLevel = y.education_level || 'Not Specified';
+						stats.education[eduLevel] = (stats.education[eduLevel] || 0) + 1;
+						
+						// Employment status
+						const empStatus = y.employment_status || 'Not Specified';
+						stats.employment[empStatus] = (stats.employment[empStatus] || 0) + 1;
+						
+						// SK Registration
+						if (y.registered_sk === true || y.registered_sk === 'Yes') {
+							stats.skRegistration.registered += 1;
+						} else {
+							stats.skRegistration.notRegistered += 1;
+						}
+						
+						// SK Voting
+						if (y.voted_sk === true || y.voted_sk === 'Yes') {
+							stats.skVoting.voted += 1;
+						} else {
+							stats.skVoting.notVoted += 1;
+						}
+						
+						// National Registration
+						if (y.registered_national === true || y.registered_national === 'Yes') {
+							stats.nationalRegistration.registered += 1;
+						} else {
+							stats.nationalRegistration.notRegistered += 1;
+						}
+						
+						// Age groups
+						if (age !== null && !isNaN(age)) {
+							if (age >= 15 && age <= 17) stats.ageGroups['15-17'] += 1;
+							else if (age >= 18 && age <= 24) stats.ageGroups['18-24'] += 1;
+							else if (age >= 25 && age <= 30) stats.ageGroups['25-30'] += 1;
+						}
+						
+						// Barangay count
+						const barangay = y.barangay || 'Unknown';
+						stats.barangays[barangay] = (stats.barangays[barangay] || 0) + 1;
+					});
+					
+					let html = `
+						<div class="table-responsive">
+							<table class="table table-striped table-bordered table-hover">
+								<thead class="table-dark">
+									<tr>
+										<th>Category</th>
+										<th>Details</th>
+										<th>Count</th>
+									</tr>
+								</thead>
+								<tbody>`;
+					
+					// Gender Distribution
+					html += `
+							<tr>
+								<td rowspan="4"><strong>Gender Distribution</strong></td>
+								<td>Male</td>
+								<td><span class="badge bg-primary">${stats.gender.male}</span></td>
+							</tr>
+							<tr>
+								<td>Female</td>
+								<td><span class="badge bg-primary">${stats.gender.female}</span></td>
+							</tr>
+							<tr>
+								<td>Other/Unknown</td>
+								<td><span class="badge bg-primary">${stats.gender.other}</span></td>
+							</tr>
+							<tr>
+								<td><strong>Total</strong></td>
+								<td><strong>${stats.gender.male + stats.gender.female + stats.gender.other}</strong></td>
+							</tr>`;
+					
+					// Age Groups
+					html += `
+							<tr>
+								<td rowspan="4"><strong>Age Groups</strong></td>
+								<td>15-17 years</td>
+								<td><span class="badge bg-info">${stats.ageGroups['15-17']}</span></td>
+							</tr>
+							<tr>
+								<td>18-24 years</td>
+								<td><span class="badge bg-info">${stats.ageGroups['18-24']}</span></td>
+							</tr>
+							<tr>
+								<td>25-30 years</td>
+								<td><span class="badge bg-info">${stats.ageGroups['25-30']}</span></td>
+							</tr>
+							<tr>
+								<td><strong>Total</strong></td>
+								<td><strong>${stats.ageGroups['15-17'] + stats.ageGroups['18-24'] + stats.ageGroups['25-30']}</strong></td>
+							</tr>`;
+					
+					// Education Level
+					const eduKeys = Object.keys(stats.education);
+					if (eduKeys.length > 0) {
+						html += `<tr><td rowspan="${eduKeys.length + 1}"><strong>Education Level</strong></td>`;
+						eduKeys.forEach(edu => {
+							html += `
+							<tr>
+								<td>${esc(edu)}</td>
+								<td><span class="badge bg-success">${stats.education[edu]}</span></td>
+							</tr>`;
+						});
+						html += `<tr><td><strong>Total</strong></td><td><strong>${Object.values(stats.education).reduce((a, b) => a + b, 0)}</strong></td></tr></tr>`;
+					}
+					
+					// Employment Status
+					const empKeys = Object.keys(stats.employment);
+					if (empKeys.length > 0) {
+						html += `<tr><td rowspan="${empKeys.length + 1}"><strong>Employment Status</strong></td>`;
+						empKeys.forEach(emp => {
+							html += `
+							<tr>
+								<td>${esc(emp)}</td>
+								<td><span class="badge bg-warning">${stats.employment[emp]}</span></td>
+							</tr>`;
+						});
+						html += `<tr><td><strong>Total</strong></td><td><strong>${Object.values(stats.employment).reduce((a, b) => a + b, 0)}</strong></td></tr></tr>`;
+					}
+					
+					// SK Registration
+					html += `
+							<tr>
+								<td rowspan="3"><strong>SK Registration</strong></td>
+								<td>Registered</td>
+								<td><span class="badge bg-success">${stats.skRegistration.registered}</span></td>
+							</tr>
+							<tr>
+								<td>Not Registered</td>
+								<td><span class="badge bg-secondary">${stats.skRegistration.notRegistered}</span></td>
+							</tr>
+							<tr>
+								<td><strong>Total</strong></td>
+								<td><strong>${stats.skRegistration.registered + stats.skRegistration.notRegistered}</strong></td>
+							</tr>`;
+					
+					// SK Voting
+					html += `
+							<tr>
+								<td rowspan="3"><strong>SK Voting</strong></td>
+								<td>Voted</td>
+								<td><span class="badge bg-success">${stats.skVoting.voted}</span></td>
+							</tr>
+							<tr>
+								<td>Not Voted</td>
+								<td><span class="badge bg-secondary">${stats.skVoting.notVoted}</span></td>
+							</tr>
+							<tr>
+								<td><strong>Total</strong></td>
+								<td><strong>${stats.skVoting.voted + stats.skVoting.notVoted}</strong></td>
+							</tr>`;
+					
+					// National Registration
+					html += `
+							<tr>
+								<td rowspan="3"><strong>National Registration</strong></td>
+								<td>Registered</td>
+								<td><span class="badge bg-success">${stats.nationalRegistration.registered}</span></td>
+							</tr>
+							<tr>
+								<td>Not Registered</td>
+								<td><span class="badge bg-secondary">${stats.nationalRegistration.notRegistered}</span></td>
+							</tr>
+							<tr>
+								<td><strong>Total</strong></td>
+								<td><strong>${stats.nationalRegistration.registered + stats.nationalRegistration.notRegistered}</strong></td>
+							</tr>`;
+					
+					html += '</tbody></table></div>';
+					
+					// Calculate totals
+					const totalYouths = uniqueIds.size;
+					const totalRecords = youths.length;
+					const overallAgeRange = ages.length ? 
+						`${Math.min(...ages)} - ${Math.max(...ages)}` : 'N/A';
+					
+					html += `
+						<div class="summary">
+							<h5>Report Summary</h5>
+							<div class="row">
+								<div class="col-md-6">
+									<ul class="list-unstyled">
+										<li><strong>Unique Youth Records:</strong> ${totalYouths}</li>
+										<li><strong>Total Records:</strong> ${totalRecords}</li>
+										<li><strong>Overall Age Range:</strong> ${overallAgeRange}</li>
+										<li><strong>Total Barangays:</strong> ${Object.keys(stats.barangays).length}</li>
+									</ul>
+								</div>
+								<div class="col-md-6">
+									<ul class="list-unstyled">
+										<li><strong>Gender Distribution:</strong></li>
+										<li>&nbsp;&nbsp;Male: ${stats.gender.male}</li>
+										<li>&nbsp;&nbsp;Female: ${stats.gender.female}</li>
+										<li>&nbsp;&nbsp;Other/Unknown: ${stats.gender.other}</li>
+									</ul>
+								</div>
+							</div>
+						</div>`;
+					
+					return html;
+				}
+			});
 		</script>
 	</body>
 </html>
