@@ -314,57 +314,57 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="overflow-x: auto;">
                 <!-- Top Row: Personal Info + Contact Info -->
                 <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                     <!-- Left - Personal Information -->
-                    <fieldset style="flex: 1; margin-right: 10px;">
+                    <fieldset style="flex: 1; margin-right: 10px; min-width: 0;">
                         <legend>PERSONAL INFORMATION</legend>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Contact:</strong>
                             <span id="displayContact"></span>
                         </p>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Birthday:</strong>
                             <span id="displayBirthday"></span> ( <span id="displayAge"></span> years old)
                         </p>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Gender:</strong>
                             <span id="displayGender"></span>
                         </p>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Place of Birth:</strong>
                             <span id="displayPlaceOfBirth"></span>
                         </p>
                     </fieldset>
                     <!-- Right - Education Information -->
-                    <fieldset style="flex: 1; margin-left: 10px;">
+                    <fieldset style="flex: 1; margin-left: 10px; min-width: 0;">
                         <legend>EDUCATIONAL INFORMATION</legend>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Education Level:</strong>
                             <span id="displayEducationLevel"></span>
                         </p>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>SK Voter:</strong>
                             <span id="displaySkVoter"></span>
                         </p>
-                        <p id="displaySkVoted" style="display: none;">
+                        <p id="displaySkVoted" style="display: none; word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Voted Last SK:</strong>
                             <span id="displaySkVotedStatus"></span>
                         </p>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>National Voter:</strong>
                             <span id="displayNationalVoter"></span>
                         </p>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Employment Status:</strong>
                             <span id="displayEmploymentStatus"></span>
                         </p>
-                        <p id="displayEmploymentCategory" style="display: none;">
+                        <p id="displayEmploymentCategory" style="display: none; word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Employment Category:</strong>
                             <span id="displayEmploymentCategoryValue"></span>
                         </p>
-                        <p id="displayEmploymentType" style="display: none;">
+                        <p id="displayEmploymentType" style="display: none; word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Employment Type:</strong>
                             <span id="displayEmploymentTypeValue"></span>
                         </p>
@@ -373,32 +373,32 @@
                 <!-- Bottom Row: Youth Classification + Age Group -->
                 <div style="display: flex; justify-content: space-between;">
                     <!-- Left - Youth Classification -->
-                    <fieldset style="flex: 1; margin-right: 10px;">
+                    <fieldset style="flex: 1; margin-right: 10px; min-width: 0;">
                         <legend>YOUTH CLASSIFICATION</legend>
-                        <div id="displayYouthClassification"></div>
+                        <div id="displayYouthClassification" style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;"></div>
                     </fieldset>
                     <!-- Right - Youth Age Group -->
-                    <fieldset style="flex: 1; margin-left: 10px;">
+                    <fieldset style="flex: 1; margin-left: 10px; min-width: 0;">
                         <legend>YOUTH AGE GROUP</legend>
-                        <div id="displayYouthAgeGroup"></div>
+                        <div id="displayYouthAgeGroup" style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;"></div>
                     </fieldset>
                 </div>
                 <!-- KK Assembly Information -->
                 <div style="margin-top: 20px;">
                     <fieldset>
                         <legend>KK ASSEMBLY INFORMATION</legend>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Attended KK Assembly:</strong>
                             <span id="displayAssemblyAttended"></span>
                         </p>
                         <div id="displayAssemblyTimes" style="display: none;">
-                            <p>
+                            <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                                 <strong>Times Attended:</strong>
                                 <span id="displayAssemblyTimesValue"></span>
                             </p>
                         </div>
                         <div id="displayAssemblyReason" style="display: none;">
-                            <p>
+                            <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                                 <strong>Reason for Not Attending:</strong>
                                 <span id="displayAssemblyReasonValue"></span>
                             </p>
@@ -410,19 +410,19 @@
                 <div style="margin-top: 20px;">
                     <fieldset>
                         <legend>EDIT HISTORY</legend>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Status:</strong>
                             <span id="displayStatus">N/A</span>
                         </p>
-                        <p id="archiveReasonRow" style="display: none;">
+                        <p id="archiveReasonRow" style="display: none; word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Archive Reason:</strong>
                             <span id="displayArchiveReason">N/A</span>
                         </p>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Last Edited By:</strong>
                             <span id="displayEditedBy">N/A</span>
                         </p>
-                        <p>
+                        <p style="word-wrap: break-word; overflow-wrap: break-word; overflow-wrap: anywhere;">
                             <strong>Last Edited At:</strong>
                             <span id="displayEditedAt">N/A</span>
                         </p>
@@ -478,7 +478,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="editContact">Contact:</label>
-                                <input type="tel" class="form-control" id="editContact" name="contact" required maxlength="11" pattern="\\d{11}" title="Please enter exactly 11 digits" inputmode="numeric">
+                                <input type="tel" class="form-control" id="editContact" name="contact" required maxlength="11" pattern="09\\d{9}" title="Please enter a valid phone number starting with 09 (11 digits total)" inputmode="numeric" placeholder="09XXXXXXXXX">
                             </div>
                             <div class="form-group">
                                 <label for="editBirthday">Birthday:</label>
@@ -596,22 +596,22 @@
                     <fieldset style="flex: 1; margin-right: 10px;">
                         <legend>YOUTH CLASSIFICATION</legend>
                             <div class="form-group">
-                                <label>Select Classification(s):</label>
-                                <div class="checkbox-group">
+                                <label>Select Classification:</label>
+                                <div class="radio-group">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editYouthClassification1" name="youth_classification" value="In School Youth">
+                                        <input class="form-check-input" type="radio" id="editYouthClassification1" name="youth_classification" value="In School Youth">
                                         <label class="form-check-label" for="editYouthClassification1">In School Youth</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editYouthClassification2" name="youth_classification" value="Out of School Youth">
+                                        <input class="form-check-input" type="radio" id="editYouthClassification2" name="youth_classification" value="Out of School Youth">
                                         <label class="form-check-label" for="editYouthClassification2">Out of School Youth</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editYouthClassification3" name="youth_classification" value="Youth w/Specific Needs">
+                                        <input class="form-check-input" type="radio" id="editYouthClassification3" name="youth_classification" value="Youth w/Specific Needs">
                                         <label class="form-check-label" for="editYouthClassification3">Youth w/Specific Needs</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editYouthClassification4" name="youth_classification" value="Other">
+                                        <input class="form-check-input" type="radio" id="editYouthClassification4" name="youth_classification" value="Other">
                                         <label class="form-check-label" for="editYouthClassification4">Other</label>
                                     </div>
                                 </div>
@@ -626,22 +626,22 @@
                     <fieldset style="flex: 1; margin-left: 10px;">
                         <legend>YOUTH AGE GROUP</legend>
                             <div class="form-group">
-                                <label>Select Age Group(s):</label>
-                                <div class="checkbox-group">
+                                <label>Select Age Group:</label>
+                                <div class="radio-group">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editYouthAgeGroup1" name="youth_age_group" value="Child Youth (15−17 yrs old)">
+                                        <input class="form-check-input" type="radio" id="editYouthAgeGroup1" name="youth_age_group" value="Child Youth (15−17 yrs old)">
                                         <label class="form-check-label" for="editYouthAgeGroup1">Child Youth (15−17 yrs old)</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editYouthAgeGroup2" name="youth_age_group" value="Core Youth (18−24 yrs old)">
+                                        <input class="form-check-input" type="radio" id="editYouthAgeGroup2" name="youth_age_group" value="Core Youth (18−24 yrs old)">
                                         <label class="form-check-label" for="editYouthAgeGroup2">Core Youth (18−24 yrs old)</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editYouthAgeGroup3" name="youth_age_group" value="Young Adult (15−30 yrs old)">
+                                        <input class="form-check-input" type="radio" id="editYouthAgeGroup3" name="youth_age_group" value="Young Adult (15−30 yrs old)">
                                         <label class="form-check-label" for="editYouthAgeGroup3">Young Adult (15−30 yrs old)</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editYouthAgeGroup4" name="youth_age_group" value="Other">
+                                        <input class="form-check-input" type="radio" id="editYouthAgeGroup4" name="youth_age_group" value="Other">
                                         <label class="form-check-label" for="editYouthAgeGroup4">Other</label>
                                     </div>
                                 </div>
@@ -1082,6 +1082,42 @@ Thank you!</textarea>
 			.action-archive[data-status="Archived"]:hover {
 				background: linear-gradient(135deg, #2d3748, #4a5568);
 				box-shadow: 0 8px 25px rgba(74, 85, 104, 0.3);
+			}
+			
+			/* Modal overflow fixes */
+			#viewModal .modal-body,
+			#editModal .modal-body {
+				overflow-x: auto;
+				max-height: 80vh;
+				overflow-y: auto;
+			}
+			
+			#viewModal fieldset,
+			#editModal fieldset {
+				min-width: 0;
+				overflow-wrap: break-word;
+			}
+			
+			#viewModal fieldset p,
+			#editModal fieldset p {
+				word-wrap: break-word;
+				overflow-wrap: break-word;
+				overflow-wrap: anywhere;
+			}
+			
+			#viewModal fieldset span,
+			#editModal fieldset span {
+				word-wrap: break-word;
+				overflow-wrap: break-word;
+			}
+			
+			/* Phone input validation styles */
+			#editContact.is-invalid {
+				border-color: #dc3545;
+			}
+			
+			#editContact.is-valid {
+				border-color: #28a745;
 			}
 		</style>
 		
@@ -1596,21 +1632,25 @@ Thank you!</textarea>
 					$('#editSkTimes').val(data.skTimes || '');
 					$('#editReason').val(data.reason || '');
 					
-					// Handle Youth Classification checkboxes
+					// Handle Youth Classification radio buttons (only first one if array)
 					$('input[name="youth_classification"]').prop('checked', false);
-					if (Array.isArray(data.youthClassification)) {
-						data.youthClassification.forEach(function(classification) {
-							$('input[name="youth_classification"][value="' + classification + '"]').prop('checked', true);
-						});
+					if (Array.isArray(data.youthClassification) && data.youthClassification.length > 0) {
+						// For radio buttons, only select the first one
+						const firstClassification = data.youthClassification[0];
+						$('input[name="youth_classification"][value="' + firstClassification + '"]').prop('checked', true);
+					} else if (typeof data.youthClassification === 'string') {
+						$('input[name="youth_classification"][value="' + data.youthClassification + '"]').prop('checked', true);
 					}
 					$('#editYouthClassificationOther').val(data.youthClassificationOther);
 					
-					// Handle Youth Age Group checkboxes
+					// Handle Youth Age Group radio buttons (only first one if array)
 					$('input[name="youth_age_group"]').prop('checked', false);
-					if (Array.isArray(data.youthAgeGroup)) {
-						data.youthAgeGroup.forEach(function(ageGroup) {
-							$('input[name="youth_age_group"][value="' + ageGroup + '"]').prop('checked', true);
-						});
+					if (Array.isArray(data.youthAgeGroup) && data.youthAgeGroup.length > 0) {
+						// For radio buttons, only select the first one
+						const firstAgeGroup = data.youthAgeGroup[0];
+						$('input[name="youth_age_group"][value="' + firstAgeGroup + '"]').prop('checked', true);
+					} else if (typeof data.youthAgeGroup === 'string') {
+						$('input[name="youth_age_group"][value="' + data.youthAgeGroup + '"]').prop('checked', true);
 					}
 					$('#editYouthAgeGroupOther').val(data.youthAgeGroupOther);
 					
@@ -1684,8 +1724,52 @@ Thank you!</textarea>
 				$('#editRegisteredSk').on('change', handleConditionalFields);
 				$('#editEmploymentStatus').on('change', handleConditionalFields);
 				$('#editAssembly').on('change', handleConditionalFields);
-				$('input[name="youth_classification"]').on('change', handleConditionalFields);
-				$('input[name="youth_age_group"]').on('change', handleConditionalFields);
+				$(document).on('change', 'input[name="youth_classification"]', handleConditionalFields);
+				$(document).on('change', 'input[name="youth_age_group"]', handleConditionalFields);
+				
+				// Phone number validation - only numbers, must start with 09, exactly 11 digits
+				$('#editContact').on('input', function() {
+					let value = $(this).val().replace(/\D/g, ''); // Remove all non-digits
+					
+					// Ensure it starts with 09
+					if (value.length > 0 && !value.startsWith('09')) {
+						// If user types something that doesn't start with 09, force it
+						if (value.length >= 2 && value[0] === '0' && value[1] !== '9') {
+							value = '09' + value.substring(2);
+						} else if (value.length >= 1 && value[0] !== '0') {
+							value = '09' + value;
+						} else if (value.length === 1 && value[0] !== '0') {
+							value = '09' + value;
+						}
+					}
+					
+					// Limit to 11 digits
+					if (value.length > 11) {
+						value = value.substring(0, 11);
+					}
+					
+					$(this).val(value);
+					
+					// Validate pattern
+					if (value.length === 11 && !value.startsWith('09')) {
+						$(this).addClass('is-invalid');
+					} else if (value.length === 11 && value.startsWith('09')) {
+						$(this).removeClass('is-invalid').addClass('is-valid');
+					} else {
+						$(this).removeClass('is-invalid is-valid');
+					}
+				});
+				
+				// Validate on blur
+				$('#editContact').on('blur', function() {
+					const value = $(this).val();
+					if (value && (value.length !== 11 || !value.startsWith('09'))) {
+						$(this).addClass('is-invalid');
+						alert('Phone number must start with 09 and be exactly 11 digits.');
+					} else if (value && value.length === 11 && value.startsWith('09')) {
+						$(this).removeClass('is-invalid').addClass('is-valid');
+					}
+				});
 				
 				// Handle form submission
 				$('#saveChangesBtn').on('click', function() {
@@ -1735,18 +1819,21 @@ Thank you!</textarea>
 						Assembly: editForm.find('#editAssembly').val(),
 						sk_times: editForm.find('#editSkTimes').val() || null,
 						reason: editForm.find('#editReason').val() || null,
-						youth_classification: editForm.find('input[name="youth_classification"]:checked').map(function() {
-							return this.value;
-						}).get(),
+						youth_classification: editForm.find('input[name="youth_classification"]:checked').val() ? [editForm.find('input[name="youth_classification"]:checked').val()] : [],
 						youth_classification_other: editForm.find('#editYouthClassificationOther').val() || null,
-						youth_age_group: editForm.find('input[name="youth_age_group"]:checked').map(function() {
-							return this.value;
-						}).get(),
+						youth_age_group: editForm.find('input[name="youth_age_group"]:checked').val() ? [editForm.find('input[name="youth_age_group"]:checked').val()] : [],
 						youth_age_group_other: editForm.find('#editYouthAgeGroupOther').val() || null,
 						// Add edit tracking information (will be overridden by backend session for security)
 						edited_by: '<%= (user && user.email) ? user.email : "Unknown" %>',
 						edited_at: new Date().toISOString()
 					};
+					
+					// Validate phone number
+					if (formData.contact && (formData.contact.length !== 11 || !formData.contact.startsWith('09'))) {
+						alert('Phone number must start with 09 and be exactly 11 digits.');
+						btn.data('updating', '0').prop('disabled', false).html(originalText);
+						return;
+					}
 					
 					// Validate required fields
 					if (!formData.first_name || !formData.last_name || !formData.barangay || !formData.purok || 
@@ -1755,6 +1842,19 @@ Thank you!</textarea>
 						!formData.registered_sk || !formData.registered_national || 
 						!formData.employment_status || !formData.Assembly) {
 						alert('Please fill in all required fields.');
+						btn.data('updating', '0').prop('disabled', false).html(originalText);
+						return;
+					}
+					
+					// Validate youth classification and age group (must have one selected)
+					if (!formData.youth_classification || formData.youth_classification.length === 0) {
+						alert('Please select a Youth Classification.');
+						btn.data('updating', '0').prop('disabled', false).html(originalText);
+						return;
+					}
+					
+					if (!formData.youth_age_group || formData.youth_age_group.length === 0) {
+						alert('Please select a Youth Age Group.');
 						btn.data('updating', '0').prop('disabled', false).html(originalText);
 						return;
 					}
@@ -1830,11 +1930,14 @@ Thank you!</textarea>
 					const editForm = $('#editYouthForm');
 					if (editForm.length) {
 						editForm[0].reset();
-						// Explicitly uncheck all checkboxes
+						// Explicitly uncheck all checkboxes and radio buttons
 						editForm.find('input[type="checkbox"]').prop('checked', false);
+						editForm.find('input[type="radio"]').prop('checked', false);
 						editForm.find('input[type="hidden"]').val('');
 						// Reset purok dropdown
 						editPurokDropdown.empty().append('<option value="">First select a Barangay</option>').prop('disabled', true);
+						// Remove validation classes from phone input
+						$('#editContact').removeClass('is-invalid is-valid');
 					}
 				});
 			});
