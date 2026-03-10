@@ -4,6 +4,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const routes = require("./routes/routes");
 const connection = require("./model/database");
+const { getConnection } = require("./model/databasesql");
 const session = require('express-session');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -32,8 +33,19 @@ app.use(session({
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 
-//database connection
+// MongoDB connection
 connection();
+
+// Test MySQL (mysql2) connection on startup without crashing the app
+(async () => {
+    try {
+        const conn = await getConnection();
+        console.log("MySQL (mysql2) Connected Successfully!");
+        conn.release();
+    } catch (err) {
+        console.error("MySQL (mysql2) Connection Failed:", err.message);
+    }
+})();
 
 // Socket.io connection handling
 io.on('connection', (socket) => {

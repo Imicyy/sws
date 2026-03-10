@@ -4,7 +4,8 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const saltrounds = 10;
 const session = require('express-session');
-const { User,SeniorCitizen,Barangay ,PWD,Youth } = require("../model/schema");
+const { SeniorCitizen,Barangay ,PWD,Youth } = require("../model/schema");
+const { query } = require("../model/databasesql");
 const axios = require('axios');
 const path = require("path");
 const fs = require("fs");
@@ -31,8 +32,9 @@ exports.createUser = async (req, res) => {
             });
         }
 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
+        // Check if user already exists in MySQL
+        const [existingRows] = await query("SELECT id FROM users WHERE email = ? LIMIT 1", [email]);
+        if (existingRows.length > 0) {
             return res.status(400).json({ 
                 success: false,
                 error: "Email already exists" 
@@ -42,19 +44,20 @@ exports.createUser = async (req, res) => {
         // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, saltrounds);
 
-        const newUser = new User({ 
-            name, 
-            email, 
-            password: hashedPassword, // Store the hashed password
-            role,
-            status: "Active" // Default status
-        });
-        
-        await newUser.save();
+        // Insert new user into MySQL
+        const [result] = await query(
+            "INSERT INTO users (name, email, password, role, status) VALUES (?, ?, ?, ?, 'Active')",
+            [name, email, hashedPassword, role]
+        );
 
         // For security, don't return the hashed password in the response
-        const userToReturn = { ...newUser._doc };
-        delete userToReturn.password;
+        const userToReturn = { 
+            id: result.insertId,
+            name,
+            email,
+            role,
+            status: "Active"
+        };
 
         res.status(201).json({ 
             success: true,
@@ -81,14 +84,19 @@ exports.login = async (req, res) => {
         });
       }
   
-      // Check if user exists
-      const user = await User.findOne({ email });
-      if (!user) {
+      // Check if user exists in MySQL
+      const [rows] = await query(
+        "SELECT id, name, email, password, role, status FROM users WHERE email = ? LIMIT 1",
+        [email]
+      );
+      if (rows.length === 0) {
         return res.status(401).json({
           success: false,
           error: "Invalid credentials",
         });
       }
+
+      const user = rows[0];
 
       if (user.status !== "Active") {
       return res.status(403).json({
@@ -108,7 +116,7 @@ exports.login = async (req, res) => {
   
       // Store user data in session (excluding password)
       req.session.user = {
-        _id: user._id,
+        _id: user.id,  // keep key name consistent for existing code
         email: user.email,
         role: user.role,  // Ensure 'role' exists in your database
     };
@@ -2084,17 +2092,16 @@ exports.updateSenior = async (req, res) => {
   };
 
    exports.renderSuperAdminUser = async (req, res) => {
- try {
-   const users = await User.find({});
-    if (!users) {
-      //to change
+try {
+   const [users] = await query(
+     "SELECT id, name, email, role, status FROM users ORDER BY id ASC"
+   );
+    if (!users || users.length === 0) {
       console.log('No users found');
     }
   
-    // Pass the barangays data to the EJS template
-   
     res.render('superadmin/superadmin_users', {
-      users: users || {}
+      users: users || []
     });
   } catch (err) {
     console.error(err);
@@ -3374,13 +3381,14 @@ exports.editUserStatus = async (req, res) => {
       return res.status(400).json({ message: 'User id is required' });
     }
 
-    const existing = await User.findById(id);
-    if (!existing) {
+    const [rows] = await query("SELECT status FROM users WHERE id = ? LIMIT 1", [id]);
+    if (rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const nextStatus = existing.status === 'Inactive' ? 'Active' : 'Inactive';
-    await User.findByIdAndUpdate(id, { status: nextStatus }, { new: true });
+    const currentStatus = rows[0].status;
+    const nextStatus = currentStatus === 'Inactive' ? 'Active' : 'Inactive';
+    await query("UPDATE users SET status = ? WHERE id = ?", [nextStatus, id]);
     return res.redirect('/superadmin-users');
   } catch (err) {
     console.error(err);
@@ -3396,11 +3404,25 @@ exports.updateUser = async (req, res) => {
       return res.status(400).json({ message: 'User id is required' });
     }
 
-    const update = {};
-    if (name) update.name = name;
-    if (email) update.email = email;
-    if (role) update.role = role;
-    if (status) update.status = status;
+    const fields = [];
+    const params = [];
+
+    if (name) {
+      fields.push("name = ?");
+      params.push(name);
+    }
+    if (email) {
+      fields.push("email = ?");
+      params.push(email);
+    }
+    if (role) {
+      fields.push("role = ?");
+      params.push(role);
+    }
+    if (status) {
+      fields.push("status = ?");
+      params.push(status);
+    }
 
     if (password || confirm_password) {
       if (!password || !confirm_password) {
@@ -3410,16 +3432,22 @@ exports.updateUser = async (req, res) => {
         return res.status(400).json({ message: 'Passwords do not match' });
       }
       const hashedPassword = await bcrypt.hash(password, saltrounds);
-      update.password = hashedPassword;
+      fields.push("password = ?");
+      params.push(hashedPassword);
     }
 
-    if (Object.keys(update).length === 0) {
+    if (fields.length === 0) {
       return res.redirect('/superadmin-users');
     }
 
+    params.push(id);
+
     try {
-      const updatedUser = await User.findByIdAndUpdate(id, update, { new: true });
-      if (!updatedUser) {
+      const [result] = await query(
+        `UPDATE users SET ${fields.join(", ")} WHERE id = ?`,
+        params
+      );
+      if (result.affectedRows === 0) {
         return res.status(404).json({ message: 'User not found' });
       }
       return res.redirect('/superadmin-users');
