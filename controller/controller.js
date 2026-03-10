@@ -347,23 +347,77 @@ exports.logout = (req, res) => {
     }
   };
 
+// Helper to map MySQL pwd row + related rows into an object similar to the old Mongoose model
+async function getPwdByIdWithRelations(pwdId) {
+  const id = parseInt(pwdId, 10);
+  if (Number.isNaN(id)) {
+    return null;
+  }
+
+  const [[pwdRow]] = await query("SELECT * FROM pwd WHERE id = ? LIMIT 1", [id]);
+  if (!pwdRow) {
+    return null;
+  }
+
+  const [contactsRows] = await query(
+    "SELECT type, name, relationship, phone, email FROM pwd_contacts WHERE pwd_id = ?",
+    [id]
+  );
+  const [disabilityRows] = await query(
+    "SELECT disability FROM pwd_disabilities WHERE pwd_id = ?",
+    [id]
+  );
+  const [causeRows] = await query(
+    "SELECT cause FROM pwd_disability_causes WHERE pwd_id = ?",
+    [id]
+  );
+
+  const contacts = contactsRows.map(c => ({
+    type: c.type,
+    name: c.name,
+    relationship: c.relationship,
+    phone: c.phone,
+    email: c.email
+  }));
+
+  const disability = disabilityRows.map(d => d.disability).filter(Boolean);
+  const cause_disability = causeRows.map(c => c.cause).filter(Boolean);
+
+  return {
+    _id: pwdRow.id,
+    ...pwdRow,
+    contacts,
+    disability,
+    cause_disability
+  };
+}
 
 exports.registerPwd = async (req, res) => {
   try {
     console.log('Raw body:', req.body);
 
-    // Check for duplicate PWD record (same first_name, last_name, and birthday)
     const birthday = new Date(req.body.birthday);
-    const existingPwd = await PWD.findOne({
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      birthday: {
-        $gte: new Date(birthday.getFullYear(), birthday.getMonth(), birthday.getDate()),
-        $lt: new Date(birthday.getFullYear(), birthday.getMonth(), birthday.getDate() + 1)
-      }
-    });
+    if (Number.isNaN(birthday.getTime())) {
+      return res.status(400).json({
+        success: false,
+        alert: {
+          title: 'Invalid Data',
+          text: 'Birthday is invalid',
+          icon: 'error',
+          showConfirmButton: true
+        }
+      });
+    }
 
-    if (existingPwd) {
+    const startOfDay = new Date(birthday.getFullYear(), birthday.getMonth(), birthday.getDate());
+    const endOfDay = new Date(birthday.getFullYear(), birthday.getMonth(), birthday.getDate() + 1);
+
+    const [existingRows] = await query(
+      "SELECT id FROM pwd WHERE first_name = ? AND last_name = ? AND birthday >= ? AND birthday < ? LIMIT 1",
+      [req.body.first_name, req.body.last_name, startOfDay, endOfDay]
+    );
+
+    if (existingRows.length > 0) {
       return res.status(400).json({
         success: false,
         alert: {
@@ -376,48 +430,94 @@ exports.registerPwd = async (req, res) => {
       });
     }
 
-    // Transform the raw data to match your schema
-    const pwdData = {
-      first_name: req.body.first_name,
-      middle_name: req.body.middle_name,
-      last_name: req.body.last_name,
-      barangay: req.body.barangay,
-      purok: req.body.purok,
-      birthday: birthday, // Convert string to Date
-      age: parseInt(req.body.age), // Ensure age is a number
-      gender: req.body.gender,
-      place_of_birth: req.body.place_of_birth,
-      civil_status: req.body.civil_status,
-      spouse_name: req.body.spouse_name,
-      contacts: req.body.contacts,
-      fatherLastName: req.body.fatherLastName,
-      fatherFirstName: req.body.fatherFirstName,
-      fatherMiddleName: req.body.fatherMiddleName,
-      fatherExtension: req.body.fatherExtension,
-      motherLastName: req.body.motherLastName,
-      motherFirstName: req.body.motherFirstName,
-      motherMiddleName: req.body.motherMiddleName,
-      sss_id: req.body.sss_id,
-      gsis_sss_no: req.body.gsis_sss_no,
-      psn_no: req.body.psn_no,
-      philhealth_no: req.body.philhealth_no,
-      education_level: req.body.education_level,
-      employment_status: req.body.employment_status,
-      employment_category: req.body.employment_category,
-      employment_type: req.body.employment_type,
-      disability: req.body.disability,
-      disability_other_text: req.body.disability_other_text,
-      cause_disability: req.body.cause_disability,
-      cause_other_text: req.body.cause_other_text
-    };
+    const age = parseInt(req.body.age, 10);
 
-    // Create new PWD document
-    const newPwd = new PWD(pwdData);
-    
-    // Save to database
-    const savedPwd = await newPwd.save();
+    const [result] = await query(
+      `INSERT INTO pwd (
+        first_name, middle_name, last_name,
+        barangay, purok,
+        birthday, age, gender,
+        place_of_birth, civil_status, spouse_name,
+        fatherLastName, fatherFirstName, fatherMiddleName, fatherExtension,
+        motherLastName, motherFirstName, motherMiddleName,
+        sss_id, gsis_sss_no, psn_no, philhealth_no,
+        education_level, employment_status, employment_category, employment_type,
+        disability_other_text, cause_other_text, status, archive_reason, edited_by, edited_at
+      ) VALUES (
+        ?, ?, ?,
+        ?, ?,
+        ?, ?, ?,
+        ?, ?, ?,
+        ?, ?, ?, ?,
+        ?, ?, ?,
+        ?, ?, ?, ?,
+        ?, ?, ?, ?,
+        ?, ?, 'Active', NULL, NULL, NULL
+      )`,
+      [
+        req.body.first_name,
+        req.body.middle_name || null,
+        req.body.last_name,
+        req.body.barangay,
+        req.body.purok,
+        birthday,
+        Number.isNaN(age) ? null : age,
+        req.body.gender,
+        req.body.place_of_birth,
+        req.body.civil_status,
+        req.body.spouse_name || null,
+        req.body.fatherLastName || null,
+        req.body.fatherFirstName || null,
+        req.body.fatherMiddleName || null,
+        req.body.fatherExtension || null,
+        req.body.motherLastName || null,
+        req.body.motherFirstName || null,
+        req.body.motherMiddleName || null,
+        req.body.sss_id || null,
+        req.body.gsis_sss_no || null,
+        req.body.psn_no || null,
+        req.body.philhealth_no || null,
+        req.body.education_level,
+        req.body.employment_status,
+        req.body.employment_category || null,
+        req.body.employment_type || null,
+        req.body.disability_other_text || null,
+        req.body.cause_other_text || null
+      ]
+    );
 
-    // Return success response
+    const pwdId = result.insertId;
+
+    const contacts = Array.isArray(req.body.contacts) ? req.body.contacts : [];
+    for (const c of contacts) {
+      if (!c || !c.name) continue;
+      await query(
+        `INSERT INTO pwd_contacts (pwd_id, type, name, relationship, phone, email)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [pwdId, c.type || null, c.name, c.relationship || null, c.phone || null, c.email || null]
+      );
+    }
+
+    const disabilities = Array.isArray(req.body.disability) ? req.body.disability : [];
+    for (const d of disabilities) {
+      if (!d) continue;
+      await query(
+        "INSERT INTO pwd_disabilities (pwd_id, disability) VALUES (?, ?)",
+        [pwdId, d]
+      );
+    }
+
+    const causes = Array.isArray(req.body.cause_disability) ? req.body.cause_disability : [];
+    for (const c of causes) {
+      if (!c) continue;
+      await query(
+        "INSERT INTO pwd_disability_causes (pwd_id, cause) VALUES (?, ?)",
+        [pwdId, c]
+      );
+    }
+
+    const savedPwd = await getPwdByIdWithRelations(pwdId);
+
     res.status(201).json({
       success: true,
       message: 'PWD registration successful',
@@ -427,27 +527,6 @@ exports.registerPwd = async (req, res) => {
   } catch (err) {
     console.error('Registration error:', err);
 
-    // Handle validation errors specifically
-    if (err.name === 'ValidationError') {
-      const errors = Object.values(err.errors).map(el => el.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors
-      });
-    }
-
-    // Handle duplicate key errors (if you added unique constraints)
-    if (err.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Duplicate key error',
-        field: Object.keys(err.keyPattern)[0],
-        error: `This ${Object.keys(err.keyPattern)[0]} is already registered`
-      });
-    }
-
-    // Generic error handler
     res.status(500).json({
       success: false,
       message: 'Internal Server Error',
@@ -463,8 +542,6 @@ exports.updatePwd = async (req, res) => {
     
     console.log('PWD ID:', pwd_id);
     console.log('Update data:', updateData);
-    console.log('Education level received:', updateData.education_level);
-    console.log('Employment status received:', updateData.employment_status);
     
     if (!pwd_id) {
       return res.status(400).json({
@@ -473,21 +550,22 @@ exports.updatePwd = async (req, res) => {
       });
     }
 
-    // Convert birthday to Date object if provided
+    const id = parseInt(pwd_id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        message: 'Invalid PWD ID',
+        success: false
+      });
+    }
+
     if (updateData.birthday) {
       updateData.birthday = new Date(updateData.birthday);
     }
 
-    // Convert age to number if provided
     if (updateData.age) {
-      updateData.age = parseInt(updateData.age);
+      updateData.age = parseInt(updateData.age, 10);
     }
 
-    // Disability arrays are now sent directly as arrays from the frontend
-    // No need to parse JSON strings since we're sending JSON data
-
-    // Clean up empty strings and convert to null for optional fields only
-    // Don't clean required fields to avoid validation errors
     const fieldsToClean = ['middle_name', 'place_of_birth', 'spouse_name', 
                           'fatherFirstName', 'fatherMiddleName', 'fatherLastName', 'fatherExtension',
                           'motherFirstName', 'motherMiddleName', 'motherLastName',
@@ -500,75 +578,108 @@ exports.updatePwd = async (req, res) => {
       }
     });
 
-    // Add edit tracking information (prefer session user, fallback to request data)
     const editorEmail = req.session?.user?.email || updateData.edited_by || 'Unknown';
-    const editTimestamp = updateData.edited_at || new Date().toISOString();
-    
-    // Remove these from updateData as they're not part of the schema
+    const editTimestamp = updateData.edited_at ? new Date(updateData.edited_at) : new Date();
+
     delete updateData.edited_by;
     delete updateData.edited_at;
-    
-    // Get the current PWD record to compare changes
-    const currentPwd = await PWD.findById(pwd_id);
-    const changes = [];
-    
-    if (currentPwd) {
-      // Helper function for deep comparison
-      const areValuesEqual = (oldVal, newVal) => {
-        if (oldVal === newVal) return true;
-        
-        // Handle arrays - sort and compare
-        if (Array.isArray(oldVal) && Array.isArray(newVal)) {
-          if (oldVal.length !== newVal.length) return false;
-          return JSON.stringify(oldVal.sort()) === JSON.stringify(newVal.sort());
-        }
-        
-        // Handle Dates
-        if (oldVal instanceof Date && newVal instanceof Date) {
-          return oldVal.getTime() === newVal.getTime();
-        }
-        
-        // Convert to string and compare for mixed types
-        const oldStr = Array.isArray(oldVal) ? oldVal.join(', ') : String(oldVal || '');
-        const newStr = Array.isArray(newVal) ? newVal.join(', ') : String(newVal || '');
-        return oldStr === newStr;
-      };
-      
-      // Compare each field in updateData with current values
-      for (const [field, newValue] of Object.entries(updateData)) {
-        const oldValue = currentPwd[field];
-        
-        // Only add to changes if values are actually different
-        if (!areValuesEqual(oldValue, newValue)) {
-          changes.push({
-            field: field,
-            old_value: oldValue,
-            new_value: newValue
-          });
-        }
-      }
-    }
-    
-    // Add edit log with changes
-    updateData.edit_log = {
-      edited_by: editorEmail,
-      edited_at: new Date(editTimestamp),
-      changes: changes
+
+    const setClauses = [];
+    const params = [];
+
+    const simpleFieldMap = {
+      first_name: 'first_name',
+      middle_name: 'middle_name',
+      last_name: 'last_name',
+      barangay: 'barangay',
+      purok: 'purok',
+      birthday: 'birthday',
+      age: 'age',
+      gender: 'gender',
+      place_of_birth: 'place_of_birth',
+      civil_status: 'civil_status',
+      spouse_name: 'spouse_name',
+      fatherLastName: 'fatherLastName',
+      fatherFirstName: 'fatherFirstName',
+      fatherMiddleName: 'fatherMiddleName',
+      fatherExtension: 'fatherExtension',
+      motherLastName: 'motherLastName',
+      motherFirstName: 'motherFirstName',
+      motherMiddleName: 'motherMiddleName',
+      sss_id: 'sss_id',
+      gsis_sss_no: 'gsis_sss_no',
+      psn_no: 'psn_no',
+      philhealth_no: 'philhealth_no',
+      education_level: 'education_level',
+      employment_status: 'employment_status',
+      employment_category: 'employment_category',
+      employment_type: 'employment_type',
+      disability_other_text: 'disability_other_text',
+      cause_other_text: 'cause_other_text',
+      status: 'status',
+      archive_reason: 'archive_reason'
     };
 
-    // Update the PWD record
-    const updatedPwd = await PWD.findByIdAndUpdate(
-      pwd_id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    Object.entries(simpleFieldMap).forEach(([key, column]) => {
+      if (updateData[key] !== undefined) {
+        setClauses.push(`${column} = ?`);
+        params.push(updateData[key]);
+      }
+    });
 
-    if (!updatedPwd) {
-      return res.status(404).json({
-        message: 'PWD record not found',
-        success: false
-      });
+    setClauses.push("edited_by = ?", "edited_at = ?");
+    params.push(editorEmail, editTimestamp);
+
+    if (setClauses.length > 0) {
+      params.push(id);
+      const [result] = await query(
+        `UPDATE pwd SET ${setClauses.join(", ")} WHERE id = ?`,
+        params
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          message: 'PWD record not found',
+          success: false
+        });
+      }
     }
+
+    if (Array.isArray(updateData.contacts)) {
+      await query("DELETE FROM pwd_contacts WHERE pwd_id = ?", [id]);
+      for (const c of updateData.contacts) {
+        if (!c || !c.name) continue;
+        await query(
+          `INSERT INTO pwd_contacts (pwd_id, type, name, relationship, phone, email)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [id, c.type || null, c.name, c.relationship || null, c.phone || null, c.email || null]
+        );
+      }
+    }
+
+    if (Array.isArray(updateData.disability)) {
+      await query("DELETE FROM pwd_disabilities WHERE pwd_id = ?", [id]);
+      for (const d of updateData.disability) {
+        if (!d) continue;
+        await query(
+          "INSERT INTO pwd_disabilities (pwd_id, disability) VALUES (?, ?)",
+          [id, d]
+        );
+      }
+    }
+
+    if (Array.isArray(updateData.cause_disability)) {
+      await query("DELETE FROM pwd_disability_causes WHERE pwd_id = ?", [id]);
+      for (const c of updateData.cause_disability) {
+        if (!c) continue;
+        await query(
+          "INSERT INTO pwd_disability_causes (pwd_id, cause) VALUES (?, ?)",
+          [id, c]
+        );
+      }
+    }
+
+    const updatedPwd = await getPwdByIdWithRelations(id);
 
     res.status(200).json({
       message: 'PWD record updated successfully',
@@ -577,15 +688,6 @@ exports.updatePwd = async (req, res) => {
     });
   } catch (err) {
     console.error('Error updating PWD:', err);
-
-    // Handle validation errors
-    if (err.name === 'ValidationError') {
-      return res.status(400).json({
-        message: 'Validation Error',
-        errors: err.errors,
-        success: false
-      });
-    }
 
     res.status(500).json({
       message: 'Internal Server Error',
@@ -606,22 +708,27 @@ exports.archivePwd = async (req, res) => {
       });
     }
 
-    // Update the PWD record status to Archived with reason
-    const archivedPwd = await PWD.findByIdAndUpdate(
-      pwd_id,
-      { 
-        status: 'Archived',
-        archive_reason: reason || null
-      },
-      { new: true, runValidators: true }
+    const id = parseInt(pwd_id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        message: 'Invalid PWD ID',
+        success: false
+      });
+    }
+
+    const [result] = await query(
+      "UPDATE pwd SET status = 'Archived', archive_reason = ? WHERE id = ?",
+      [reason || null, id]
     );
 
-    if (!archivedPwd) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({
         message: 'PWD record not found',
         success: false
       });
     }
+
+    const archivedPwd = await getPwdByIdWithRelations(id);
 
     res.status(200).json({
       success: true,
@@ -642,7 +749,7 @@ exports.archivePwd = async (req, res) => {
 // Unarchive PWD record
 exports.unarchivePwd = async (req, res) => {
   try {
-    const { pwd_id, reason } = req.body;
+    const { pwd_id } = req.body;
     
     if (!pwd_id) {
       return res.status(400).json({
@@ -651,22 +758,27 @@ exports.unarchivePwd = async (req, res) => {
       });
     }
 
-    // Update the PWD record status to Active and clear archive reason
-    const unarchivedPwd = await PWD.findByIdAndUpdate(
-      pwd_id,
-      { 
-        status: 'Active',
-        archive_reason: null
-      },
-      { new: true, runValidators: true }
+    const id = parseInt(pwd_id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        message: 'Invalid PWD ID',
+        success: false
+      });
+    }
+
+    const [result] = await query(
+      "UPDATE pwd SET status = 'Active', archive_reason = NULL WHERE id = ?",
+      [id]
     );
 
-    if (!unarchivedPwd) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({
         message: 'PWD record not found',
         success: false
       });
     }
+
+    const unarchivedPwd = await getPwdByIdWithRelations(id);
 
     res.status(200).json({
       success: true,
@@ -688,14 +800,7 @@ exports.generatePwdApplicationPdf = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid PWD ID'
-      });
-    }
-
-    const pwdRecord = await PWD.findById(id).lean();
+    const pwdRecord = await getPwdByIdWithRelations(id);
 
     if (!pwdRecord) {
       return res.status(404).json({
@@ -1661,28 +1766,23 @@ exports.getSeniorCitizensByBarangay = async (req, res) => {
 // Analytics: PDAO (PWD) counts and gender breakdown by barangay
 exports.getPdaoAnalytics = async (req, res) => {
   try {
-    const results = await PWD.aggregate([
-      {
-        $match: {
-          status: { $ne: 'Archived' } // Exclude archived records
-        }
-      },
-      {
-        $group: {
-          _id: "$barangay",
-          pdaoCount: { $sum: 1 },
-          maleCount: { $sum: { $cond: [{ $eq: ["$gender", "Male"] }, 1, 0] } },
-          femaleCount: { $sum: { $cond: [{ $eq: ["$gender", "Female"] }, 1, 0] } }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
+    const [rows] = await query(
+      `SELECT 
+         barangay AS name,
+         COUNT(*) AS pdaoCount,
+         SUM(CASE WHEN gender = 'Male' THEN 1 ELSE 0 END) AS maleCount,
+         SUM(CASE WHEN gender = 'Female' THEN 1 ELSE 0 END) AS femaleCount
+       FROM pwd
+       WHERE status <> 'Archived'
+       GROUP BY barangay
+       ORDER BY barangay ASC`
+    );
 
-    const data = results
-      .filter(r => r._id)
+    const data = rows
+      .filter(r => r.name)
       .map((r, idx) => ({
         id: idx + 1,
-        name: r._id,
+        name: r.name,
         pdaoCount: r.pdaoCount,
         maleCount: r.maleCount,
         femaleCount: r.femaleCount
@@ -1705,40 +1805,47 @@ exports.getPwdsByBarangay = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Barangay is required' });
     }
 
-    // Build query filter
-    const queryFilter = {
-      barangay,
-      status: { $ne: 'Archived' }
-    };
+    const filters = ['p.barangay = ?', "p.status <> 'Archived'"];
+    const params = [barangay];
 
-    // Add date filter if month is provided (for monthly reports)
     if (month) {
-      const monthNum = parseInt(month);
-      const yearNum = parseInt(year) || new Date().getFullYear();
+      const monthNum = parseInt(month, 10);
+      const yearNum = parseInt(year, 10) || new Date().getFullYear();
       const startDate = new Date(yearNum, monthNum - 1, 1);
       const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
-      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+      filters.push('p.created_at >= ?', 'p.created_at <= ?');
+      params.push(startDate, endDate);
     } else if (year) {
-      // For annual reports, filter by year
-      const yearNum = parseInt(year);
+      const yearNum = parseInt(year, 10);
       const startDate = new Date(yearNum, 0, 1);
       const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
-      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+      filters.push('p.created_at >= ?', 'p.created_at <= ?');
+      params.push(startDate, endDate);
     }
 
-    const pwds = await PWD.find(
-      queryFilter,
-      'first_name middle_name last_name age gender contacts disability'
-    ).lean();
+    const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
 
-    const data = pwds.map((pwd) => {
-      const contacts = Array.isArray(pwd.contacts) ? pwd.contacts : [];
+    const [rows] = await query(
+      `SELECT 
+         p.id,
+         p.first_name,
+         p.middle_name,
+         p.last_name,
+         p.age,
+         p.gender,
+         c.phone AS primary_phone,
+         GROUP_CONCAT(DISTINCT d.disability ORDER BY d.disability SEPARATOR ', ') AS disabilities
+       FROM pwd p
+       LEFT JOIN pwd_contacts c 
+         ON c.pwd_id = p.id AND c.type = 'primary'
+       LEFT JOIN pwd_disabilities d
+         ON d.pwd_id = p.id
+       ${whereClause}
+       GROUP BY p.id, p.first_name, p.middle_name, p.last_name, p.age, p.gender, c.phone`,
+      params
+    );
 
-      const contactNumber =
-        contacts.find((c) => c?.phone)?.phone ||
-        contacts.find((c) => c?.type === 'primary' && c?.phone)?.phone ||
-        '';
-
+    const data = rows.map((pwd) => {
       const fullName = [
         pwd.last_name,
         pwd.first_name,
@@ -1748,16 +1855,14 @@ exports.getPwdsByBarangay = async (req, res) => {
         .join(' ')
         .trim();
 
-      const disabilities = Array.isArray(pwd.disability) && pwd.disability.length > 0
-        ? pwd.disability.join(', ')
-        : 'N/A';
+      const disabilities = pwd.disabilities || 'N/A';
 
       return {
-        id: pwd._id,
+        id: pwd.id,
         fullName: fullName || 'Unnamed',
         gender: pwd.gender || 'N/A',
         age: pwd.age ?? 'N/A',
-        contact: contactNumber || 'N/A',
+        contact: pwd.primary_phone || 'N/A',
         disability: disabilities
       };
     });
@@ -2030,26 +2135,31 @@ exports.updateSenior = async (req, res) => {
   exports.renderPWDForm = async (req, res) => {
  try {
     const barangays = await fetchBarangays();
-    // Filter based on status query parameter
-    let statusFilter = {};
-    if (req.query.status === 'archived') {
-      statusFilter = { status: 'Archived' };
-    } else if (req.query.status === 'all') {
-      statusFilter = {}; // Show all records
-    } else {
-      statusFilter = { status: { $ne: 'Archived' } }; // Default: show only Active records
-    }
-    const pwd = await PWD.find(statusFilter);
+    let statusFilter = '';
+    const params = [];
 
- 
-    // Pass the barangays data to the EJS template
+    if (req.query.status === 'archived') {
+      statusFilter = "WHERE status = 'Archived'";
+    } else if (req.query.status === 'all') {
+      statusFilter = '';
+    } else {
+      statusFilter = "WHERE status <> 'Archived'";
+    }
+
+    const [rows] = await query(
+      `SELECT * FROM pwd ${statusFilter} ORDER BY created_at DESC`,
+      params
+    );
+
+    const pwds = await Promise.all(rows.map(r => getPwdByIdWithRelations(r.id)));
+
     res.render('staff/staff_pwd', {
       barangays: barangays || {},
-      pwds: pwd || {},
+      pwds: pwds || [],
       user: req.session?.user || null
     });
   } catch (err) {
-    console.error('Error fetching barangays:', err);
+    console.error('Error fetching barangays or PWDs:', err);
     res.status(500).send('Internal Server Error');
   }
   };
@@ -2751,30 +2861,38 @@ exports.debugSeniorData = async (req, res) => {
 exports.getAllPwds = async (req, res) => {
   try {
     const { month, year } = req.query; // Support month and year filters
-    
-    // Get all PWD records (including archived if needed)
-    const statusFilter = req.query.status === 'all' ? {} : { status: { $ne: 'Archived' } };
-    
-    // Build query filter
-    const queryFilter = { ...statusFilter };
-    
-    // Add date filter if month is provided (for monthly reports)
+
+    const filters = [];
+    const params = [];
+
+    if (req.query.status !== 'all') {
+      filters.push("status <> 'Archived'");
+    }
+
     if (month) {
-      const monthNum = parseInt(month);
-      const yearNum = parseInt(year) || new Date().getFullYear();
+      const monthNum = parseInt(month, 10);
+      const yearNum = parseInt(year, 10) || new Date().getFullYear();
       const startDate = new Date(yearNum, monthNum - 1, 1);
       const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
-      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+      filters.push('created_at >= ?', 'created_at <= ?');
+      params.push(startDate, endDate);
     } else if (year) {
-      // For annual reports, filter by year
-      const yearNum = parseInt(year);
+      const yearNum = parseInt(year, 10);
       const startDate = new Date(yearNum, 0, 1);
       const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
-      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+      filters.push('created_at >= ?', 'created_at <= ?');
+      params.push(startDate, endDate);
     }
-    
-    const pwds = await PWD.find(queryFilter);
-    
+
+    const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+
+    const [rows] = await query(
+      `SELECT * FROM pwd ${whereClause} ORDER BY created_at DESC`,
+      params
+    );
+
+    const pwds = await Promise.all(rows.map(r => getPwdByIdWithRelations(r.id)));
+
     res.json({
       success: true,
       pwds: pwds
