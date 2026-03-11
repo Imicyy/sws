@@ -85,4 +85,5 @@ server.listen(PORT, '0.0.0.0',() => {
 });
 
 //to do
-//make a generate report per barangay just like generate report button and add where you can add month of report
+// edit logs on OSCA and PWD, Analytics, MAPS, Barangay
+//all of youth

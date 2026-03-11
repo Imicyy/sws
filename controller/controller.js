@@ -2137,59 +2137,13 @@ exports.renderSeniorForm = async (req, res) => {
     }
 
     const [rows] = await query(
-      `SELECT * FROM senior_citizens ${whereClause} ORDER BY created_at DESC`,
+      `SELECT id FROM senior_citizens ${whereClause} ORDER BY created_at DESC`,
       params
     );
 
-    const seniorCitizens = rows.map(row => ({
-      _id: row.id,
-      identifying_information: {
-        name: {
-          last_name: row.last_name,
-          first_name: row.first_name,
-          middle_name: row.middle_name,
-          extension: row.extension
-        },
-        address: {
-          barangay: row.barangay,
-          purok: row.purok
-        },
-        date_of_birth: row.date_of_birth,
-        age: row.age,
-        marital_status: row.marital_status,
-        gender: row.gender,
-        osca_id_number: row.osca_id_number,
-        gsis_sss: row.gsis_sss,
-        philhealth: row.philhealth,
-        sc_association_org_id_no: row.sc_association_org_id_no,
-        tin: row.tin,
-        service_business_employment: row.service_business_employment,
-        current_pension: row.current_pension,
-        capability_to_travel: row.capability_to_travel
-      },
-      family_composition: {
-        spouse: { name: row.spouse_name },
-        father: {
-          last_name: row.father_last_name,
-          first_name: row.father_first_name,
-          middle_name: row.father_middle_name,
-          extension: row.father_extension
-        },
-        mother: {
-          last_name: row.mother_last_name,
-          first_name: row.mother_first_name,
-          middle_name: row.mother_middle_name
-        }
-      },
-      community_service_other_text: row.community_service_other_text,
-      status: row.status,
-      archive_reason: row.archive_reason,
-      edit_log: {
-        edited_by: row.edited_by,
-        edited_at: row.edited_at,
-        changes: []
-      }
-    }));
+    const seniorCitizens = await Promise.all(
+      rows.map(row => getSeniorByIdWithRelations(row.id))
+    );
 
     if (!barangays) {
       return res.status(404).send('No barangays found');
