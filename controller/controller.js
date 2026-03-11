@@ -154,134 +154,243 @@ exports.logout = (req, res) => {
   };
 
 
-  //senior citizen form
+ //senior citizen form
   exports.createResident = async (req, res) => {
     console.log('Raw body:', req.body);
   
     try {
       const body = req.body;
   
-      // Extract name and date of birth for duplicate check
       const firstName = body.identifying_information?.name?.first_name || body.first_name;
       const lastName = body.identifying_information?.name?.last_name || body.last_name;
-      const dateOfBirth = body.identifying_information?.date_of_birth || body.birthday || body.date_of_birth;
-      
-      // Check for duplicate Senior Citizen record (same first_name, last_name, and date_of_birth)
-      if (firstName && lastName && dateOfBirth) {
-        const dob = new Date(dateOfBirth);
-        const existingResident = await SeniorCitizen.findOne({
-          'identifying_information.name.first_name': firstName,
-          'identifying_information.name.last_name': lastName,
-          'identifying_information.date_of_birth': {
-            $gte: new Date(dob.getFullYear(), dob.getMonth(), dob.getDate()),
-            $lt: new Date(dob.getFullYear(), dob.getMonth(), dob.getDate() + 1)
-          },
-          status: 'Active'
-        });
+      const dateOfBirthRaw = body.identifying_information?.date_of_birth || body.birthday || body.date_of_birth;
 
-        if (existingResident) {
-          return res.status(400).json({
-            success: false,
-            alert: {
-              title: 'Duplicate Record Found',
-              text: `A Senior Citizen record with the name "${firstName} ${lastName}" and date of birth "${dob.toLocaleDateString()}" already exists in the system.`,
-              icon: 'warning',
-              showConfirmButton: true
-            },
-            isDuplicate: true
-          });
-        }
+      if (!firstName || !lastName || !dateOfBirthRaw) {
+        return res.status(400).json({
+          success: false,
+          alert: {
+            title: 'Validation Error',
+            text: 'Name and date of birth are required',
+            icon: 'error',
+            showConfirmButton: true
+          }
+        });
+      }
+
+      const dob = new Date(dateOfBirthRaw);
+      if (Number.isNaN(dob.getTime())) {
+        return res.status(400).json({
+          success: false,
+          alert: {
+            title: 'Validation Error',
+            text: 'Invalid date of birth',
+            icon: 'error',
+            showConfirmButton: true
+          }
+        });
+      }
+
+      const startOfDay = new Date(dob.getFullYear(), dob.getMonth(), dob.getDate());
+      const endOfDay = new Date(dob.getFullYear(), dob.getMonth(), dob.getDate() + 1);
+
+      const [existingRows] = await query(
+        `SELECT id FROM senior_citizens 
+         WHERE first_name = ? AND last_name = ? 
+           AND date_of_birth >= ? AND date_of_birth < ? 
+           AND status = 'Active'
+         LIMIT 1`,
+        [firstName, lastName, startOfDay, endOfDay]
+      );
+
+      if (existingRows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          alert: {
+            title: 'Duplicate Record Found',
+            text: `A Senior Citizen record with the name "${firstName} ${lastName}" and date of birth "${dob.toLocaleDateString()}" already exists in the system.`,
+            icon: 'warning',
+            showConfirmButton: true
+          },
+          isDuplicate: true
+        });
       }
   
-      // Handle skill_other_text safely
-      const skillOtherText = Array.isArray(body.education_hr_profile?.skill_other_text)
-        ? body.education_hr_profile.skill_other_text.find(text => text && text.trim() !== '')
-        : body.education_hr_profile?.skill_other_text;
-  
-      // Support both nested `identifying_information` payloads and flat form fields
-      const rawPlace = body.identifying_information?.place_of_birth || body.place_of_birth;
-      const rawReligion = body.identifying_information?.religion || body.religion;
+      const barangay = body.identifying_information?.address?.barangay || body.barangay;
+      const purok = body.identifying_information?.address?.purok || body.purok;
+      const age = parseInt(body.identifying_information?.age || body.age, 10) || null;
+      const maritalStatus = body.identifying_information?.marital_status || body.marital_status || body.civil_status;
+      const gender = body.identifying_information?.gender || body.gender;
 
-      const residentData = {
-        identifying_information: {
-          name: {
-            first_name: body.identifying_information?.name?.first_name || body.first_name,
-            middle_name: body.identifying_information?.name?.middle_name || body.middle_name,
-            last_name: body.identifying_information?.name?.last_name || body.last_name
-          },
-          address: {
-            barangay: body.identifying_information?.address?.barangay || body.barangay,
-            purok: body.identifying_information?.address?.purok || body.purok
-          },
-          date_of_birth: body.identifying_information?.date_of_birth || body.birthday || body.date_of_birth,
-          age: parseInt(body.identifying_information?.age || body.age) || 0,
-          place_of_birth: Array.isArray(rawPlace)
-            ? rawPlace.filter(Boolean)
-            : [rawPlace].filter(Boolean),
-          religion: Array.isArray(rawReligion)
-            ? rawReligion.filter(Boolean)
-            : (rawReligion ? [rawReligion] : []),
-          marital_status: body.identifying_information?.marital_status || body.marital_status || body.civil_status,
-          gender: body.identifying_information?.gender || body.gender,
-          contacts: Array.isArray(body.identifying_information?.contacts)
-            ? body.identifying_information.contacts.filter(c => c?.name)
-            : Array.isArray(body.contacts)
-              ? body.contacts.filter(c => c?.name)
-              : (body.contacts ? [body.contacts].filter(c => c?.name) : []),
-          osca_id_number: body.identifying_information?.osca_id_number || body.osca_id,
-          gsis_sss: body.identifying_information?.gsis_sss || body.gsis_sss_no || body.gsis_sss,
-          philhealth: body.identifying_information?.philhealth || body.philhealth_no || body.philhealth,
-          sc_association_org_id_no: body.identifying_information?.sc_association_org_id_no || body.sc_association_id,
-          tin: body.identifying_information?.tin || body.tin_no || body.tin,
-          other_govt_id: body.identifying_information?.other_govt_id || body.other_govt_id,
-          service_business_employment: body.identifying_information?.service_business_employment || body.service || body.service_business_employment,
-          current_pension: body.identifying_information?.current_pension || body.pension || body.current_pension,
-          capability_to_travel: (body.identifying_information?.capability_to_travel || body.capability_to_travel) === 'Yes' ? 'Yes' : 'No'
-        },
-        family_composition: {
-          spouse: {
-            name: body.family_composition?.spouse?.name || undefined
-          },
-          father: {
-            last_name: body.family_composition?.father?.last_name,
-            first_name: body.family_composition?.father?.first_name,
-            middle_name: body.family_composition?.father?.middle_name,
-            extension: body.family_composition?.father?.extension || undefined
-          },
-          mother: {
-            last_name: body.family_composition?.mother?.last_name,
-            first_name: body.family_composition?.mother?.first_name,
-            middle_name: body.family_composition?.mother?.middle_name
-          },
-          children: Array.isArray(body.family_composition?.children)
-            ? body.family_composition.children
-                .map(child => ({
-                  full_name: child?.full_name || undefined,
-                  occupation: child?.occupation || undefined,
-                  age: parseInt(child?.age) || undefined,
-                  working_status: child?.working_status || undefined,
-                  income: child?.income || undefined
-                }))
-                .filter(child => child.full_name)
-            : []
-        },
-        education_hr_profile: {
-          educational_attainment: Array.isArray(body.education_hr_profile?.educational_attainment)
-            ? body.education_hr_profile.educational_attainment.filter(Boolean)
-            : [body.education_hr_profile?.educational_attainment].filter(Boolean),
-          skills: Array.isArray(body.education_hr_profile?.skills)
-            ? body.education_hr_profile.skills.filter(Boolean)
-            : [],
-          skill_other_text: skillOtherText || undefined
-        },
-        community_service: Array.isArray(body.community_service)
-          ? body.community_service.filter(Boolean)
-          : [],
-        community_service_other_text: body.community_service_other_text || undefined
-      };
-  
-      const newResident = new SeniorCitizen(residentData);
-      const savedResident = await newResident.save();
+      const middleName = body.identifying_information?.name?.middle_name || body.middle_name || null;
+      const extension = body.identifying_information?.name?.extension || body.extension || null;
+
+      const oscaId = body.identifying_information?.osca_id_number || body.osca_id || null;
+      const gsisSss = body.identifying_information?.gsis_sss || body.gsis_sss_no || body.gsis_sss || null;
+      const philhealth = body.identifying_information?.philhealth || body.philhealth_no || body.philhealth || null;
+      const scAssociationId = body.identifying_information?.sc_association_org_id_no || body.sc_association_id || null;
+      const tin = body.identifying_information?.tin || body.tin_no || body.tin || null;
+      const serviceEmployment = body.identifying_information?.service_business_employment || body.service || body.service_business_employment || null;
+      const currentPension = body.identifying_information?.current_pension || body.pension || body.current_pension || null;
+      const capabilityToTravel = (body.identifying_information?.capability_to_travel || body.capability_to_travel) === 'Yes' ? 'Yes' : 'No';
+
+      const spouseName = body.family_composition?.spouse?.name || null;
+      const fatherLast = body.family_composition?.father?.last_name || null;
+      const fatherFirst = body.family_composition?.father?.first_name || null;
+      const fatherMiddle = body.family_composition?.father?.middle_name || null;
+      const fatherExt = body.family_composition?.father?.extension || null;
+      const motherLast = body.family_composition?.mother?.last_name || null;
+      const motherFirst = body.family_composition?.mother?.first_name || null;
+      const motherMiddle = body.family_composition?.mother?.middle_name || null;
+
+      const communityServiceOther = body.community_service_other_text || null;
+
+      const [result] = await query(
+        `INSERT INTO senior_citizens (
+          reference_code,
+          last_name, first_name, middle_name, extension,
+          barangay, purok,
+          date_of_birth, age,
+          marital_status, gender,
+          osca_id_number, gsis_sss, philhealth, sc_association_org_id_no, tin,
+          other_govt_id,
+          service_business_employment, current_pension, capability_to_travel,
+          spouse_name,
+          father_last_name, father_first_name, father_middle_name, father_extension,
+          mother_last_name, mother_first_name, mother_middle_name,
+          community_service_other_text,
+          status, archive_reason, edited_by, edited_at
+        ) VALUES (
+          NULL,
+          ?, ?, ?, ?,
+          ?, ?,
+          ?, ?,
+          ?, ?,
+          ?, ?, ?, ?, ?,
+          NULL,
+          ?, ?, ?,
+          ?,
+          ?, ?, ?, ?,
+          ?, ?, ?,
+          ?,
+          'Active', NULL, NULL, NULL
+        )`,
+        [
+          lastName,
+          firstName,
+          middleName,
+          extension,
+          barangay,
+          purok,
+          dob,
+          age,
+          maritalStatus,
+          gender,
+          oscaId,
+          gsisSss,
+          philhealth,
+          scAssociationId,
+          tin,
+          serviceEmployment,
+          currentPension,
+          capabilityToTravel,
+          spouseName,
+          fatherLast,
+          fatherFirst,
+          fatherMiddle,
+          fatherExt,
+          motherLast,
+          motherFirst,
+          motherMiddle,
+          communityServiceOther
+        ]
+      );
+
+      const seniorId = result.insertId;
+
+      const rawContacts = Array.isArray(body.identifying_information?.contacts)
+        ? body.identifying_information.contacts
+        : Array.isArray(body.contacts)
+          ? body.contacts
+          : (body.contacts ? [body.contacts] : []);
+
+      for (const contact of rawContacts) {
+        if (!contact || !contact.name) continue;
+        await query(
+          `INSERT INTO senior_contacts (senior_id, type, name, relationship, phone, email)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            seniorId,
+            contact.type || 'primary',
+            contact.name,
+            contact.relationship || null,
+            contact.phone || null,
+            contact.email || null
+          ]
+        );
+      }
+
+      const children = Array.isArray(body.family_composition?.children)
+        ? body.family_composition.children
+        : [];
+
+      for (const child of children) {
+        if (!child || !child.full_name) continue;
+        await query(
+          `INSERT INTO senior_children (senior_id, full_name, occupation, income, age, working_status)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            seniorId,
+            child.full_name,
+            child.occupation || null,
+            child.income || null,
+            child.age ? parseInt(child.age, 10) : null,
+            child.working_status || null
+          ]
+        );
+      }
+
+      const eduAttain = Array.isArray(body.education_hr_profile?.educational_attainment)
+        ? body.education_hr_profile.educational_attainment
+        : body.education_hr_profile?.educational_attainment
+          ? [body.education_hr_profile.educational_attainment]
+          : [];
+
+      for (const e of eduAttain) {
+        if (!e) continue;
+        await query(
+          `INSERT INTO senior_education (senior_id, educational_attainment)
+           VALUES (?, ?)`,
+          [seniorId, e]
+        );
+      }
+
+      const skillsArr = Array.isArray(body.education_hr_profile?.skills)
+        ? body.education_hr_profile.skills
+        : [];
+
+      for (const s of skillsArr) {
+        if (!s) continue;
+        await query(
+          `INSERT INTO senior_skills (senior_id, skill)
+           VALUES (?, ?)`,
+          [seniorId, s]
+        );
+      }
+
+      const services = Array.isArray(body.community_service)
+        ? body.community_service
+        : body.community_service
+          ? [body.community_service]
+          : [];
+
+      for (const svc of services) {
+        if (!svc) continue;
+        await query(
+          `INSERT INTO senior_community_services (senior_id, service)
+           VALUES (?, ?)`,
+          [seniorId, svc]
+        );
+      }
   
       res.status(201).json({
         success: true,
@@ -292,44 +401,22 @@ exports.logout = (req, res) => {
           showConfirmButton: false,
           timer: 3000
         },
-        data: savedResident,
-        reference_code: savedResident.reference_code
+        data: {
+          id: seniorId,
+          first_name: firstName,
+          last_name: lastName,
+          middle_name: middleName,
+          barangay,
+          purok,
+          date_of_birth: dob,
+          age,
+          marital_status: maritalStatus,
+          gender
+        }
       });
   
     } catch (error) {
       console.error('Error creating resident:', error);
-  
-      if (error.name === 'ValidationError') {
-        const errors = Object.values(error.errors).map(err => ({
-          field: err.path,
-          message: err.message
-        }));
-        return res.status(400).json({
-          success: false,
-          alert: {
-            title: 'Validation Error',
-            text: 'Please check your input fields',
-            icon: 'error',
-            showConfirmButton: true
-          },
-          errors
-        });
-      }
-  
-      if (error.code === 11000) {
-        const field = Object.keys(error.keyPattern)[0];
-        return res.status(400).json({
-          success: false,
-          alert: {
-            title: 'Duplicate Entry',
-            text: `The ${field} already exists in our records`,
-            icon: 'error',
-            showConfirmButton: true
-          },
-          field,
-          value: error.keyValue[field]
-        });
-      }
   
       res.status(500).json({
         success: false,
@@ -389,6 +476,140 @@ async function getPwdByIdWithRelations(pwdId) {
     contacts,
     disability,
     cause_disability
+  };
+}
+
+// Helper to map MySQL senior_citizens row + related rows into an object similar to the old SeniorCitizen model
+async function getSeniorByIdWithRelations(seniorId) {
+  const id = parseInt(seniorId, 10);
+  if (Number.isNaN(id)) {
+    return null;
+  }
+
+  const [[row]] = await query("SELECT * FROM senior_citizens WHERE id = ? LIMIT 1", [id]);
+  if (!row) {
+    return null;
+  }
+
+  const [childrenRows] = await query(
+    "SELECT full_name, occupation, income, age, working_status FROM senior_children WHERE senior_id = ?",
+    [id]
+  );
+  const [educationRows] = await query(
+    "SELECT educational_attainment FROM senior_education WHERE senior_id = ?",
+    [id]
+  );
+  const [skillRows] = await query(
+    "SELECT skill FROM senior_skills WHERE senior_id = ?",
+    [id]
+  );
+  const [serviceRows] = await query(
+    "SELECT service FROM senior_community_services WHERE senior_id = ?",
+    [id]
+  );
+  const [contactRows] = await query(
+    "SELECT type, name, relationship, phone, email FROM senior_contacts WHERE senior_id = ?",
+    [id]
+  );
+  const [editRows] = await query(
+    "SELECT field, old_value, new_value FROM senior_edit_logs WHERE senior_id = ? ORDER BY id ASC",
+    [id]
+  );
+
+  const contacts = contactRows.map(c => ({
+    type: c.type,
+    name: c.name,
+    relationship: c.relationship,
+    phone: c.phone,
+    email: c.email
+  }));
+
+  const children = childrenRows.map(child => ({
+    full_name: child.full_name,
+    occupation: child.occupation,
+    income: child.income,
+    age: child.age,
+    working_status: child.working_status
+  }));
+
+  const educational_attainment = educationRows
+    .map(e => e.educational_attainment)
+    .filter(Boolean);
+
+  const skills = skillRows
+    .map(s => s.skill)
+    .filter(Boolean);
+
+  const community_service = serviceRows
+    .map(s => s.service)
+    .filter(Boolean);
+
+  const changes = editRows.map(e => ({
+    field: e.field,
+    old_value: e.old_value,
+    new_value: e.new_value
+  }));
+
+  return {
+    _id: row.id,
+    reference_code: row.reference_code,
+    identifying_information: {
+      name: {
+        last_name: row.last_name,
+        first_name: row.first_name,
+        middle_name: row.middle_name,
+        extension: row.extension
+      },
+      address: {
+        barangay: row.barangay,
+        purok: row.purok
+      },
+      date_of_birth: row.date_of_birth,
+      age: row.age,
+      marital_status: row.marital_status,
+      gender: row.gender,
+      contacts,
+      osca_id_number: row.osca_id_number,
+      gsis_sss: row.gsis_sss,
+      philhealth: row.philhealth,
+      sc_association_org_id_no: row.sc_association_org_id_no,
+      tin: row.tin,
+      other_govt_id: row.other_govt_id,
+      service_business_employment: row.service_business_employment,
+      current_pension: row.current_pension,
+      capability_to_travel: row.capability_to_travel
+    },
+    family_composition: {
+      spouse: {
+        name: row.spouse_name
+      },
+      father: {
+        last_name: row.father_last_name,
+        first_name: row.father_first_name,
+        middle_name: row.father_middle_name,
+        extension: row.father_extension
+      },
+      mother: {
+        last_name: row.mother_last_name,
+        first_name: row.mother_first_name,
+        middle_name: row.mother_middle_name
+      },
+      children
+    },
+    education_hr_profile: {
+      educational_attainment,
+      skills,
+      skill_other_text: null
+    },
+    community_service,
+    community_service_other_text: row.community_service_other_text,
+    status: row.status,
+    archive_reason: row.archive_reason,
+    edit_log: {
+      edited_by: row.edited_by,
+      edited_at: row.edited_at,
+      changes
+    }
   };
 }
 
@@ -1047,22 +1268,27 @@ exports.archiveSenior = async (req, res) => {
       });
     }
 
-    // Update the Senior Citizen record status to Archived with reason
-    const archivedSenior = await SeniorCitizen.findByIdAndUpdate(
-      senior_id,
-      { 
-        status: 'Archived',
-        archive_reason: reason || null
-      },
-      { new: true, runValidators: true }
+    const id = parseInt(senior_id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        message: 'Invalid Senior Citizen ID',
+        success: false
+      });
+    }
+
+    const [result] = await query(
+      "UPDATE senior_citizens SET status = 'Archived', archive_reason = ? WHERE id = ?",
+      [reason || null, id]
     );
 
-    if (!archivedSenior) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({
         message: 'Senior Citizen record not found',
         success: false
       });
     }
+
+    const archivedSenior = await getSeniorByIdWithRelations(id);
 
     res.status(200).json({
       success: true,
@@ -1092,22 +1318,27 @@ exports.unarchiveSenior = async (req, res) => {
       });
     }
 
-    // Update the Senior Citizen record status to Active and clear archive reason
-    const unarchivedSenior = await SeniorCitizen.findByIdAndUpdate(
-      senior_id,
-      { 
-        status: 'Active',
-        archive_reason: null
-      },
-      { new: true, runValidators: true }
+    const id = parseInt(senior_id, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        message: 'Invalid Senior Citizen ID',
+        success: false
+      });
+    }
+
+    const [result] = await query(
+      "UPDATE senior_citizens SET status = 'Active', archive_reason = NULL WHERE id = ?",
+      [id]
     );
 
-    if (!unarchivedSenior) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({
         message: 'Senior Citizen record not found',
         success: false
       });
     }
+
+    const unarchivedSenior = await getSeniorByIdWithRelations(id);
 
     res.status(200).json({
       success: true,
@@ -1893,29 +2124,84 @@ async function fetchBarangays() {
 exports.renderSeniorForm = async (req, res) => {
  try {
     const barangays = await fetchBarangays();
-    // Filter based on status query parameter
-    let statusFilter = {};
+
+    let whereClause = '';
+    const params = [];
+
     if (req.query.status === 'archived') {
-      statusFilter = { status: 'Archived' };
+      whereClause = "WHERE status = 'Archived'";
     } else if (req.query.status === 'all') {
-      statusFilter = {}; // Show all records
+      whereClause = '';
     } else {
-      statusFilter = { status: { $ne: 'Archived' } }; // Default: show only Active records
+      whereClause = "WHERE status <> 'Archived'";
     }
-    const seniorCitizens = await SeniorCitizen.find(statusFilter);
+
+    const [rows] = await query(
+      `SELECT * FROM senior_citizens ${whereClause} ORDER BY created_at DESC`,
+      params
+    );
+
+    const seniorCitizens = rows.map(row => ({
+      _id: row.id,
+      identifying_information: {
+        name: {
+          last_name: row.last_name,
+          first_name: row.first_name,
+          middle_name: row.middle_name,
+          extension: row.extension
+        },
+        address: {
+          barangay: row.barangay,
+          purok: row.purok
+        },
+        date_of_birth: row.date_of_birth,
+        age: row.age,
+        marital_status: row.marital_status,
+        gender: row.gender,
+        osca_id_number: row.osca_id_number,
+        gsis_sss: row.gsis_sss,
+        philhealth: row.philhealth,
+        sc_association_org_id_no: row.sc_association_org_id_no,
+        tin: row.tin,
+        service_business_employment: row.service_business_employment,
+        current_pension: row.current_pension,
+        capability_to_travel: row.capability_to_travel
+      },
+      family_composition: {
+        spouse: { name: row.spouse_name },
+        father: {
+          last_name: row.father_last_name,
+          first_name: row.father_first_name,
+          middle_name: row.father_middle_name,
+          extension: row.father_extension
+        },
+        mother: {
+          last_name: row.mother_last_name,
+          first_name: row.mother_first_name,
+          middle_name: row.mother_middle_name
+        }
+      },
+      community_service_other_text: row.community_service_other_text,
+      status: row.status,
+      archive_reason: row.archive_reason,
+      edit_log: {
+        edited_by: row.edited_by,
+        edited_at: row.edited_at,
+        changes: []
+      }
+    }));
 
     if (!barangays) {
       return res.status(404).send('No barangays found');
     }
 
-    // Pass the barangays data to the EJS template
     res.render('staff/staff_senior', {
       barangays: barangays || {},
       seniorCitizens: seniorCitizens || {},
       user: req.session?.user || null
     });
   } catch (err) {
-    console.error('Error fetching barangays:', err);
+    console.error('Error fetching barangays or seniors:', err);
     res.status(500).send('Internal Server Error');
   }
   };
@@ -1931,66 +2217,87 @@ exports.updateSenior = async (req, res) => {
       });
     }
 
-    // Build the update object based on the nested structure
-    const updateObject = {};
-
-    // Handle identifying_information fields
-    if (updateData.first_name || updateData.middle_name || updateData.last_name) {
-      updateObject['identifying_information.name.first_name'] = updateData.first_name;
-      updateObject['identifying_information.name.middle_name'] = updateData.middle_name;
-      updateObject['identifying_information.name.last_name'] = updateData.last_name;
+    const id = parseInt(residentId, 10);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid Resident ID"
+      });
     }
 
-    if (updateData.barangay || updateData.purok) {
-      updateObject['identifying_information.address.barangay'] = updateData.barangay;
-      updateObject['identifying_information.address.purok'] = updateData.purok;
-    }
+    const fields = [];
+    const params = [];
 
+    if (updateData.first_name) {
+      fields.push("first_name = ?");
+      params.push(updateData.first_name);
+    }
+    if (updateData.middle_name !== undefined) {
+      fields.push("middle_name = ?");
+      params.push(updateData.middle_name || null);
+    }
+    if (updateData.last_name) {
+      fields.push("last_name = ?");
+      params.push(updateData.last_name);
+    }
+    if (updateData.barangay) {
+      fields.push("barangay = ?");
+      params.push(updateData.barangay);
+    }
+    if (updateData.purok) {
+      fields.push("purok = ?");
+      params.push(updateData.purok);
+    }
     if (updateData.gender) {
-      updateObject['identifying_information.gender'] = updateData.gender;
+      fields.push("gender = ?");
+      params.push(updateData.gender);
     }
-
     if (updateData.birthday) {
-      updateObject['identifying_information.date_of_birth'] = new Date(updateData.birthday);
+      const dob = new Date(updateData.birthday);
+      if (!Number.isNaN(dob.getTime())) {
+        fields.push("date_of_birth = ?");
+        params.push(dob);
+      }
     }
-
     if (updateData.age) {
-      updateObject['identifying_information.age'] = parseInt(updateData.age);
+      fields.push("age = ?");
+      params.push(parseInt(updateData.age, 10));
     }
-
     if (updateData.marital_status) {
-      updateObject['identifying_information.marital_status'] = updateData.marital_status;
+      fields.push("marital_status = ?");
+      params.push(updateData.marital_status);
     }
-
-    if (updateData.place_of_birth) {
-      updateObject['identifying_information.place_of_birth'] = updateData.place_of_birth;
-    }
-
-    // Handle ID information
     if (updateData.osca_id) {
-      updateObject['identifying_information.osca_id_number'] = updateData.osca_id;
+      fields.push("osca_id_number = ?");
+      params.push(updateData.osca_id);
     }
-
     if (updateData.gsis_sss) {
-      updateObject['identifying_information.gsis_sss'] = updateData.gsis_sss;
+      fields.push("gsis_sss = ?");
+      params.push(updateData.gsis_sss);
     }
-
     if (updateData.philhealth) {
-      updateObject['identifying_information.philhealth'] = updateData.philhealth;
+      fields.push("philhealth = ?");
+      params.push(updateData.philhealth);
     }
-
     if (updateData.tin) {
-      updateObject['identifying_information.tin'] = updateData.tin;
+      fields.push("tin = ?");
+      params.push(updateData.tin);
+    }
+    if (updateData.spouse_name !== undefined) {
+      fields.push("spouse_name = ?");
+      params.push(updateData.spouse_name || null);
     }
 
-    // Handle family composition
     if (updateData.father_name) {
       const fatherParts = updateData.father_name.trim().split(' ');
       if (fatherParts.length >= 2) {
-        updateObject['family_composition.father.first_name'] = fatherParts[0];
-        updateObject['family_composition.father.last_name'] = fatherParts[fatherParts.length - 1];
+        fields.push("father_first_name = ?");
+        params.push(fatherParts[0]);
+        fields.push("father_last_name = ?");
+        params.push(fatherParts[fatherParts.length - 1]);
         if (fatherParts.length > 2) {
-          updateObject['family_composition.father.middle_name'] = fatherParts.slice(1, -1).join(' ');
+          fields.push("father_middle_name = ?");
+          params.push(fatherParts.slice(1, -1).join(' '));
         }
       }
     }
@@ -1998,124 +2305,128 @@ exports.updateSenior = async (req, res) => {
     if (updateData.mother_name) {
       const motherParts = updateData.mother_name.trim().split(' ');
       if (motherParts.length >= 2) {
-        updateObject['family_composition.mother.first_name'] = motherParts[0];
-        updateObject['family_composition.mother.last_name'] = motherParts[motherParts.length - 1];
+        fields.push("mother_first_name = ?");
+        params.push(motherParts[0]);
+        fields.push("mother_last_name = ?");
+        params.push(motherParts[motherParts.length - 1]);
         if (motherParts.length > 2) {
-          updateObject['family_composition.mother.middle_name'] = motherParts.slice(1, -1).join(' ');
+          fields.push("mother_middle_name = ?");
+          params.push(motherParts.slice(1, -1).join(' '));
         }
       }
     }
 
-    if (updateData.spouse_name && updateData.marital_status === 'Married') {
-      updateObject['family_composition.spouse.name'] = updateData.spouse_name;
+    if (updateData.community_service_other_text !== undefined) {
+      fields.push("community_service_other_text = ?");
+      params.push(updateData.community_service_other_text || null);
     }
 
-    // Handle contacts
-    if (updateData.contacts && Array.isArray(updateData.contacts)) {
-      updateObject['identifying_information.contacts'] = updateData.contacts.filter(contact => 
-        contact.name && contact.name.trim() !== ''
-      );
-    }
-
-    // Add edit tracking information (prefer session user, fallback to request data)
     const editorEmail = req.session?.user?.email || updateData.edited_by || 'Unknown';
-    const editTimestamp = updateData.edited_at || new Date().toISOString();
-    
-    // Remove these from updateData as they're not part of the schema
-    delete updateData.edited_by;
-    delete updateData.edited_at;
-    
-    // Get the current senior record to compare changes
-    const currentSenior = await SeniorCitizen.findById(residentId);
-    const changes = [];
-    
-    if (currentSenior) {
-      // Helper function for deep comparison
-      const areValuesEqual = (oldVal, newVal) => {
-        if (oldVal === newVal) return true;
-        
-        // Handle arrays
-        if (Array.isArray(oldVal) && Array.isArray(newVal)) {
-          if (oldVal.length !== newVal.length) return false;
-          return JSON.stringify(oldVal.sort()) === JSON.stringify(newVal.sort());
-        }
-        
-        // Handle Dates
-        if (oldVal instanceof Date && newVal instanceof Date) {
-          return oldVal.getTime() === newVal.getTime();
-        }
-        
-        // Convert to string and compare for mixed types (e.g., array vs string)
-        const oldStr = Array.isArray(oldVal) ? oldVal.join(', ') : String(oldVal || '');
-        const newStr = Array.isArray(newVal) ? newVal.join(', ') : String(newVal || '');
-        return oldStr === newStr;
-      };
-      
-      // Map updateObject paths to field names for tracking
-      const fieldsToCheck = {
-        'identifying_information.name.first_name': 'first_name',
-        'identifying_information.name.middle_name': 'middle_name',
-        'identifying_information.name.last_name': 'last_name',
-        'identifying_information.address.barangay': 'barangay',
-        'identifying_information.address.purok': 'purok',
-        'identifying_information.gender': 'gender',
-        'identifying_information.date_of_birth': 'birthday',
-        'identifying_information.age': 'age',
-        'identifying_information.marital_status': 'marital_status',
-        'identifying_information.place_of_birth': 'place_of_birth',
-        'identifying_information.osca_id_number': 'osca_id',
-        'identifying_information.gsis_sss': 'gsis_sss',
-        'identifying_information.philhealth': 'philhealth',
-        'identifying_information.tin': 'tin',
-        'family_composition.spouse.name': 'spouse_name',
-        'family_composition.father.first_name': 'fatherFirstName',
-        'family_composition.mother.first_name': 'motherFirstName',
-        'identifying_information.contacts': 'contacts'
-      };
-      
-      for (const [path, fieldName] of Object.entries(fieldsToCheck)) {
-        const newValue = updateObject[path];
-        if (newValue !== undefined) {
-          const pathParts = path.split('.');
-          let oldValue = currentSenior;
-          for (const part of pathParts) {
-            oldValue = oldValue?.[part];
-          }
-          
-          // Only add to changes if values are actually different
-          if (!areValuesEqual(oldValue, newValue)) {
-            changes.push({
-              field: fieldName,
-              old_value: oldValue,
-              new_value: newValue
-            });
-          }
-        }
+    const editTimestamp = updateData.edited_at ? new Date(updateData.edited_at) : new Date();
+
+    fields.push("edited_by = ?", "edited_at = ?");
+    params.push(editorEmail, editTimestamp);
+
+    params.push(id);
+
+    if (fields.length > 0) {
+      const [result] = await query(
+        `UPDATE senior_citizens SET ${fields.join(", ")} WHERE id = ?`,
+        params
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          error: "Senior citizen not found"
+        });
       }
     }
-    
-    // Add edit log with changes
-    updateObject['edit_log'] = {
-      edited_by: editorEmail,
-      edited_at: new Date(editTimestamp),
-      changes: changes
-    };
 
-    console.log('Update object:', updateObject);
-
-    // Update the senior citizen record
-    const updatedSenior = await SeniorCitizen.findByIdAndUpdate(
-      residentId,
-      { $set: updateObject },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedSenior) {
-      return res.status(404).json({
-        success: false,
-        error: "Senior citizen not found"
-      });
+    if (updateData.contacts && Array.isArray(updateData.contacts)) {
+      await query("DELETE FROM senior_contacts WHERE senior_id = ?", [id]);
+      for (const contact of updateData.contacts) {
+        if (!contact || !contact.name) continue;
+        await query(
+          `INSERT INTO senior_contacts (senior_id, type, name, relationship, phone, email)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            id,
+            contact.type || 'primary',
+            contact.name,
+            contact.relationship || null,
+            contact.phone || null,
+            contact.email || null
+          ]
+        );
+      }
     }
+
+    if (updateData.family_composition?.children && Array.isArray(updateData.family_composition.children)) {
+      await query("DELETE FROM senior_children WHERE senior_id = ?", [id]);
+      for (const child of updateData.family_composition.children) {
+        if (!child || !child.full_name) continue;
+        await query(
+          `INSERT INTO senior_children (senior_id, full_name, occupation, income, age, working_status)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            id,
+            child.full_name,
+            child.occupation || null,
+            child.income || null,
+            child.age ? parseInt(child.age, 10) : null,
+            child.working_status || null
+          ]
+        );
+      }
+    }
+
+    if (updateData.education_hr_profile?.educational_attainment) {
+      await query("DELETE FROM senior_education WHERE senior_id = ?", [id]);
+      const eduArr = Array.isArray(updateData.education_hr_profile.educational_attainment)
+        ? updateData.education_hr_profile.educational_attainment
+        : [updateData.education_hr_profile.educational_attainment];
+      for (const e of eduArr) {
+        if (!e) continue;
+        await query(
+          `INSERT INTO senior_education (senior_id, educational_attainment)
+           VALUES (?, ?)`,
+          [id, e]
+        );
+      }
+    }
+
+    if (updateData.education_hr_profile?.skills) {
+      await query("DELETE FROM senior_skills WHERE senior_id = ?", [id]);
+      const skillsArr = Array.isArray(updateData.education_hr_profile.skills)
+        ? updateData.education_hr_profile.skills
+        : [updateData.education_hr_profile.skills];
+      for (const s of skillsArr) {
+        if (!s) continue;
+        await query(
+          `INSERT INTO senior_skills (senior_id, skill)
+           VALUES (?, ?)`,
+          [id, s]
+        );
+      }
+    }
+
+    if (updateData.community_service) {
+      await query("DELETE FROM senior_community_services WHERE senior_id = ?", [id]);
+      const services = Array.isArray(updateData.community_service)
+        ? updateData.community_service
+        : [updateData.community_service];
+      for (const svc of services) {
+        if (!svc) continue;
+        await query(
+          `INSERT INTO senior_community_services (senior_id, service)
+           VALUES (?, ?)`,
+          [id, svc]
+        );
+      }
+    }
+
+    const updatedSenior = await getSeniorByIdWithRelations(id);
 
     res.status(200).json({
       success: true,
