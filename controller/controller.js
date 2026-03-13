@@ -221,6 +221,11 @@ exports.logout = (req, res) => {
       const maritalStatus = body.identifying_information?.marital_status || body.marital_status || body.civil_status;
       const gender = body.identifying_information?.gender || body.gender;
 
+      const rawPlace = body.identifying_information?.place_of_birth || body.place_of_birth;
+      const placeOfBirth = Array.isArray(rawPlace)
+        ? rawPlace.filter(Boolean).join(', ')
+        : (rawPlace || null);
+
       const middleName = body.identifying_information?.name?.middle_name || body.middle_name || null;
       const extension = body.identifying_information?.name?.extension || body.extension || null;
 
@@ -249,7 +254,7 @@ exports.logout = (req, res) => {
           reference_code,
           last_name, first_name, middle_name, extension,
           barangay, purok,
-          date_of_birth, age,
+          date_of_birth, age, place_of_birth,
           marital_status, gender,
           osca_id_number, gsis_sss, philhealth, sc_association_org_id_no, tin,
           other_govt_id,
@@ -262,7 +267,7 @@ exports.logout = (req, res) => {
         ) VALUES (
           NULL,
           ?, ?, ?, ?,
-          ?, ?,
+          ?, ?, ?,
           ?, ?,
           ?, ?,
           ?, ?, ?, ?, ?,
@@ -283,6 +288,7 @@ exports.logout = (req, res) => {
           purok,
           dob,
           age,
+          placeOfBirth,
           maritalStatus,
           gender,
           oscaId,
@@ -568,6 +574,7 @@ async function getSeniorByIdWithRelations(seniorId) {
       age: row.age,
       marital_status: row.marital_status,
       gender: row.gender,
+      place_of_birth: row.place_of_birth ? [row.place_of_birth] : [],
       contacts,
       osca_id_number: row.osca_id_number,
       gsis_sss: row.gsis_sss,
@@ -2179,6 +2186,15 @@ exports.updateSenior = async (req, res) => {
       });
     }
 
+    // Snapshot before state for edit log
+    const before = await getSeniorByIdWithRelations(id);
+    if (!before) {
+      return res.status(404).json({
+        success: false,
+        error: "Senior citizen not found"
+      });
+    }
+
     const fields = [];
     const params = [];
 
@@ -2380,7 +2396,89 @@ exports.updateSenior = async (req, res) => {
       }
     }
 
-    const updatedSenior = await getSeniorByIdWithRelations(id);
+    // Build edit log changes by comparing before/after snapshots
+    const after = await getSeniorByIdWithRelations(id);
+
+    const normalizeDate = (val) => {
+      if (!val) return null;
+      const d = new Date(val);
+      if (Number.isNaN(d.getTime())) return null;
+      const y = d.getFullYear();
+      const m = `${d.getMonth() + 1}`.padStart(2, '0');
+      const day = `${d.getDate()}`.padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const extractForLog = (s) => ({
+      first_name: s?.identifying_information?.name?.first_name ?? null,
+      middle_name: s?.identifying_information?.name?.middle_name ?? null,
+      last_name: s?.identifying_information?.name?.last_name ?? null,
+      barangay: s?.identifying_information?.address?.barangay ?? null,
+      purok: s?.identifying_information?.address?.purok ?? null,
+      date_of_birth: normalizeDate(s?.identifying_information?.date_of_birth),
+      age: s?.identifying_information?.age ?? null,
+      gender: s?.identifying_information?.gender ?? null,
+      marital_status: s?.identifying_information?.marital_status ?? null,
+      place_of_birth: s?.identifying_information?.place_of_birth ?? null,
+      osca_id_number: s?.identifying_information?.osca_id_number ?? null,
+      gsis_sss: s?.identifying_information?.gsis_sss ?? null,
+      philhealth: s?.identifying_information?.philhealth ?? null,
+      tin: s?.identifying_information?.tin ?? null,
+      spouse_name: s?.family_composition?.spouse?.name ?? null,
+      father_name: s?.family_composition?.father
+        ? [s.family_composition.father.first_name, s.family_composition.father.middle_name, s.family_composition.father.last_name]
+            .filter(Boolean).join(" ")
+        : null,
+      mother_name: s?.family_composition?.mother
+        ? [s.family_composition.mother.first_name, s.family_composition.mother.middle_name, s.family_composition.mother.last_name]
+            .filter(Boolean).join(" ")
+        : null,
+      contacts: s?.identifying_information?.contacts ?? [],
+      educational_attainment: s?.education_hr_profile?.educational_attainment ?? [],
+      skills: s?.education_hr_profile?.skills ?? [],
+      community_service: s?.community_service ?? [],
+      community_service_other_text: s?.community_service_other_text ?? null
+    });
+
+    const beforeView = extractForLog(before);
+    const afterView = extractForLog(after);
+
+    const serialize = (val) => {
+      if (val === null || val === undefined) return '';
+      if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+        return String(val);
+      }
+      return JSON.stringify(val);
+    };
+
+    const changeEntries = [];
+    for (const [field, oldVal] of Object.entries(beforeView)) {
+      const newVal = afterView[field];
+      if (serialize(oldVal) !== serialize(newVal)) {
+        changeEntries.push({
+          field,
+          old_value: serialize(oldVal),
+          new_value: serialize(newVal)
+        });
+      }
+    }
+
+    for (const change of changeEntries) {
+      await query(
+        `INSERT INTO senior_edit_logs (senior_id, field, old_value, new_value)
+         VALUES (?, ?, ?, ?)`,
+        [id, change.field, change.old_value, change.new_value]
+      );
+    }
+
+    const updatedSenior = {
+      ...after,
+      edit_log: {
+        edited_by: editorEmail,
+        edited_at: editTimestamp,
+        changes: changeEntries
+      }
+    };
 
     res.status(200).json({
       success: true,

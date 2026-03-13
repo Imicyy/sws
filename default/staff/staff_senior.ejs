@@ -1472,8 +1472,19 @@
                         // Handle date formatting for birthday
                         const dob = seniorData.identifying_information?.date_of_birth;
                         if (dob) {
-                            const date = new Date(dob);
-                            const formattedDate = date.toISOString().split('T')[0];
+                            let formattedDate = '';
+                            if (typeof dob === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+                                // Already in YYYY-MM-DD format
+                                formattedDate = dob;
+                            } else {
+                                // Normalize to local date string for input[type="date"]
+                                const date = new Date(dob);
+                                if (!isNaN(date.getTime())) {
+                                    const tzOffset = date.getTimezoneOffset() * 60000;
+                                    const local = new Date(date.getTime() - tzOffset);
+                                    formattedDate = local.toISOString().split('T')[0];
+                                }
+                            }
                             document.getElementById('editBirthday').value = formattedDate;
                         }
                         

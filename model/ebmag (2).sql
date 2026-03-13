@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 10, 2026 at 01:48 PM
+-- Generation Time: Mar 13, 2026 at 03:36 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -82,11 +82,17 @@ CREATE TABLE `pwd` (
   `cause_other_text` text DEFAULT NULL,
   `status` enum('Active','Archived') DEFAULT 'Active',
   `archive_reason` text DEFAULT NULL,
-  `edited_by` varchar(255) DEFAULT NULL,
-  `edited_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `pwd`
+--
+
+INSERT INTO `pwd` (`id`, `first_name`, `middle_name`, `last_name`, `barangay`, `purok`, `birthday`, `age`, `gender`, `place_of_birth`, `civil_status`, `spouse_name`, `fatherLastName`, `fatherFirstName`, `fatherMiddleName`, `fatherExtension`, `motherLastName`, `motherFirstName`, `motherMiddleName`, `sss_id`, `gsis_sss_no`, `psn_no`, `philhealth_no`, `education_level`, `employment_status`, `employment_category`, `employment_type`, `disability_other_text`, `cause_other_text`, `status`, `archive_reason`, `created_at`, `updated_at`) VALUES
+(1, 'SQLLLLL', 'SQL', 'SQL', 'Barangay 1', 'Kamagong', '2002-06-07', 23, 'Male', 'BACOLOD', 'Single but Head of the Family', NULL, 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', '', '', '', '', 'College Graduate', 'Employee', 'Private', 'Seasonal', NULL, NULL, 'Active', NULL, '2026-03-10 13:22:49', '2026-03-11 14:37:04'),
+(2, 'SQLS', 'SQLS', 'SQLS', 'Barangay Rizal', 'Matagoy', '1998-11-11', 27, 'Female', 'BACOLOD', 'Single but Head of the Family', NULL, 'SQLS', 'SQLS', 'SQLS', NULL, 'SQLS', 'SQLS', 'SQLS', '11', '22', '33', '44', 'College Graduate', 'Employee', 'Private', 'Seasonal', 'SQLS', 'SQLS', 'Active', NULL, '2026-03-11 14:12:04', '2026-03-11 14:12:04');
 
 -- --------------------------------------------------------
 
@@ -104,6 +110,14 @@ CREATE TABLE `pwd_contacts` (
   `email` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `pwd_contacts`
+--
+
+INSERT INTO `pwd_contacts` (`id`, `pwd_id`, `type`, `name`, `relationship`, `phone`, `email`) VALUES
+(2, 2, 'primary', 'SQLS', 'SQLS', '09954417332', NULL),
+(3, 1, 'primary', 'SQL', 'SQL', '09954417332', 'sql@gmail.com');
+
 -- --------------------------------------------------------
 
 --
@@ -116,6 +130,16 @@ CREATE TABLE `pwd_disabilities` (
   `disability` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `pwd_disabilities`
+--
+
+INSERT INTO `pwd_disabilities` (`id`, `pwd_id`, `disability`) VALUES
+(2, 2, 'Cancer (RA11215)'),
+(3, 2, 'Rare Disease (RA10747)'),
+(4, 2, 'Other'),
+(5, 1, 'Deaf or Hard of Hearing');
+
 -- --------------------------------------------------------
 
 --
@@ -126,6 +150,31 @@ CREATE TABLE `pwd_disability_causes` (
   `id` int(11) NOT NULL,
   `pwd_id` int(11) DEFAULT NULL,
   `cause` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `pwd_disability_causes`
+--
+
+INSERT INTO `pwd_disability_causes` (`id`, `pwd_id`, `cause`) VALUES
+(2, 2, 'ADHD'),
+(3, 2, 'Other'),
+(4, 1, 'Congenital / Inborn');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pwd_edit_logs`
+--
+
+CREATE TABLE `pwd_edit_logs` (
+  `id` int(11) NOT NULL,
+  `pwd_id` int(11) NOT NULL,
+  `field` varchar(255) NOT NULL,
+  `old_value` text DEFAULT NULL,
+  `new_value` text DEFAULT NULL,
+  `edited_by` varchar(255) DEFAULT NULL,
+  `edited_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -144,6 +193,13 @@ CREATE TABLE `senior_children` (
   `working_status` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `senior_children`
+--
+
+INSERT INTO `senior_children` (`id`, `senior_id`, `full_name`, `occupation`, `income`, `age`, `working_status`) VALUES
+(1, 4, 'SQL', 'SQL', NULL, 23, 'not_working');
+
 -- --------------------------------------------------------
 
 --
@@ -161,6 +217,7 @@ CREATE TABLE `senior_citizens` (
   `purok` varchar(255) NOT NULL,
   `date_of_birth` date DEFAULT NULL,
   `age` int(11) NOT NULL,
+  `place_of_birth` varchar(255) DEFAULT NULL,
   `marital_status` varchar(100) NOT NULL,
   `gender` varchar(50) NOT NULL,
   `osca_id_number` varchar(100) DEFAULT NULL,
@@ -189,6 +246,13 @@ CREATE TABLE `senior_citizens` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `senior_citizens`
+--
+
+INSERT INTO `senior_citizens` (`id`, `reference_code`, `last_name`, `first_name`, `middle_name`, `extension`, `barangay`, `purok`, `date_of_birth`, `age`, `marital_status`, `gender`, `osca_id_number`, `gsis_sss`, `philhealth`, `sc_association_org_id_no`, `tin`, `other_govt_id`, `service_business_employment`, `current_pension`, `capability_to_travel`, `spouse_name`, `father_last_name`, `father_first_name`, `father_middle_name`, `father_extension`, `mother_last_name`, `mother_first_name`, `mother_middle_name`, `community_service_other_text`, `status`, `archive_reason`, `edited_by`, `edited_at`, `created_at`, `updated_at`) VALUES
+(4, NULL, 'SQL', 'SQLEDIT', 'SQL', NULL, 'Barangay Rizal', 'Matagoy', '1960-03-10', 66, 'Single', 'Male', '1', '2', '4', NULL, '3', NULL, '1', '1', 'Yes', NULL, 'SQL', 'SQL', 'SQL', NULL, 'SQL', 'SQL', 'SQL', 'SQL', 'Active', NULL, 'staff_001@gmail.com', '2026-03-11 22:43:04', '2026-03-11 14:36:04', '2026-03-11 14:43:04');
+
 -- --------------------------------------------------------
 
 --
@@ -200,6 +264,14 @@ CREATE TABLE `senior_community_services` (
   `senior_id` int(11) DEFAULT NULL,
   `service` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `senior_community_services`
+--
+
+INSERT INTO `senior_community_services` (`id`, `senior_id`, `service`) VALUES
+(1, 4, 'Community / Organization Leader'),
+(2, 4, 'Other');
 
 -- --------------------------------------------------------
 
@@ -216,6 +288,13 @@ CREATE TABLE `senior_contacts` (
   `phone` varchar(50) NOT NULL,
   `email` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `senior_contacts`
+--
+
+INSERT INTO `senior_contacts` (`id`, `senior_id`, `type`, `name`, `relationship`, `phone`, `email`) VALUES
+(3, 4, 'primary', 'SQL', 'SQL', '09954417332', 'Sapalojaminpaul@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -243,6 +322,13 @@ CREATE TABLE `senior_education` (
   `educational_attainment` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `senior_education`
+--
+
+INSERT INTO `senior_education` (`id`, `senior_id`, `educational_attainment`) VALUES
+(1, 4, 'College Graduate');
+
 -- --------------------------------------------------------
 
 --
@@ -254,6 +340,14 @@ CREATE TABLE `senior_skills` (
   `senior_id` int(11) DEFAULT NULL,
   `skill` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `senior_skills`
+--
+
+INSERT INTO `senior_skills` (`id`, `senior_id`, `skill`) VALUES
+(1, 4, 'Medical'),
+(2, 4, 'Other');
 
 -- --------------------------------------------------------
 
@@ -349,8 +443,6 @@ CREATE TABLE `youth` (
   `youth_age_group_other` text DEFAULT NULL,
   `status` enum('Active','Archived') DEFAULT 'Active',
   `archive_reason` text DEFAULT NULL,
-  `edited_by` varchar(255) DEFAULT NULL,
-  `edited_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -377,6 +469,22 @@ CREATE TABLE `youth_classifications` (
   `id` int(11) NOT NULL,
   `youth_id` int(11) DEFAULT NULL,
   `classification` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `youth_edit_logs`
+--
+
+CREATE TABLE `youth_edit_logs` (
+  `id` int(11) NOT NULL,
+  `youth_id` int(11) NOT NULL,
+  `field` varchar(255) NOT NULL,
+  `old_value` text DEFAULT NULL,
+  `new_value` text DEFAULT NULL,
+  `edited_by` varchar(255) DEFAULT NULL,
+  `edited_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -420,6 +528,13 @@ ALTER TABLE `pwd_disabilities`
 -- Indexes for table `pwd_disability_causes`
 --
 ALTER TABLE `pwd_disability_causes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `pwd_id` (`pwd_id`);
+
+--
+-- Indexes for table `pwd_edit_logs`
+--
+ALTER TABLE `pwd_edit_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `pwd_id` (`pwd_id`);
 
@@ -505,6 +620,13 @@ ALTER TABLE `youth_classifications`
   ADD KEY `youth_id` (`youth_id`);
 
 --
+-- Indexes for table `youth_edit_logs`
+--
+ALTER TABLE `youth_edit_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `youth_id` (`youth_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -524,49 +646,55 @@ ALTER TABLE `puroks`
 -- AUTO_INCREMENT for table `pwd`
 --
 ALTER TABLE `pwd`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `pwd_contacts`
 --
 ALTER TABLE `pwd_contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `pwd_disabilities`
 --
 ALTER TABLE `pwd_disabilities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `pwd_disability_causes`
 --
 ALTER TABLE `pwd_disability_causes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `pwd_edit_logs`
+--
+ALTER TABLE `pwd_edit_logs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `senior_children`
 --
 ALTER TABLE `senior_children`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `senior_citizens`
 --
 ALTER TABLE `senior_citizens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `senior_community_services`
 --
 ALTER TABLE `senior_community_services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `senior_contacts`
 --
 ALTER TABLE `senior_contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `senior_edit_logs`
@@ -578,13 +706,13 @@ ALTER TABLE `senior_edit_logs`
 -- AUTO_INCREMENT for table `senior_education`
 --
 ALTER TABLE `senior_education`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `senior_skills`
 --
 ALTER TABLE `senior_skills`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `sms_history`
@@ -617,6 +745,12 @@ ALTER TABLE `youth_classifications`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `youth_edit_logs`
+--
+ALTER TABLE `youth_edit_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- Constraints for dumped tables
 --
 
@@ -643,6 +777,12 @@ ALTER TABLE `pwd_disabilities`
 --
 ALTER TABLE `pwd_disability_causes`
   ADD CONSTRAINT `pwd_disability_causes_ibfk_1` FOREIGN KEY (`pwd_id`) REFERENCES `pwd` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `pwd_edit_logs`
+--
+ALTER TABLE `pwd_edit_logs`
+  ADD CONSTRAINT `pwd_edit_logs_ibfk_1` FOREIGN KEY (`pwd_id`) REFERENCES `pwd` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `senior_children`
@@ -691,6 +831,12 @@ ALTER TABLE `youth_age_groups`
 --
 ALTER TABLE `youth_classifications`
   ADD CONSTRAINT `youth_classifications_ibfk_1` FOREIGN KEY (`youth_id`) REFERENCES `youth` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `youth_edit_logs`
+--
+ALTER TABLE `youth_edit_logs`
+  ADD CONSTRAINT `youth_edit_logs_ibfk_1` FOREIGN KEY (`youth_id`) REFERENCES `youth` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
