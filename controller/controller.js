@@ -452,6 +452,11 @@ async function getPwdByIdWithRelations(pwdId) {
     return null;
   }
 
+  const [editRows] = await query(
+    "SELECT field, old_value, new_value, edited_by, edited_at FROM pwd_edit_logs WHERE pwd_id = ? ORDER BY id ASC",
+    [id]
+  );
+
   const [contactsRows] = await query(
     "SELECT type, name, relationship, phone, email FROM pwd_contacts WHERE pwd_id = ?",
     [id]
@@ -476,12 +481,41 @@ async function getPwdByIdWithRelations(pwdId) {
   const disability = disabilityRows.map(d => d.disability).filter(Boolean);
   const cause_disability = causeRows.map(c => c.cause).filter(Boolean);
 
+  const tryParse = (val) => {
+    if (val === null || val === undefined) return val;
+    if (typeof val !== 'string') return val;
+    const trimmed = val.trim();
+    if (!trimmed) return '';
+    if (
+      (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+      (trimmed.startsWith('[') && trimmed.endsWith(']'))
+    ) {
+      try {
+        return JSON.parse(trimmed);
+      } catch {
+        return val;
+      }
+    }
+    return val;
+  };
+
+  const changes = editRows.map(e => ({
+    field: e.field,
+    old_value: tryParse(e.old_value),
+    new_value: tryParse(e.new_value)
+  }));
+
   return {
     _id: pwdRow.id,
     ...pwdRow,
     contacts,
     disability,
-    cause_disability
+    cause_disability,
+    edit_log: {
+      edited_by: editRows.length ? editRows[editRows.length - 1].edited_by : null,
+      edited_at: editRows.length ? editRows[editRows.length - 1].edited_at : null,
+      changes
+    }
   };
 }
 
@@ -786,6 +820,14 @@ exports.updatePwd = async (req, res) => {
       });
     }
 
+    const before = await getPwdByIdWithRelations(id);
+    if (!before) {
+      return res.status(404).json({
+        message: 'PWD record not found',
+        success: false
+      });
+    }
+
     if (updateData.birthday) {
       updateData.birthday = new Date(updateData.birthday);
     }
@@ -855,9 +897,6 @@ exports.updatePwd = async (req, res) => {
       }
     });
 
-    setClauses.push("edited_by = ?", "edited_at = ?");
-    params.push(editorEmail, editTimestamp);
-
     if (setClauses.length > 0) {
       params.push(id);
       const [result] = await query(
@@ -907,7 +946,96 @@ exports.updatePwd = async (req, res) => {
       }
     }
 
-    const updatedPwd = await getPwdByIdWithRelations(id);
+    const updatedPwdRaw = await getPwdByIdWithRelations(id);
+
+    const normalizeDate = (val) => {
+      if (!val) return null;
+      const d = new Date(val);
+      if (Number.isNaN(d.getTime())) return null;
+      const y = d.getFullYear();
+      const m = `${d.getMonth() + 1}`.padStart(2, '0');
+      const day = `${d.getDate()}`.padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const extractForLog = (p) => ({
+      first_name: p?.first_name ?? null,
+      middle_name: p?.middle_name ?? null,
+      last_name: p?.last_name ?? null,
+      barangay: p?.barangay ?? null,
+      purok: p?.purok ?? null,
+      birthday: normalizeDate(p?.birthday),
+      age: p?.age ?? null,
+      gender: p?.gender ?? null,
+      place_of_birth: p?.place_of_birth ?? null,
+      civil_status: p?.civil_status ?? null,
+      spouse_name: p?.spouse_name ?? null,
+      fatherLastName: p?.fatherLastName ?? null,
+      fatherFirstName: p?.fatherFirstName ?? null,
+      fatherMiddleName: p?.fatherMiddleName ?? null,
+      fatherExtension: p?.fatherExtension ?? null,
+      motherLastName: p?.motherLastName ?? null,
+      motherFirstName: p?.motherFirstName ?? null,
+      motherMiddleName: p?.motherMiddleName ?? null,
+      sss_id: p?.sss_id ?? null,
+      gsis_sss_no: p?.gsis_sss_no ?? null,
+      psn_no: p?.psn_no ?? null,
+      philhealth_no: p?.philhealth_no ?? null,
+      education_level: p?.education_level ?? null,
+      employment_status: p?.employment_status ?? null,
+      employment_category: p?.employment_category ?? null,
+      employment_type: p?.employment_type ?? null,
+      disability_other_text: p?.disability_other_text ?? null,
+      cause_other_text: p?.cause_other_text ?? null,
+      contacts: p?.contacts ?? [],
+      disability: p?.disability ?? [],
+      cause_disability: p?.cause_disability ?? []
+    });
+
+    const serialize = (val) => {
+      if (val === null || val === undefined) return '';
+      if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') return String(val);
+      return JSON.stringify(val);
+    };
+
+    const beforeView = extractForLog(before);
+    const afterView = extractForLog(updatedPwdRaw);
+
+    const changeEntries = [];
+    for (const [field, oldVal] of Object.entries(beforeView)) {
+      const newVal = afterView[field];
+      if (serialize(oldVal) !== serialize(newVal)) {
+        changeEntries.push({
+          field,
+          old_value: oldVal,
+          new_value: newVal
+        });
+      }
+    }
+
+    for (const change of changeEntries) {
+      await query(
+        `INSERT INTO pwd_edit_logs (pwd_id, field, old_value, new_value, edited_by, edited_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          change.field,
+          serialize(change.old_value),
+          serialize(change.new_value),
+          editorEmail,
+          editTimestamp
+        ]
+      );
+    }
+
+    const updatedPwd = {
+      ...updatedPwdRaw,
+      edit_log: {
+        edited_by: editorEmail,
+        edited_at: editTimestamp,
+        changes: changeEntries
+      }
+    };
 
     res.status(200).json({
       message: 'PWD record updated successfully',
