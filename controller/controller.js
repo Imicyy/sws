@@ -2242,18 +2242,28 @@ exports.getPwdsByBarangay = async (req, res) => {
 
 // Fetch barangays and their puroks from the database
 async function fetchBarangays() {
-  const barangayList = await Barangay.find({});
+  // MySQL-backed barangays + puroks (keeps shape expected by EJS: { [barangayName]: string[] })
+  const [barangayRows] = await query(`
+    SELECT 
+      b.id,
+      b.barangay,
+      GROUP_CONCAT(p.purok ORDER BY p.purok) AS puroks
+    FROM barangays b
+    LEFT JOIN puroks p ON b.id = p.barangay_id
+    GROUP BY b.id, b.barangay
+    ORDER BY b.barangay
+  `);
 
-  if (!barangayList || barangayList.length === 0) {
+  if (!barangayRows || barangayRows.length === 0) {
     return null;
   }
 
-  const puroks = {};
-  barangayList.forEach(({ barangay, puroks: purokList }) => {
-    puroks[barangay] = purokList;
-  });
+  const barangays = {};
+  for (const row of barangayRows) {
+    barangays[row.barangay] = row.puroks ? row.puroks.split(',') : [];
+  }
 
-  return puroks;
+  return barangays;
 }
 
 exports.renderSeniorForm = async (req, res) => {
@@ -4092,10 +4102,27 @@ exports.renderSuperAdmin = async (req, res) => {
 // API: Get all barangays
 exports.getBarangays = async (req, res) => {
   try {
-    const barangayList = await Barangay.find({});
+    // Get all barangays with their puroks using MySQL
+    const [barangayRows] = await query(`
+      SELECT 
+        b.id,
+        b.barangay,
+        GROUP_CONCAT(p.purok ORDER BY p.purok) as puroks
+      FROM barangays b
+      LEFT JOIN puroks p ON b.id = p.barangay_id
+      GROUP BY b.id, b.barangay
+      ORDER BY b.barangay
+    `);
+
     const barangays = {};
-    barangayList.forEach(({ barangay, puroks }) => {
-      barangays[barangay] = puroks || [];
+    const barangayList = barangayRows.map(row => {
+      const puroksArray = row.puroks ? row.puroks.split(',') : [];
+      const barangayObj = {
+        barangay: row.barangay,
+        puroks: puroksArray
+      };
+      barangays[row.barangay] = puroksArray;
+      return barangayObj;
     });
 
     res.json({
