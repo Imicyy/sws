@@ -1995,24 +1995,23 @@ exports.generateYouthApplicationPdf = async (req, res) => {
 // Analytics: OSCA (Senior Citizens) counts by barangay
 exports.getOscaAnalytics = async (req, res) => {
   try {
-    const results = await SeniorCitizen.aggregate([
-      {
-        $match: {
-          status: { $ne: 'Archived' } // Exclude archived records
-        }
-      },
-      {
-        $group: {
-          _id: "$identifying_information.address.barangay",
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
+    const [rows] = await query(
+      `SELECT
+         barangay AS name,
+         COUNT(*) AS oscaCount
+       FROM senior_citizens
+       WHERE status <> 'Archived'
+       GROUP BY barangay
+       ORDER BY barangay ASC`
+    );
 
-    const data = results
-      .filter(r => r._id)
-      .map((r, idx) => ({ id: idx + 1, name: r._id, oscaCount: r.count }));
+    const data = (rows || [])
+      .filter(r => r.name)
+      .map((r, idx) => ({
+        id: idx + 1,
+        name: r.name,
+        oscaCount: Number(r.oscaCount) || 0
+      }));
 
     res.json({ success: true, data });
   } catch (err) {
@@ -2025,31 +2024,51 @@ exports.getOscaAnalytics = async (req, res) => {
 exports.getSeniorCitizensForReport = async (req, res) => {
   try {
     const { month, year } = req.query; // Support month and year filters
-    
-    // Build query filter
-    const queryFilter = { status: { $ne: 'Archived' } };
-    
+
+    const filters = ["status <> 'Archived'"];
+    const params = [];
+
     // Add date filter if month is provided (for monthly reports)
     if (month) {
-      const monthNum = parseInt(month);
-      const yearNum = parseInt(year) || new Date().getFullYear();
+      const monthNum = parseInt(month, 10);
+      const parsedYear = parseInt(year, 10);
+      const yearNum = Number.isNaN(parsedYear) ? new Date().getFullYear() : parsedYear;
       const startDate = new Date(yearNum, monthNum - 1, 1);
       const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
-      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+      filters.push('created_at >= ?', 'created_at <= ?');
+      params.push(startDate, endDate);
     } else if (year) {
       // For annual reports, filter by year
-      const yearNum = parseInt(year);
+      const yearNum = parseInt(year, 10);
       const startDate = new Date(yearNum, 0, 1);
       const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
-      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+      filters.push('created_at >= ?', 'created_at <= ?');
+      params.push(startDate, endDate);
     }
-    
-    const seniors = await SeniorCitizen.find(
-      queryFilter,
-      'identifying_information.address.barangay identifying_information.gender'
+
+    const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+
+    // Keep the response shape compatible with the frontend logic:
+    // frontend expects `senior.identifying_information.address.barangay` and `senior.identifying_information.gender`
+    const [rows] = await query(
+      `SELECT
+         id,
+         barangay,
+         gender
+       FROM senior_citizens
+       ${whereClause}`,
+      params
     );
-    
-    res.json({ success: true, data: seniors });
+
+    const data = (rows || []).map(r => ({
+      _id: r.id,
+      identifying_information: {
+        address: { barangay: r.barangay },
+        gender: r.gender
+      }
+    }));
+
+    res.json({ success: true, data });
   } catch (err) {
     console.error('Error fetching senior citizens for report:', err);
     res.status(500).json({ success: false, message: 'Failed to load senior citizens data' });
@@ -2066,59 +2085,75 @@ exports.getSeniorCitizensByBarangay = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Barangay is required' });
     }
 
-    // Build query filter
-    const queryFilter = {
-      'identifying_information.address.barangay': barangay,
-      status: { $ne: 'Archived' }
-    };
+    const filters = ['s.barangay = ?', "s.status <> 'Archived'"];
+    const params = [barangay];
 
     // Add date filter if month is provided (for monthly reports)
     if (month) {
-      const monthNum = parseInt(month);
-      const yearNum = parseInt(year) || new Date().getFullYear();
+      const monthNum = parseInt(month, 10);
+      const parsedYear = parseInt(year, 10);
+      const yearNum = Number.isNaN(parsedYear) ? new Date().getFullYear() : parsedYear;
       const startDate = new Date(yearNum, monthNum - 1, 1);
       const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
-      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+      filters.push('s.created_at >= ?', 's.created_at <= ?');
+      params.push(startDate, endDate);
     } else if (year) {
       // For annual reports, filter by year
-      const yearNum = parseInt(year);
+      const yearNum = parseInt(year, 10);
       const startDate = new Date(yearNum, 0, 1);
       const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
-      queryFilter.createdAt = { $gte: startDate, $lte: endDate };
+      filters.push('s.created_at >= ?', 's.created_at <= ?');
+      params.push(startDate, endDate);
     }
 
-    const seniors = await SeniorCitizen.find(
-      queryFilter,
-      'identifying_information.name identifying_information.age identifying_information.gender identifying_information.contacts'
-    ).lean();
+    const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
 
-    const data = seniors.map((senior) => {
-      const name = senior.identifying_information?.name || {};
-      const contacts = Array.isArray(senior.identifying_information?.contacts)
-        ? senior.identifying_information.contacts
-        : [];
+    // Pick a "best" contact phone:
+    // - prefer `type='primary'`
+    // - otherwise take the first non-empty phone
+    const [rows] = await query(
+      `SELECT
+         s.id,
+         s.last_name,
+         s.first_name,
+         s.middle_name,
+         s.extension,
+         s.age,
+         s.gender,
+         (
+           SELECT sc.phone
+           FROM senior_contacts sc
+           WHERE sc.senior_id = s.id
+             AND sc.phone IS NOT NULL
+             AND sc.phone <> ''
+           ORDER BY
+             CASE WHEN sc.type = 'primary' THEN 0 ELSE 1 END,
+             sc.id ASC
+           LIMIT 1
+         ) AS contact
+       FROM senior_citizens s
+       ${whereClause}
+       ORDER BY s.id DESC`,
+      params
+    );
 
-      const contactNumber =
-        contacts.find((c) => c?.phone)?.phone ||
-        contacts.find((c) => c?.type === 'primary' && c?.phone)?.phone ||
-        '';
-
+    const data = (rows || []).map(s => {
       const fullName = [
-        name.last_name,
-        name.first_name,
-        name.middle_name,
-        name.extension
+        s.last_name,
+        s.first_name,
+        s.middle_name,
+        s.extension
       ]
         .filter(Boolean)
         .join(' ')
         .trim();
 
       return {
-        id: senior._id,
+        id: s.id,
         fullName: fullName || 'Unnamed',
-        gender: senior.identifying_information?.gender || 'N/A',
-        age: senior.identifying_information?.age ?? 'N/A',
-        contact: contactNumber || 'N/A'
+        gender: s.gender || 'N/A',
+        age: s.age ?? 'N/A',
+        contact: s.contact || 'N/A'
       };
     });
 
@@ -3113,7 +3148,6 @@ exports.updateYouth = async (req, res) => {
 
 // Send SMS via external API
 exports.sendSms = async (req, res) => {
-  const { SmsHistory } = require('../model/schema');
   const sentBy = req.user ? (req.user.email || req.user.name || 'Unknown') : 'Unknown';
 
   try {
@@ -3213,7 +3247,38 @@ exports.sendSms = async (req, res) => {
     // Save all history records to database
     if (historyRecords.length > 0) {
       try {
-        await SmsHistory.insertMany(historyRecords);
+        const values = historyRecords.map(r => ([
+          r.recipient_type,
+          r.record_id,
+          r.phone_number,
+          r.first_name,
+          r.middle_name || '',
+          r.last_name,
+          r.barangay,
+          r.purok,
+          r.message,
+          r.status,
+          r.sent_by,
+          r.received ? 1 : 0
+        ]));
+
+        await query(
+          `INSERT INTO sms_history (
+            recipient_type,
+            record_id,
+            phone_number,
+            first_name,
+            middle_name,
+            last_name,
+            barangay,
+            purok,
+            message,
+            status,
+            sent_by,
+            received
+          ) VALUES ?`,
+          [values]
+        );
         console.log(`Saved ${historyRecords.length} SMS history records`);
       } catch (historyErr) {
         console.error('Error saving SMS history:', historyErr);
@@ -3236,33 +3301,64 @@ exports.sendSms = async (req, res) => {
 
 // Get SMS History
 exports.getSmsHistory = async (req, res) => {
-  const { SmsHistory } = require('../model/schema');
-  
   try {
     const { recipient_type, limit = 100, page = 1 } = req.query;
     
-    const query = {};
-    if (recipient_type && (recipient_type === 'PWD' || recipient_type === 'Youth' || recipient_type === 'Senior')) {
-      query.recipient_type = recipient_type;
-    }
-    
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    
-    const history = await SmsHistory.find(query)
-      .sort({ sent_at: -1 })
-      .limit(parseInt(limit))
-      .skip(skip)
-      .lean();
-    
-    const total = await SmsHistory.countDocuments(query);
-    
+    const limitInt = Math.max(1, parseInt(limit, 10) || 100);
+    const pageInt = Math.max(1, parseInt(page, 10) || 1);
+    const offset = (pageInt - 1) * limitInt;
+
+    const validRecipientTypes = new Set(['PWD', 'Youth', 'Senior']);
+    const hasRecipientType = recipient_type && validRecipientTypes.has(recipient_type);
+
+    const whereClause = hasRecipientType ? 'WHERE recipient_type = ?' : '';
+    const params = hasRecipientType ? [recipient_type] : [];
+
+    const historySql = `
+      SELECT
+        id,
+        recipient_type,
+        record_id,
+        phone_number,
+        first_name,
+        middle_name,
+        last_name,
+        barangay,
+        purok,
+        message,
+        status,
+        sent_by,
+        sent_at,
+        received
+      FROM sms_history
+      ${whereClause}
+      ORDER BY sent_at DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const [rows] = await query(historySql, [...params, limitInt, offset]);
+
+    // Match EJS expectations: it uses record._id (not id)
+    const history = rows.map(r => ({
+      ...r,
+      _id: r.id,
+      received: Boolean(r.received),
+    }));
+
+    // Remove id to avoid confusion in templates
+    history.forEach(r => { delete r.id; });
+
+    const countSql = `SELECT COUNT(*) as total FROM sms_history ${whereClause}`;
+    const [countRows] = await query(countSql, params);
+    const total = countRows?.[0]?.total ?? 0;
+
     res.json({
       success: true,
       data: history,
       total: total,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      totalPages: Math.ceil(total / parseInt(limit))
+      page: pageInt,
+      limit: limitInt,
+      totalPages: Math.ceil(total / limitInt)
     });
   } catch (err) {
     console.error('getSmsHistory error:', err);
@@ -4255,24 +4351,54 @@ exports.sendAlert = async (req, res) => {
 
 // Update SMS received status
 exports.updateSmsReceived = async (req, res) => {
-  const { SmsHistory } = require('../model/schema');
-  
   try {
     const { smsId, received } = req.body;
     
     if (!smsId) {
       return res.status(400).json({ success: false, message: 'SMS ID is required' });
     }
+
+    const receivedBool = Boolean(received);
+    const smsIdInt = parseInt(smsId, 10);
+    if (!Number.isFinite(smsIdInt)) {
+      return res.status(400).json({ success: false, message: 'Invalid SMS ID' });
+    }
     
-    const updatedRecord = await SmsHistory.findByIdAndUpdate(
-      smsId,
-      { received: Boolean(received) },
-      { new: true }
+    const [updateResult] = await query(
+      `UPDATE sms_history SET received = ? WHERE id = ?`,
+      [receivedBool ? 1 : 0, smsIdInt]
     );
-    
-    if (!updatedRecord) {
+
+    if (!updateResult || updateResult.affectedRows === 0) {
       return res.status(404).json({ success: false, message: 'SMS record not found' });
     }
+
+    const [rows] = await query(
+      `SELECT
+        id,
+        recipient_type,
+        record_id,
+        phone_number,
+        first_name,
+        middle_name,
+        last_name,
+        barangay,
+        purok,
+        message,
+        status,
+        sent_by,
+        sent_at,
+        received
+      FROM sms_history
+      WHERE id = ?
+      LIMIT 1`,
+      [smsIdInt]
+    );
+
+    const updatedRow = rows?.[0];
+    const updatedRecord = updatedRow
+      ? { ...updatedRow, _id: updatedRow.id, received: Boolean(updatedRow.received) }
+      : null;
     
     res.json({
       success: true,
