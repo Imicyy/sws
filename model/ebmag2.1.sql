@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 13, 2026 at 03:36 PM
+-- Generation Time: Mar 23, 2026 at 03:00 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -32,6 +32,35 @@ CREATE TABLE `barangays` (
   `barangay` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `barangays`
+--
+
+INSERT INTO `barangays` (`id`, `barangay`) VALUES
+(1, 'Alacaygan'),
+(2, 'Alicante'),
+(3, 'Batea'),
+(4, 'Canlusong'),
+(5, 'Consing'),
+(6, 'Cudangdang'),
+(7, 'Damgo'),
+(8, 'Gahit'),
+(9, 'Latasan'),
+(10, 'Madalag'),
+(11, 'Manta-angan'),
+(12, 'Nanca'),
+(13, 'Pasil'),
+(14, 'Poblacion I (Barangay 1)'),
+(15, 'Poblacion II (Barangay 2)'),
+(16, 'Poblacion III (Barangay 3)'),
+(17, 'San Isidro'),
+(18, 'San Jose'),
+(19, 'Santo Niño'),
+(20, 'Tabigue'),
+(21, 'Tanza'),
+(22, 'Tomongtong'),
+(23, 'Tuburan');
+
 -- --------------------------------------------------------
 
 --
@@ -43,6 +72,35 @@ CREATE TABLE `puroks` (
   `barangay_id` int(11) NOT NULL,
   `purok` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `puroks`
+--
+
+INSERT INTO `puroks` (`id`, `barangay_id`, `purok`) VALUES
+(1, 1, 'Alacaygan Example'),
+(2, 2, 'Alicante Example'),
+(3, 3, 'Batea Example'),
+(4, 4, 'Canlusong Example'),
+(5, 5, 'Consing Example'),
+(6, 6, 'Cudangdang Example'),
+(7, 7, 'Damgo Example'),
+(8, 8, 'Gahit Example'),
+(9, 9, 'Latasan Example'),
+(10, 10, 'Madalag Example'),
+(11, 11, 'Manta-angan Example'),
+(12, 12, 'Nanca Example'),
+(13, 13, 'Pasil Example'),
+(14, 14, 'Poblacion I (Barangay 1) Example'),
+(15, 15, 'Poblacion II (Barangay 2) Example'),
+(16, 16, 'Poblacion III (Barangay 3) Example'),
+(17, 17, 'San Isidro Example'),
+(18, 18, 'San Jose Example'),
+(19, 19, 'Santo Niño Example'),
+(20, 20, 'Tabigue Example'),
+(21, 21, 'Tanza Example'),
+(22, 22, 'Tomongtong Example'),
+(23, 23, 'Tuburan Example');
 
 -- --------------------------------------------------------
 
@@ -91,7 +149,7 @@ CREATE TABLE `pwd` (
 --
 
 INSERT INTO `pwd` (`id`, `first_name`, `middle_name`, `last_name`, `barangay`, `purok`, `birthday`, `age`, `gender`, `place_of_birth`, `civil_status`, `spouse_name`, `fatherLastName`, `fatherFirstName`, `fatherMiddleName`, `fatherExtension`, `motherLastName`, `motherFirstName`, `motherMiddleName`, `sss_id`, `gsis_sss_no`, `psn_no`, `philhealth_no`, `education_level`, `employment_status`, `employment_category`, `employment_type`, `disability_other_text`, `cause_other_text`, `status`, `archive_reason`, `created_at`, `updated_at`) VALUES
-(1, 'SQLLLLL', 'SQL', 'SQL', 'Barangay 1', 'Kamagong', '2002-06-07', 23, 'Male', 'BACOLOD', 'Single but Head of the Family', NULL, 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', '', '', '', '', 'College Graduate', 'Employee', 'Private', 'Seasonal', NULL, NULL, 'Active', NULL, '2026-03-10 13:22:49', '2026-03-11 14:37:04'),
+(1, 'SQL3', 'SQL', 'SQL', 'Alacaygan', 'Alacaygan Example', '2002-06-07', 23, 'Male', 'BACOLOD', 'Single but Head of the Family', NULL, 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', '', '', '', '', 'College Graduate', 'Employee', 'Private', 'Seasonal', NULL, NULL, 'Archived', 'TEst', '2026-03-10 13:22:49', '2026-03-18 11:19:30'),
 (2, 'SQLS', 'SQLS', 'SQLS', 'Barangay Rizal', 'Matagoy', '1998-11-11', 27, 'Female', 'BACOLOD', 'Single but Head of the Family', NULL, 'SQLS', 'SQLS', 'SQLS', NULL, 'SQLS', 'SQLS', 'SQLS', '11', '22', '33', '44', 'College Graduate', 'Employee', 'Private', 'Seasonal', 'SQLS', 'SQLS', 'Active', NULL, '2026-03-11 14:12:04', '2026-03-11 14:12:04');
 
 -- --------------------------------------------------------
@@ -116,7 +174,7 @@ CREATE TABLE `pwd_contacts` (
 
 INSERT INTO `pwd_contacts` (`id`, `pwd_id`, `type`, `name`, `relationship`, `phone`, `email`) VALUES
 (2, 2, 'primary', 'SQLS', 'SQLS', '09954417332', NULL),
-(3, 1, 'primary', 'SQL', 'SQL', '09954417332', 'sql@gmail.com');
+(5, 1, 'primary', 'SQL', 'SQL', '09954417332', 'sql@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -138,7 +196,7 @@ INSERT INTO `pwd_disabilities` (`id`, `pwd_id`, `disability`) VALUES
 (2, 2, 'Cancer (RA11215)'),
 (3, 2, 'Rare Disease (RA10747)'),
 (4, 2, 'Other'),
-(5, 1, 'Deaf or Hard of Hearing');
+(7, 1, 'Deaf or Hard of Hearing');
 
 -- --------------------------------------------------------
 
@@ -159,7 +217,7 @@ CREATE TABLE `pwd_disability_causes` (
 INSERT INTO `pwd_disability_causes` (`id`, `pwd_id`, `cause`) VALUES
 (2, 2, 'ADHD'),
 (3, 2, 'Other'),
-(4, 1, 'Congenital / Inborn');
+(6, 1, 'Congenital / Inborn');
 
 -- --------------------------------------------------------
 
@@ -176,6 +234,16 @@ CREATE TABLE `pwd_edit_logs` (
   `edited_by` varchar(255) DEFAULT NULL,
   `edited_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `pwd_edit_logs`
+--
+
+INSERT INTO `pwd_edit_logs` (`id`, `pwd_id`, `field`, `old_value`, `new_value`, `edited_by`, `edited_at`) VALUES
+(1, 1, 'first_name', 'SQLLLLL', 'SQL2', 'staff_001@gmail.com', '2026-03-17 17:55:32'),
+(2, 1, 'first_name', 'SQL2', 'SQL3', 'staff_001@gmail.com', '2026-03-18 19:19:12'),
+(3, 1, 'barangay', 'Barangay 1', 'Alacaygan', 'staff_001@gmail.com', '2026-03-18 19:19:12'),
+(4, 1, 'purok', 'Kamagong', 'Alacaygan Example', 'staff_001@gmail.com', '2026-03-18 19:19:12');
 
 -- --------------------------------------------------------
 
@@ -198,7 +266,7 @@ CREATE TABLE `senior_children` (
 --
 
 INSERT INTO `senior_children` (`id`, `senior_id`, `full_name`, `occupation`, `income`, `age`, `working_status`) VALUES
-(1, 4, 'SQL', 'SQL', NULL, 23, 'not_working');
+(3, 8, 'EBMAB', 'EBMAB', '6969', 22, 'working');
 
 -- --------------------------------------------------------
 
@@ -217,7 +285,6 @@ CREATE TABLE `senior_citizens` (
   `purok` varchar(255) NOT NULL,
   `date_of_birth` date DEFAULT NULL,
   `age` int(11) NOT NULL,
-  `place_of_birth` varchar(255) DEFAULT NULL,
   `marital_status` varchar(100) NOT NULL,
   `gender` varchar(50) NOT NULL,
   `osca_id_number` varchar(100) DEFAULT NULL,
@@ -243,15 +310,16 @@ CREATE TABLE `senior_citizens` (
   `edited_by` varchar(255) DEFAULT NULL,
   `edited_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `place_of_birth` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `senior_citizens`
 --
 
-INSERT INTO `senior_citizens` (`id`, `reference_code`, `last_name`, `first_name`, `middle_name`, `extension`, `barangay`, `purok`, `date_of_birth`, `age`, `marital_status`, `gender`, `osca_id_number`, `gsis_sss`, `philhealth`, `sc_association_org_id_no`, `tin`, `other_govt_id`, `service_business_employment`, `current_pension`, `capability_to_travel`, `spouse_name`, `father_last_name`, `father_first_name`, `father_middle_name`, `father_extension`, `mother_last_name`, `mother_first_name`, `mother_middle_name`, `community_service_other_text`, `status`, `archive_reason`, `edited_by`, `edited_at`, `created_at`, `updated_at`) VALUES
-(4, NULL, 'SQL', 'SQLEDIT', 'SQL', NULL, 'Barangay Rizal', 'Matagoy', '1960-03-10', 66, 'Single', 'Male', '1', '2', '4', NULL, '3', NULL, '1', '1', 'Yes', NULL, 'SQL', 'SQL', 'SQL', NULL, 'SQL', 'SQL', 'SQL', 'SQL', 'Active', NULL, 'staff_001@gmail.com', '2026-03-11 22:43:04', '2026-03-11 14:36:04', '2026-03-11 14:43:04');
+INSERT INTO `senior_citizens` (`id`, `reference_code`, `last_name`, `first_name`, `middle_name`, `extension`, `barangay`, `purok`, `date_of_birth`, `age`, `marital_status`, `gender`, `osca_id_number`, `gsis_sss`, `philhealth`, `sc_association_org_id_no`, `tin`, `other_govt_id`, `service_business_employment`, `current_pension`, `capability_to_travel`, `spouse_name`, `father_last_name`, `father_first_name`, `father_middle_name`, `father_extension`, `mother_last_name`, `mother_first_name`, `mother_middle_name`, `community_service_other_text`, `status`, `archive_reason`, `edited_by`, `edited_at`, `created_at`, `updated_at`, `place_of_birth`) VALUES
+(8, NULL, 'EBMAB', 'EBMAB', 'EBMAB', NULL, 'Pasil', 'Pasil Example', '1960-06-06', 65, 'Married', 'Male', NULL, NULL, NULL, NULL, NULL, NULL, '1', '1', 'Yes', 'EBMAB', 'EBMAB', 'EBMAB', 'EBMAB', NULL, 'EBMAB', 'EBMAB', NULL, NULL, 'Active', NULL, NULL, NULL, '2026-03-20 08:41:34', '2026-03-20 08:41:34', 'EB MAGALONA');
 
 -- --------------------------------------------------------
 
@@ -270,8 +338,7 @@ CREATE TABLE `senior_community_services` (
 --
 
 INSERT INTO `senior_community_services` (`id`, `senior_id`, `service`) VALUES
-(1, 4, 'Community / Organization Leader'),
-(2, 4, 'Other');
+(6, 8, 'Resource Volunteer');
 
 -- --------------------------------------------------------
 
@@ -294,7 +361,7 @@ CREATE TABLE `senior_contacts` (
 --
 
 INSERT INTO `senior_contacts` (`id`, `senior_id`, `type`, `name`, `relationship`, `phone`, `email`) VALUES
-(3, 4, 'primary', 'SQL', 'SQL', '09954417332', 'Sapalojaminpaul@gmail.com');
+(11, 8, 'primary', 'EBMAB', 'EBMAB', '09954417332', 'EBMAB@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -327,7 +394,7 @@ CREATE TABLE `senior_education` (
 --
 
 INSERT INTO `senior_education` (`id`, `senior_id`, `educational_attainment`) VALUES
-(1, 4, 'College Graduate');
+(5, 8, 'College Graduate');
 
 -- --------------------------------------------------------
 
@@ -346,8 +413,7 @@ CREATE TABLE `senior_skills` (
 --
 
 INSERT INTO `senior_skills` (`id`, `senior_id`, `skill`) VALUES
-(1, 4, 'Medical'),
-(2, 4, 'Other');
+(6, 8, 'Medical');
 
 -- --------------------------------------------------------
 
@@ -373,6 +439,13 @@ CREATE TABLE `sms_history` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sms_history`
+--
+
+INSERT INTO `sms_history` (`id`, `recipient_type`, `record_id`, `phone_number`, `first_name`, `middle_name`, `last_name`, `barangay`, `purok`, `message`, `status`, `sent_by`, `sent_at`, `received`, `created_at`, `updated_at`) VALUES
+(1, 'PWD', '2', '09954417332', 'SQLS', 'SQLS', 'SQLS', 'Barangay Rizal', 'Matagoy', 'SQL TEST', 'error', 'Unknown', '2026-03-20 16:58:09', 0, '2026-03-20 08:58:09', '2026-03-20 08:58:09');
 
 -- --------------------------------------------------------
 
@@ -634,13 +707,13 @@ ALTER TABLE `youth_edit_logs`
 -- AUTO_INCREMENT for table `barangays`
 --
 ALTER TABLE `barangays`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `puroks`
 --
 ALTER TABLE `puroks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `pwd`
@@ -652,73 +725,73 @@ ALTER TABLE `pwd`
 -- AUTO_INCREMENT for table `pwd_contacts`
 --
 ALTER TABLE `pwd_contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `pwd_disabilities`
 --
 ALTER TABLE `pwd_disabilities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `pwd_disability_causes`
 --
 ALTER TABLE `pwd_disability_causes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `pwd_edit_logs`
 --
 ALTER TABLE `pwd_edit_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `senior_children`
 --
 ALTER TABLE `senior_children`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `senior_citizens`
 --
 ALTER TABLE `senior_citizens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `senior_community_services`
 --
 ALTER TABLE `senior_community_services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `senior_contacts`
 --
 ALTER TABLE `senior_contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `senior_edit_logs`
 --
 ALTER TABLE `senior_edit_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `senior_education`
 --
 ALTER TABLE `senior_education`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `senior_skills`
 --
 ALTER TABLE `senior_skills`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `sms_history`
 --
 ALTER TABLE `sms_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
