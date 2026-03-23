@@ -704,7 +704,7 @@ exports.registerPwd = async (req, res) => {
         motherLastName, motherFirstName, motherMiddleName,
         sss_id, gsis_sss_no, psn_no, philhealth_no,
         education_level, employment_status, employment_category, employment_type,
-        disability_other_text, cause_other_text, status, archive_reason, edited_by, edited_at
+        disability_other_text, cause_other_text, status, archive_reason
       ) VALUES (
         ?, ?, ?,
         ?, ?,
@@ -714,7 +714,7 @@ exports.registerPwd = async (req, res) => {
         ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
-        ?, ?, 'Active', NULL, NULL, NULL
+        ?, ?, 'Active', NULL
       )`,
       [
         req.body.first_name,
