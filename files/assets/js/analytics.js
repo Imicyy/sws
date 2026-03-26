@@ -588,7 +588,7 @@ function buildBarangayPrintHtml(barangayName, seniors) {
 
                         <div class="main-header">
                             <h4>Republic of the Philippines</h4>
-                            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+                            <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
                             <p>Office for Senior Citizens Affairs</p>
                         </div>
                     </div>
@@ -845,7 +845,7 @@ async function generateSeniorCitizensReport(year = null, month = null) {
 
         <div class="main-header">
             <h4>Republic of the Philippines</h4>
-            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+            <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
             <p>Office of Senior Citizens Affairs</p>
         </div>
     </div>
@@ -1189,7 +1189,7 @@ async function generateBarangayReport(barangayName, btnEl) {
 
         <div class="main-header">
             <h4>Republic of the Philippines</h4>
-            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+            <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
             <p>Office of Senior Citizens Affairs</p>
         </div>
     </div>

@@ -636,7 +636,7 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
 
                         <div class="main-header">
                             <h4>Republic of the Philippines</h4>
-                            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+                            <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
                             <p>Persons with Disability Affairs Office</p>
                         </div>
                     </div>
@@ -908,7 +908,7 @@ async function generatePwdBarangayReport(barangayName, btnEl) {
 
         <div class="main-header">
             <h4>Republic of the Philippines</h4>
-            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+            <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
             <p>Persons with Disability Affairs Office</p>
         </div>
     </div>

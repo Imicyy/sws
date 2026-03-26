@@ -994,7 +994,7 @@ function buildYouthBarangayPrintHtml(barangayName, youths) {
 
                         <div class="main-header">
                             <h4>Republic of the Philippines</h4>
-                            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+                            <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
                             <p>Local Youth Development Office</p>
                         </div>
                     </div>
@@ -1245,7 +1245,7 @@ async function generateYouthBarangayReport(barangayName, btnEl) {
 
         <div class="main-header">
             <h4>Republic of the Philippines</h4>
-            <h2><strong>SILAY CITY GOVERNMENT</strong></h2>
+            <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
             <p>Local Youth Development Office</p>
         </div>
     </div>
