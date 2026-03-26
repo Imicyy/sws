@@ -229,7 +229,7 @@
 															<option value="" disabled selected>-- Select Barangay --</option>
 															<% if (typeof barangayList !== 'undefined' && barangayList.length > 0) { %>
 																<% barangayList.forEach(function(item) { %>
-																	<option value="<%= item._id.toString() %>"><%= item.barangay %></option>
+																	<option value="<%= item.id %>"><%= item.barangay %></option>
 																<% }); %>
 															<% } %>
 														</select>

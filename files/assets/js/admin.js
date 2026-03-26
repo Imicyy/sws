@@ -45,7 +45,7 @@ async function loadBarangays() {
             if (data.barangayList && data.barangayList.length > 0) {
                 data.barangayList.forEach(item => {
                     const option = document.createElement('option');
-                    option.value = item._id;
+                    option.value = item.id;
                     option.textContent = item.barangay;
                     selectBarangay.appendChild(option);
                 });

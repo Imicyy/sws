@@ -4179,10 +4179,26 @@ exports.updateUser = async (req, res) => {
 // Render superadmin page with barangays data
 exports.renderSuperAdmin = async (req, res) => {
   try {
-    const barangayList = await Barangay.find({});
+    const [barangayRows] = await query(`
+      SELECT
+        b.id,
+        b.barangay,
+        GROUP_CONCAT(p.purok ORDER BY p.purok) AS puroks
+      FROM barangays b
+      LEFT JOIN puroks p ON b.id = p.barangay_id
+      GROUP BY b.id, b.barangay
+      ORDER BY b.barangay
+    `);
+
     const barangays = {};
-    barangayList.forEach(({ barangay, puroks }) => {
-      barangays[barangay] = puroks || [];
+    const barangayList = (barangayRows || []).map((row) => {
+      const puroks = row.puroks ? row.puroks.split(',') : [];
+      barangays[row.barangay] = puroks;
+      return {
+        id: row.id,
+        barangay: row.barangay,
+        puroks
+      };
     });
 
     res.render('superadmin/admin_super_admin', {
@@ -4214,6 +4230,7 @@ exports.getBarangays = async (req, res) => {
     const barangayList = barangayRows.map(row => {
       const puroksArray = row.puroks ? row.puroks.split(',') : [];
       const barangayObj = {
+        id: row.id,
         barangay: row.barangay,
         puroks: puroksArray
       };
@@ -4241,24 +4258,32 @@ exports.createBarangay = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Barangay name is required' });
     }
 
-    // Check if barangay already exists
-    const existingBarangay = await Barangay.findOne({ barangay: barangayName.trim() });
-    if (existingBarangay) {
+    const normalizedBarangay = barangayName.trim();
+
+    // Check if barangay already exists (case-insensitive) in MySQL
+    const [existingBarangays] = await query(
+      `SELECT id FROM barangays WHERE LOWER(barangay) = LOWER(?) LIMIT 1`,
+      [normalizedBarangay]
+    );
+
+    if (existingBarangays.length > 0) {
       return res.status(400).json({ success: false, message: 'Barangay already exists' });
     }
 
-    // Create new barangay
-    const newBarangay = new Barangay({
-      barangay: barangayName.trim(),
-      puroks: []
-    });
-
-    await newBarangay.save();
+    // Create new barangay in MySQL
+    const [insertResult] = await query(
+      `INSERT INTO barangays (barangay) VALUES (?)`,
+      [normalizedBarangay]
+    );
 
     res.json({
       success: true,
       message: 'Barangay created successfully',
-      barangay: newBarangay
+      barangay: {
+        id: insertResult.insertId,
+        barangay: normalizedBarangay,
+        puroks: []
+      }
     });
   } catch (err) {
     console.error('Error creating barangay:', err);
@@ -4275,25 +4300,38 @@ exports.addPurok = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Barangay and purok name are required' });
     }
 
-    // Find the barangay
-    const barangay = await Barangay.findById(barangayId);
-    if (!barangay) {
+    const normalizedPurok = purokName.trim();
+
+    // Ensure barangay exists in MySQL
+    const [barangayRows] = await query(
+      `SELECT id, barangay FROM barangays WHERE id = ? LIMIT 1`,
+      [barangayId]
+    );
+
+    if (barangayRows.length === 0) {
       return res.status(404).json({ success: false, message: 'Barangay not found' });
     }
 
-    // Check if purok already exists
-    if (barangay.puroks.includes(purokName.trim())) {
+    // Check duplicate purok within selected barangay (case-insensitive)
+    const [existingPuroks] = await query(
+      `SELECT id FROM puroks WHERE barangay_id = ? AND LOWER(purok) = LOWER(?) LIMIT 1`,
+      [barangayId, normalizedPurok]
+    );
+
+    if (existingPuroks.length > 0) {
       return res.status(400).json({ success: false, message: 'Purok already exists in this barangay' });
     }
 
-    // Add purok to the barangay
-    barangay.puroks.push(purokName.trim());
-    await barangay.save();
+    // Insert purok into MySQL
+    await query(
+      `INSERT INTO puroks (barangay_id, purok) VALUES (?, ?)`,
+      [barangayId, normalizedPurok]
+    );
 
     res.json({
       success: true,
       message: 'Purok added successfully',
-      barangay: barangay
+      barangay: barangayRows[0]
     });
   } catch (err) {
     console.error('Error adding purok:', err);
