@@ -1586,14 +1586,15 @@ exports.generateSeniorApplicationPdf = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    const seniorId = parseInt(id, 10);
+    if (Number.isNaN(seniorId)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid Senior Citizen ID'
       });
     }
 
-    const seniorRecord = await SeniorCitizen.findById(id).lean();
+    const seniorRecord = await getSeniorByIdWithRelations(seniorId);
 
     if (!seniorRecord) {
       return res.status(404).json({

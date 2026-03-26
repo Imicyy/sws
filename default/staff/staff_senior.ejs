@@ -1427,7 +1427,7 @@
                         // Store the senior ID for print button
                         const printBtn = document.getElementById('printApplicationBtn');
                         if (printBtn) {
-                            printBtn.dataset.seniorId = seniorData._id;
+                            printBtn.dataset.seniorId = seniorData._id || seniorData.id || '';
                             printBtn.disabled = false;
                         }
                         
