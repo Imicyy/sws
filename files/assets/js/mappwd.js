@@ -435,7 +435,9 @@ define([
         path: "M16 0C9.4 0 4 5.4 4 12c0 7.5 12 20 12 20s12-12.5 12-20C28 5.4 22.6 0 16 0z"
       };
 
-      const pwdPercentage = ((b.pwdCount / b.population) * 100).toFixed(1);
+      const pwdPercentage = b.population && b.population > 0
+        ? ((b.pwdCount / b.population) * 100).toFixed(1)
+        : null;
 
       // Compact disabilities HTML
       let disabilitiesHtml = '';
@@ -466,7 +468,9 @@ define([
               <div style="font-size: 9px; color: #7f8c8d;">PWDs</div>
             </div>
             <div style="text-align: center; padding: 6px; background: #ecf0f1; border-radius: 6px;">
-              <strong style="font-size: 16px; color: #e74c3c;">${pwdPercentage}%</strong>
+              <strong style="font-size: 16px; color: #e74c3c;">
+                ${pwdPercentage !== null ? `${pwdPercentage}%` : 'N/A'}
+              </strong>
               <div style="font-size: 9px; color: #7f8c8d;">of Pop.</div>
             </div>
           </div>

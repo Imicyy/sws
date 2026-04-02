@@ -11,6 +11,78 @@ const path = require("path");
 const fs = require("fs");
 const { PDFDocument } = require('pdf-lib');
 
+// ---- ArcGIS map helpers (MySQL + GeoJSON name alignment) ----
+// We generate marker coordinates from the same `all_barangays.geojson` used by the ArcGIS boundary,
+// so the backend counts (by `barangay` string) reliably match map barangay names.
+const ALL_BARANGAYS_GEOJSON_PATH = path.join(
+  __dirname,
+  "..",
+  "files",
+  "assets",
+  "data",
+  "all_barangays.geojson"
+);
+
+let barangayCentroidsCache = null;
+
+function computePolygonCentroid(feature) {
+  const geometry = feature?.geometry;
+  if (!geometry) return null;
+
+  // We approximate centroid using the average of all vertices in the first ring.
+  // This is fast and good enough for map markers.
+  let ring = null;
+  if (geometry.type === "Polygon") {
+    ring = geometry.coordinates?.[0];
+  } else if (geometry.type === "MultiPolygon") {
+    ring = geometry.coordinates?.[0]?.[0];
+  }
+
+  if (!Array.isArray(ring) || ring.length === 0) return null;
+
+  let sumLon = 0;
+  let sumLat = 0;
+  let count = 0;
+
+  for (const p of ring) {
+    if (!Array.isArray(p) || p.length < 2) continue;
+    const lon = Number(p[0]);
+    const lat = Number(p[1]);
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
+    sumLon += lon;
+    sumLat += lat;
+    count += 1;
+  }
+
+  if (count === 0) return null;
+  return { lon: sumLon / count, lat: sumLat / count };
+}
+
+function getBarangayCentroids() {
+  if (barangayCentroidsCache) return barangayCentroidsCache;
+
+  const raw = fs.readFileSync(ALL_BARANGAYS_GEOJSON_PATH, "utf8");
+  const geojson = JSON.parse(raw);
+
+  const list = [];
+  for (const feature of geojson.features || []) {
+    const name = feature?.properties?.ADM4_EN;
+    if (!name) continue;
+
+    const centroid = computePolygonCentroid(feature);
+    if (!centroid) continue;
+
+    list.push({
+      name,
+      lat: centroid.lat,
+      lon: centroid.lon
+    });
+  }
+
+  barangayCentroidsCache = list;
+  return barangayCentroidsCache;
+}
+
 
 exports.createUser = async (req, res) => {
     try {
@@ -3616,59 +3688,53 @@ exports.getPwdMapData = async (req, res) => {
     console.log('🔍 Fetching PWD data from database...');
     
     // First, let's see what barangay names are actually in the database
-    const allPwds = await PWD.find({ status: { $ne: 'Archived' } }, 'barangay first_name last_name');
+    const [allPwds] = await query(
+      "SELECT DISTINCT barangay FROM pwd WHERE COALESCE(status,'Active') <> 'Archived' ORDER BY barangay"
+    );
     console.log('🔍 All barangay names in PWD database:', allPwds.map(p => p.barangay));
     
     // Get PWD count by barangay
-    const pwdCounts = await PWD.aggregate([
-      {
-        $match: {
-          status: { $ne: 'Archived' } // Exclude archived records
-        }
-      },
-      {
-        $group: {
-          _id: "$barangay",
-          pwdCount: { $sum: 1 },
-          maleCount: { $sum: { $cond: [{ $eq: ["$gender", "Male"] }, 1, 0] } },
-          femaleCount: { $sum: { $cond: [{ $eq: ["$gender", "Female"] }, 1, 0] } }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
+    const [pwdCounts] = await query(`
+      SELECT
+        barangay AS _id,
+        COUNT(*) AS pwdCount,
+        SUM(CASE WHEN gender = 'Male' THEN 1 ELSE 0 END) AS maleCount,
+        SUM(CASE WHEN gender = 'Female' THEN 1 ELSE 0 END) AS femaleCount
+      FROM pwd
+      WHERE COALESCE(status,'Active') <> 'Archived'
+      GROUP BY barangay
+      ORDER BY barangay
+    `);
 
     // Get disability counts by barangay
-    const disabilityCounts = await PWD.aggregate([
-      {
-        $match: {
-          status: { $ne: 'Archived' },
-          disability: { $exists: true, $ne: [] }
-        }
-      },
-      {
-        $unwind: "$disability"
-      },
-      {
-        $group: {
-          _id: {
-            barangay: "$barangay",
-            disability: "$disability"
-          },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $group: {
-          _id: "$_id.barangay",
-          disabilities: {
-            $push: {
-              type: "$_id.disability",
-              count: "$count"
-            }
-          }
-        }
+    const [disabilityRows] = await query(`
+      SELECT
+        p.barangay AS _barangay,
+        d.disability AS type,
+        COUNT(*) AS count
+      FROM pwd p
+      INNER JOIN pwd_disabilities d ON d.pwd_id = p.id
+      WHERE COALESCE(p.status,'Active') <> 'Archived'
+        AND d.disability IS NOT NULL
+        AND d.disability <> ''
+      GROUP BY p.barangay, d.disability
+      ORDER BY p.barangay, count DESC
+    `);
+
+    // Convert rows into the same structure the old Mongoose pipeline returned:
+    // [{ _id: <barangay>, disabilities: [{ type, count }, ...] }, ...]
+    const disabilityCountsMap = disabilityRows.reduce((acc, row) => {
+      const barangayName = row._barangay;
+      if (!acc[barangayName]) {
+        acc[barangayName] = { _id: barangayName, disabilities: [] };
       }
-    ]);
+      acc[barangayName].disabilities.push({
+        type: row.type,
+        count: row.count
+      });
+      return acc;
+    }, {});
+    const disabilityCounts = Object.values(disabilityCountsMap);
 
     console.log('📊 PWD counts from database:', pwdCounts);
     console.log('📊 Disability counts from database:', disabilityCounts);
@@ -3804,24 +3870,34 @@ exports.getYouthMapData = async (req, res) => {
 
     console.log('📊 Youth counts from database:', youthCounts);
 
-    // Define barangay coordinates and other data - Updated to match database names
+    // Barangay marker coordinates.
+    // Keep this aligned with the barangay strings stored in MySQL (`senior_citizens.barangay`)
+    // so the merge step can find matching counts.
+    // (We use population:0 and let the front-end show "N/A" for percentage.)
     const barangayData = [
-      { name: "Barangay 1", lat: 10.80240, lon: 122.97624, population: 4200 },
-      { name: "Barangay 2", lat: 10.79938, lon: 122.97828, population: 3750 },
-      { name: "Barangay 3", lat: 10.79770, lon: 122.97281, population: 4800 },
-      { name: "Barangay 4", lat: 10.78407, lon: 123.00921, population: 3200 },
-      { name: "Barangay 5", lat: 10.78147, lon: 122.99145, population: 2650 },
-      { name: "Barangay Mambulac", lat: 10.79754, lon: 122.9679, population: 2100 },
-      { name: "Barangay Guinhalaran", lat: 10.7811, lon: 122.9666, population: 3100 },
-      { name: "Barangay E-Lopez", lat: 10.82060, lon: 123.03538, population: 1800 },
-      { name: "Barangay Bagtic", lat: 10.76204, lon: 123.05122, population: 2850 },
-      { name: "Barangay Balaring", lat: 10.83171, lon: 122.96136, population: 1920 },
-      { name: "Barangay Hawaiian", lat: 10.82606, lon: 123.00549, population: 3900 },
-      { name: "Barangay Patag", lat: 10.72466, lon: 123.15720, population: 1200 },
-      { name: "Barangay Kapt. Ramon", lat: 10.77394, lon: 123.11920, population: 1500 },
-      { name: "Barangay Guimbalaon", lat: 10.75730, lon: 123.07857, population: 2300 },
-      { name: "Barangay Rizal", lat: 10.79816, lon: 122.99473, population: 2800 },
-      { name: "Barangay Lantad", lat: 10.80845, lon: 122.97199, population: 2400 }
+      { name: "Alacaygan", lat: 10.823437, lon: 123.060737, population: 0 },
+      { name: "Alicante", lat: 10.893360, lon: 123.030686, population: 0 },
+      { name: "Batea", lat: 10.908044, lon: 122.990278, population: 0 },
+      { name: "Canlusong", lat: 10.747461, lon: 123.166663, population: 0 },
+      { name: "Consing", lat: 10.815041, lon: 123.099954, population: 0 },
+      { name: "Cudangdang", lat: 10.863899, lon: 123.031139, population: 0 },
+      { name: "Damgo", lat: 10.879931, lon: 123.016101, population: 0 },
+      { name: "Gahit", lat: 10.891601, lon: 122.963708, population: 0 },
+      { name: "Latasan", lat: 10.858859, lon: 122.951222, population: 0 },
+      { name: "Madalag", lat: 10.898624, lon: 122.981409, population: 0 },
+      { name: "Manta-angan", lat: 10.913613, lon: 123.002089, population: 0 },
+      { name: "Nanca", lat: 10.843578, lon: 123.036181, population: 0 },
+      { name: "Pasil", lat: 10.920744, lon: 123.035374, population: 0 },
+      { name: "Barangay 1 (Poblacion I)", lat: 10.876753, lon: 122.977026, population: 0 },
+      { name: "Barangay 2 (Poblacion II)", lat: 10.874002, lon: 122.977553, population: 0 },
+      { name: "Barangay 3 (Poblacion III)", lat: 10.880531, lon: 122.980867, population: 0 },
+      { name: "Santo Niño", lat: 10.863950, lon: 122.978790, population: 0 },
+      { name: "San Isidro", lat: 10.782063, lon: 123.135637, population: 0 },
+      { name: "San Jose", lat: 10.857730, lon: 122.980619, population: 0 },
+      { name: "Tabigue", lat: 10.885875, lon: 122.991218, population: 0 },
+      { name: "Tanza", lat: 10.837426, lon: 123.024104, population: 0 },
+      { name: "Tomongtong", lat: 10.892834, lon: 122.955675, population: 0 },
+      { name: "Tuburan", lat: 10.872425, lon: 122.958344, population: 0 }
     ];
 
     // Merge database counts with barangay data
@@ -3991,47 +4067,54 @@ exports.getSeniorMapData = async (req, res) => {
     console.log('🔍 Fetching senior data from database...');
     
     // First, let's see what barangay names are actually in the database
-    const allSeniors = await SeniorCitizen.find({ status: { $ne: 'Archived' } }, 'identifying_information.address.barangay');
-    console.log('🔍 All barangay names in database:', allSeniors.map(s => s.identifying_information.address.barangay));
+    const [allSeniors] = await query(
+      "SELECT DISTINCT barangay FROM senior_citizens WHERE COALESCE(status,'Active') <> 'Archived' ORDER BY barangay"
+    );
+    console.log('🔍 All barangay names in database:', allSeniors.map(s => s.barangay));
     
     // Get senior count by barangay with gender breakdown
-    const seniorCounts = await SeniorCitizen.aggregate([
-      {
-        $match: {
-          status: { $ne: 'Archived' } // Exclude archived records
-        }
-      },
-      {
-        $group: {
-          _id: "$identifying_information.address.barangay",
-          seniorCount: { $sum: 1 },
-          maleCount: { $sum: { $cond: [{ $eq: ["$identifying_information.gender", "Male"] }, 1, 0] } },
-          femaleCount: { $sum: { $cond: [{ $eq: ["$identifying_information.gender", "Female"] }, 1, 0] } }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
+    const [seniorCounts] = await query(`
+      SELECT
+        barangay AS _id,
+        COUNT(*) AS seniorCount,
+        SUM(CASE WHEN gender = 'Male' THEN 1 ELSE 0 END) AS maleCount,
+        SUM(CASE WHEN gender = 'Female' THEN 1 ELSE 0 END) AS femaleCount
+      FROM senior_citizens
+      WHERE COALESCE(status,'Active') <> 'Archived'
+      GROUP BY barangay
+      ORDER BY barangay
+    `);
 
     console.log('📊 Senior counts from database:', seniorCounts);
 
-    // Define barangay coordinates and other data - Updated to match database names
+    // Barangay marker coordinates.
+    // Keep this aligned with the barangay strings stored in MySQL (`senior_citizens.barangay`)
+    // so the merge step can find matching counts.
+    // (We use population: 0; the front-end will show "N/A" for percentages.)
     const barangayData = [
-      { name: "Barangay 1", lat: 10.80240, lon: 122.97624, population: 4200 },
-      { name: "Barangay 2", lat: 10.79938, lon: 122.97828, population: 3750 },
-      { name: "Barangay 3", lat: 10.79770, lon: 122.97281, population: 4800 },
-      { name: "Barangay 4", lat: 10.78407, lon: 123.00921, population: 3200 },
-      { name: "Barangay 5", lat: 10.78147, lon: 122.99145, population: 2650 },
-      { name: "Barangay Mambulac", lat: 10.79754, lon: 122.9679, population: 2100 },
-      { name: "Barangay Guinhalaran", lat: 10.7811, lon: 122.9666, population: 3100 },
-      { name: "Barangay E-Lopez", lat: 10.82060, lon: 123.03538, population: 1800 },
-      { name: "Barangay Bagtic", lat: 10.76204, lon: 123.05122, population: 2850 },
-      { name: "Barangay Balaring", lat: 10.83171, lon: 122.96136, population: 1920 },
-      { name: "Barangay Hawaiian", lat: 10.82606, lon: 123.00549, population: 3900 },
-      { name: "Barangay Patag", lat: 10.72466, lon: 123.15720, population: 1200 },
-      { name: "Barangay Kapt. Ramon", lat: 10.77394, lon: 123.11920, population: 1500 },
-      { name: "Barangay Guimbalaon", lat: 10.75730, lon: 123.07857, population: 2300 },
-      { name: "Barangay Rizal", lat: 10.79816, lon: 122.99473, population: 2800 },
-      { name: "Barangay Lantad", lat: 10.80845, lon: 122.97199, population: 2400 }
+      { name: "Alacaygan", lat: 10.823437, lon: 123.060737, population: 0 },
+      { name: "Alicante", lat: 10.893360, lon: 123.030686, population: 0 },
+      { name: "Batea", lat: 10.908044, lon: 122.990278, population: 0 },
+      { name: "Canlusong", lat: 10.747461, lon: 123.166663, population: 0 },
+      { name: "Consing", lat: 10.815041, lon: 123.099954, population: 0 },
+      { name: "Cudangdang", lat: 10.863899, lon: 123.031139, population: 0 },
+      { name: "Damgo", lat: 10.879931, lon: 123.016101, population: 0 },
+      { name: "Gahit", lat: 10.891601, lon: 122.963708, population: 0 },
+      { name: "Latasan", lat: 10.858859, lon: 122.951222, population: 0 },
+      { name: "Madalag", lat: 10.898624, lon: 122.981409, population: 0 },
+      { name: "Manta-angan", lat: 10.913613, lon: 123.002089, population: 0 },
+      { name: "Nanca", lat: 10.843578, lon: 123.036181, population: 0 },
+      { name: "Pasil", lat: 10.920744, lon: 123.035374, population: 0 },
+      { name: "Barangay 1 (Poblacion I)", lat: 10.876753, lon: 122.977026, population: 0 },
+      { name: "Barangay 2 (Poblacion II)", lat: 10.874002, lon: 122.977553, population: 0 },
+      { name: "Barangay 3 (Poblacion III)", lat: 10.880531, lon: 122.980867, population: 0 },
+      { name: "Santo Niño", lat: 10.863950, lon: 122.978790, population: 0 },
+      { name: "San Isidro", lat: 10.782063, lon: 123.135637, population: 0 },
+      { name: "San Jose", lat: 10.857730, lon: 122.980619, population: 0 },
+      { name: "Tabigue", lat: 10.885875, lon: 122.991218, population: 0 },
+      { name: "Tanza", lat: 10.837426, lon: 123.024104, population: 0 },
+      { name: "Tomongtong", lat: 10.892834, lon: 122.955675, population: 0 },
+      { name: "Tuburan", lat: 10.872425, lon: 122.958344, population: 0 }
     ];
 
     // Merge database counts with barangay data

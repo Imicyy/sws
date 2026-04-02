@@ -412,11 +412,18 @@ define([
 
       // Color coding
       let markerColor, markerSize, category;
-      if (b.seniorCount >= 70) {
+      const seniorCountNum = Number(b.seniorCount || 0);
+
+      // Make non-zero values visually distinct (0 and 1 were both in "Low" before)
+      if (seniorCountNum === 0) {
+        markerColor = [189, 195, 199]; // Gray
+        markerSize = "16px";
+        category = "None";
+      } else if (seniorCountNum >= 70) {
         markerColor = [231, 76, 60]; // Red
         markerSize = "24px";
         category = "High";
-      } else if (b.seniorCount >= 40) {
+      } else if (seniorCountNum >= 40) {
         markerColor = [241, 196, 15]; // Yellow
         markerSize = "22px";
         category = "Medium";
@@ -438,7 +445,9 @@ define([
         path: "M16 0C9.4 0 4 5.4 4 12c0 7.5 12 20 12 20s12-12.5 12-20C28 5.4 22.6 0 16 0z"
       };
 
-      const seniorPercentage = ((b.seniorCount / b.population) * 100).toFixed(1);
+      const seniorPercentage = b.population && b.population > 0
+        ? ((b.seniorCount / b.population) * 100).toFixed(1)
+        : null;
 
       // Compact popup content
       const popupContent = `
@@ -447,11 +456,13 @@ define([
           <!-- Stats Grid -->
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px;">
             <div style="text-align: center; padding: 6px; background: #ecf0f1; border-radius: 6px;">
-              <strong style="font-size: 16px; color: #3498db;">${b.seniorCount}</strong>
+              <strong style="font-size: 16px; color: #3498db;">${seniorCountNum}</strong>
               <div style="font-size: 9px; color: #7f8c8d;">Seniors</div>
             </div>
             <div style="text-align: center; padding: 6px; background: #ecf0f1; border-radius: 6px;">
-              <strong style="font-size: 16px; color: #3498db;">${seniorPercentage}%</strong>
+              <strong style="font-size: 16px; color: #3498db;">
+                ${seniorPercentage !== null ? `${seniorPercentage}%` : 'N/A'}
+              </strong>
               <div style="font-size: 9px; color: #7f8c8d;">of Pop.</div>
             </div>
           </div>
@@ -485,9 +496,9 @@ define([
         symbol: markerSymbol,
         attributes: { 
           name: b.name, 
-          seniorCount: b.seniorCount,
-          maleCount: b.maleCount || 0,
-          femaleCount: b.femaleCount || 0,
+          seniorCount: seniorCountNum,
+          maleCount: Number(b.maleCount || 0),
+          femaleCount: Number(b.femaleCount || 0),
           population: b.population,
           percentage: seniorPercentage,
           category: category
@@ -568,13 +579,16 @@ define([
   view.container.appendChild(statsContainer);
 
   function updateStatistics(barangayData) {
-    const totalSeniors = barangayData.reduce((sum, b) => sum + b.seniorCount, 0);
-    const totalMales = barangayData.reduce((sum, b) => sum + (b.maleCount || 0), 0);
-    const totalFemales = barangayData.reduce((sum, b) => sum + (b.femaleCount || 0), 0);
-    const totalPopulation = barangayData.reduce((sum, b) => sum + b.population, 0);
-    const averageSeniorPercentage = ((totalSeniors / totalPopulation) * 100).toFixed(1);
-    const highestSenior = Math.max(...barangayData.map(b => b.seniorCount));
-    const highestBarangay = barangayData.find(b => b.seniorCount === highestSenior).name;
+    const totalSeniors = barangayData.reduce((sum, b) => sum + Number(b.seniorCount || 0), 0);
+    const totalMales = barangayData.reduce((sum, b) => sum + Number(b.maleCount || 0), 0);
+    const totalFemales = barangayData.reduce((sum, b) => sum + Number(b.femaleCount || 0), 0);
+    const totalPopulation = barangayData.reduce((sum, b) => sum + (b.population || 0), 0);
+    const averageSeniorPercentage = totalPopulation > 0
+      ? ((totalSeniors / totalPopulation) * 100).toFixed(1)
+      : null;
+    const highestSenior = Math.max(...barangayData.map(b => Number(b.seniorCount || 0)));
+    const highestBarangayObj = barangayData.find(b => Number(b.seniorCount || 0) === highestSenior);
+    const highestBarangay = highestBarangayObj ? highestBarangayObj.name : 'N/A';
 
     statsContainer.innerHTML = `
       <div class="legend-title">Senior Statistics</div>
@@ -596,7 +610,7 @@ define([
           <div class="stat-label">Female</div>
         </div>
         <div class="stat-item">
-          <span class="stat-number">${averageSeniorPercentage}%</span>
+          <span class="stat-number">${averageSeniorPercentage !== null ? `${averageSeniorPercentage}%` : 'N/A'}</span>
           <div class="stat-label">Average Rate</div>
         </div>
         <div class="stat-item">
@@ -633,20 +647,42 @@ define([
     view.container.appendChild(mobileOverlay);
   }
 
-  // 11️⃣ Load Senior data
-  fetch("/senior-map-data")
-    .then(res => res.json())
-    .then(response => {
-      if (response.success) {
-        barangays = response.data;
-        addBarangayMarkers(barangays);
-        updateStatistics(barangays);
-        console.log("✅ Senior data loaded successfully");
-      } else {
-        console.error("❌ Error loading Senior data:", response.message);
-      }
-    })
-    .catch(err => console.error("❌ Error loading Senior data:", err));
+  // 11️⃣ Load Senior data with locations from PWD data
+  Promise.all([
+    fetch("/pwd-map-data").then(res => res.json()),
+    fetch("/senior-map-data").then(res => res.json())
+  ])
+  .then(([pwdResponse, seniorResponse]) => {
+    if (pwdResponse.success && seniorResponse.success) {
+      // Use PWD data for locations (lat/lon)
+      const pwdData = pwdResponse.data;
+      const seniorData = seniorResponse.data;
+      
+      // Create a map of senior data by barangay name
+      const seniorMap = {};
+      seniorData.forEach(s => {
+        seniorMap[s.name] = s;
+      });
+      
+      // Merge: use PWD locations with senior counts
+      barangays = pwdData.map(pwd => {
+        const senior = seniorMap[pwd.name] || {};
+        return {
+          ...pwd,
+          seniorCount: senior.seniorCount || 0,
+          maleCount: senior.maleCount || 0,
+          femaleCount: senior.femaleCount || 0
+        };
+      });
+      
+      addBarangayMarkers(barangays);
+      updateStatistics(barangays);
+      console.log("✅ Senior data loaded with PWD locations successfully");
+    } else {
+      console.error("❌ Error loading data:", pwdResponse.message || seniorResponse.message);
+    }
+  })
+  .catch(err => console.error("❌ Error loading data:", err));
 
   // 12️⃣ Responsive view padding
   window.addEventListener('resize', () => {
