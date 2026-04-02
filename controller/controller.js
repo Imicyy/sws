@@ -3674,25 +3674,31 @@ exports.getPwdMapData = async (req, res) => {
     console.log('📊 Disability counts from database:', disabilityCounts);
 
     // Define barangay coordinates and other data - Updated to match database names
-    const barangayData = [
-      { name: "Barangay 1", lat: 10.80240, lon: 122.97624, population: 4200 },
-      { name: "Barangay 2", lat: 10.79938, lon: 122.97828, population: 3750 },
-      { name: "Barangay 3", lat: 10.79770, lon: 122.97281, population: 4800 },
-      { name: "Barangay 4", lat: 10.78407, lon: 123.00921, population: 3200 },
-      { name: "Barangay 5", lat: 10.78147, lon: 122.99145, population: 2650 },
-      { name: "Barangay Mambulac", lat: 10.79754, lon: 122.9679, population: 2100 },
-      { name: "Barangay Guinhalaran", lat: 10.7811, lon: 122.9666, population: 3100 },
-      { name: "Barangay E-Lopez", lat: 10.82060, lon: 123.03538, population: 1800 },
-      { name: "Barangay Bagtic", lat: 10.76204, lon: 123.05122, population: 2850 },
-      { name: "Barangay Balaring", lat: 10.83171, lon: 122.96136, population: 1920 },
-      { name: "Barangay Hawaiian", lat: 10.82606, lon: 123.00549, population: 3900 },
-      { name: "Barangay Patag", lat: 10.72466, lon: 123.15720, population: 1200 },
-      { name: "Barangay Kapt. Ramon", lat: 10.77394, lon: 123.11920, population: 1500 },
-      { name: "Barangay Guimbalaon", lat: 10.75730, lon: 123.07857, population: 2300 },
-      { name: "Barangay Rizal", lat: 10.79816, lon: 122.99473, population: 2800 },
-      { name: "Barangay Lantad", lat: 10.80845, lon: 122.97199, population: 2400 }
-    ];
-
+const barangayData = [
+  { name: "Alacaygan", lat: 10.823437, lon: 123.060737, population: 0 },
+  { name: "Alicante", lat: 10.893360, lon: 123.030686, population: 0 },
+  { name: "Batea", lat: 10.908044, lon: 122.990278, population: 0 },
+  { name: "Canlusong", lat: 10.747461, lon: 123.166663, population: 0 },
+  { name: "Consing", lat: 10.815041, lon: 123.099954, population: 0 },
+  { name: "Cudangdang", lat: 10.863899, lon: 123.031139, population: 0 },
+  { name: "Damgo", lat: 10.879931, lon: 123.016101, population: 0 },
+  { name: "Gahit", lat: 10.891601, lon: 122.963708, population: 0 },
+  { name: "Latasan", lat: 10.858859, lon: 122.951222, population: 0 },
+  { name: "Madalag", lat: 10.898624, lon: 122.981409, population: 0 },
+  { name: "Manta-angan", lat: 10.913613, lon: 123.002089, population: 0 },
+  { name: "Nanca", lat: 10.843578, lon: 123.036181, population: 0 },
+  { name: "Pasil", lat: 10.920744, lon: 123.035374, population: 0 },
+  { name: "Barangay 1 (Poblacion I)", lat: 10.876753, lon: 122.977026, population: 0 },
+  { name: "Barangay 2 (Poblacion II)", lat: 10.874002, lon: 122.977553, population: 0 },
+  { name: "Barangay 3 (Poblacion III)", lat: 10.880531, lon: 122.980867, population: 0 },
+  { name: "Santo Niño", lat: 10.863950, lon: 122.978790, population: 0 },
+  { name: "San Isidro", lat: 10.782063, lon: 123.135637, population: 0 },
+  { name: "San Jose", lat: 10.857730, lon: 122.980619, population: 0 },
+  { name: "Tabigue", lat: 10.885875, lon: 122.991218, population: 0 },
+  { name: "Tanza", lat: 10.837426, lon: 123.024104, population: 0 },
+  { name: "Tomongtong", lat: 10.892834, lon: 122.955675, population: 0 },
+  { name: "Tuburan", lat: 10.872425, lon: 122.958344, population: 0 }
+];
     // Helper function to find matching barangay data
     const findMatchingData = (barangayName, dataArray) => {
       // Try exact match first

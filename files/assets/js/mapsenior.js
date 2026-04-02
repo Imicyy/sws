@@ -334,8 +334,8 @@ define([
   const view = new MapView({
     container: "viewDiv",
     map: map,
-    center: [122.9763, 10.8003],
-    zoom: 12,
+    center: [123.067, 10.8439],
+    zoom: 11,
     padding: {
       left: 10,
       right: 190,
@@ -372,8 +372,8 @@ define([
   // 4️⃣ Barangay data storage
   let barangays = [];
 
-  // 5️⃣ Load Silay City Boundary
-  fetch("/silay-boundary")
+  // 5️⃣ Load Enrique B. Magalona Boundary
+  fetch("/assets/data/all_barangays.geojson")
     .then(res => res.json())
     .then(geojson => {
       const blob = new Blob([JSON.stringify(geojson)], { type: "application/json" });
