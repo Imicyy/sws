@@ -207,6 +207,29 @@
 													</div>
 												</div>
 											</div>
+											<%
+											function pwdTableAge(pwd) {
+												if (pwd.age != null && pwd.age !== '') return pwd.age;
+												if (!pwd.birthday) return 'N/A';
+												var bd = new Date(pwd.birthday);
+												if (isNaN(bd.getTime())) return 'N/A';
+												var t = new Date();
+												var a = t.getFullYear() - bd.getFullYear();
+												var md = t.getMonth() - bd.getMonth();
+												if (md < 0 || (md === 0 && t.getDate() < bd.getDate())) a--;
+												return a;
+											}
+											function pwdAgeWhenAdded(pwd) {
+												if (!pwd.birthday || !pwd.created_at) return 'N/A';
+												var bd = new Date(pwd.birthday);
+												var as = new Date(pwd.created_at);
+												if (isNaN(bd.getTime()) || isNaN(as.getTime())) return 'N/A';
+												var a = as.getFullYear() - bd.getFullYear();
+												var md = as.getMonth() - bd.getMonth();
+												if (md < 0 || (md === 0 && as.getDate() < bd.getDate())) a--;
+												return a < 0 ? 'N/A' : a;
+											}
+											%>
 											 <table id="example" class="display" style="width:100%">
 	<thead>
 		<tr>
@@ -215,6 +238,7 @@
 			</th>
 			<th>Full Name</th>
 			<th>Age</th>
+			<th>Age when added</th>
 			<th>Barangay</th>
 			<th>Purok</th>
 			<th>Civil Status</th>
@@ -237,7 +261,8 @@
 					data-record-id="<%= pwd._id || pwd.id %>">
 			</td>
 			<td><%= pwd.first_name %> <%= pwd.middle_name %> <%= pwd.last_name %></td>
-			<td><%= pwd.age %></td>
+			<td><%= pwdTableAge(pwd) %></td>
+			<td><%= pwdAgeWhenAdded(pwd) %></td>
 			<td><%= pwd.barangay %></td>
 			<td><%= pwd.purok %></td>
 			<td><%= pwd.civil_status %></td>
@@ -1062,9 +1087,9 @@
 					
 					// Filter the table based on selected barangay
 					if (selectedBarangay === '') {
-						table.columns(3).search('').draw(); // Changed from 2 to 3
+						table.columns(4).search('').draw();
 					} else {
-						table.columns(3).search(selectedBarangay).draw(); // Changed from 2 to 3
+						table.columns(4).search(selectedBarangay).draw();
 					}
 				});
 
@@ -1075,13 +1100,13 @@
 					
 					if (selectedPurok === 'all') {
 						// Show all puroks in selected barangay
-						table.columns(4).search('').draw(); // Changed from 3 to 4
+						table.columns(5).search('').draw();
 					} else if (selectedPurok === '') {
 						// Show all records in selected barangay (no purok filter)
-						table.columns(4).search('').draw(); // Changed from 3 to 4
+						table.columns(5).search('').draw();
 					} else {
 						// Filter by specific purok
-						table.columns(4).search(selectedPurok).draw(); // Changed from 3 to 4
+						table.columns(5).search(selectedPurok).draw();
 					}
 				});
 

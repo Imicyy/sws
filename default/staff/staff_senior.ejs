@@ -265,6 +265,33 @@
                                                 </div>
                                             </div>
                                         
+                                            <%
+                                            function seniorTableAge(senior) {
+                                                var id = senior.identifying_information;
+                                                if (!id) return 'N/A';
+                                                if (id.age != null && id.age !== '') return id.age;
+                                                var dob = id.date_of_birth;
+                                                if (!dob) return 'N/A';
+                                                var bd = new Date(dob);
+                                                if (isNaN(bd.getTime())) return 'N/A';
+                                                var t = new Date();
+                                                var a = t.getFullYear() - bd.getFullYear();
+                                                var md = t.getMonth() - bd.getMonth();
+                                                if (md < 0 || (md === 0 && t.getDate() < bd.getDate())) a--;
+                                                return a;
+                                            }
+                                            function seniorAgeWhenAdded(senior) {
+                                                var id = senior.identifying_information;
+                                                if (!id || !id.date_of_birth || !senior.created_at) return 'N/A';
+                                                var bd = new Date(id.date_of_birth);
+                                                var as = new Date(senior.created_at);
+                                                if (isNaN(bd.getTime()) || isNaN(as.getTime())) return 'N/A';
+                                                var a = as.getFullYear() - bd.getFullYear();
+                                                var md = as.getMonth() - bd.getMonth();
+                                                if (md < 0 || (md === 0 && as.getDate() < bd.getDate())) a--;
+                                                return a < 0 ? 'N/A' : a;
+                                            }
+                                            %>
                                             <table id="example" class="display" style="width:100%">
                                                 <thead>
                                                     <tr>
@@ -273,6 +300,7 @@
                                                         </th>
                                                         <th>Full Name</th>
                                                         <th>Age</th>
+                                                        <th>Age when added</th>
                                                         <th>Barangay</th>
                                                         <th>Purok</th>
                                                         <th>Civil Status</th>
@@ -299,7 +327,8 @@
                                                                 <%= senior.identifying_information.name.first_name %> 
                                                                 <%= senior.identifying_information.name.middle_name || '' %>
                                                             </td>
-                                                            <td><%= senior.identifying_information.age %></td>
+                                                            <td><%= seniorTableAge(senior) %></td>
+                                                            <td><%= seniorAgeWhenAdded(senior) %></td>
                                                             <td><%= senior.identifying_information.address.barangay %></td>
                                                             <td><%= senior.identifying_information.address.purok %></td>
                                                             <td><%= senior.identifying_information.marital_status %></td>
@@ -1878,8 +1907,8 @@
                     // If no barangay is selected, show all
                     if (!barangay) return true;
                     
-                    var rowBarangay = data[3]; // Barangay is in the 4th column (index 3) after checkbox
-                    var rowPurok = data[4]; // Purok is in the 5th column (index 4) after checkbox
+                    var rowBarangay = data[4];
+                    var rowPurok = data[5];
                     
                     // Filter by barangay
                     if (barangay && rowBarangay !== barangay) return false;

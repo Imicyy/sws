@@ -718,6 +718,7 @@ async function getSeniorByIdWithRelations(seniorId) {
     community_service_other_text: row.community_service_other_text,
     status: row.status,
     archive_reason: row.archive_reason,
+    created_at: row.created_at,
     edit_log: {
       edited_by: row.edited_by,
       edited_at: row.edited_at,
