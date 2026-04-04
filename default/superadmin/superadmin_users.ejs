@@ -205,13 +205,13 @@
 					<td><%= user.status %></td>
 					<td>
 						<button type="button" class="btn btn-link p-0 open-edit"
-							data-id="<%= user._id %>" 
+							data-id="<%= user.id %>" 
 							data-name="<%= user.name %>" 
 							data-email="<%= user.email %>" 
 							data-role="<%= user.role %>" 
 							data-status="<%= user.status %>">Edit</button>
 						<form action="/edit-user" method="POST" style="display:inline-block; margin-left:8px;">
-								<input type="hidden" name="id" value="<%= user._id %>" required>
+								<input type="hidden" name="id" value="<%= user.id %>" required>
 								<button type="button" class="btn btn-link p-0 status-btn <%= user.status === 'Inactive' ? '' : 'text-danger' %>" data-action="<%= user.status === 'Inactive' ? 'activate' : 'deactivate' %>">
 									<%= user.status === 'Inactive' ? 'Activate' : 'Deactivate' %>
 								</button>
