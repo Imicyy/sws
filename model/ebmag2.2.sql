@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 23, 2026 at 03:00 PM
+-- Generation Time: Apr 04, 2026 at 06:44 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -59,7 +59,27 @@ INSERT INTO `barangays` (`id`, `barangay`) VALUES
 (20, 'Tabigue'),
 (21, 'Tanza'),
 (22, 'Tomongtong'),
-(23, 'Tuburan');
+(23, 'Tuburan'),
+(24, 'Test');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `login_logs`
+--
+
+CREATE TABLE `login_logs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `login_logs`
+--
+
+INSERT INTO `login_logs` (`id`, `user_id`, `created_at`) VALUES
+(1, 5, '2026-04-04 16:43:24');
 
 -- --------------------------------------------------------
 
@@ -100,7 +120,8 @@ INSERT INTO `puroks` (`id`, `barangay_id`, `purok`) VALUES
 (20, 20, 'Tabigue Example'),
 (21, 21, 'Tanza Example'),
 (22, 22, 'Tomongtong Example'),
-(23, 23, 'Tuburan Example');
+(23, 23, 'Tuburan Example'),
+(24, 24, 'Test Purok');
 
 -- --------------------------------------------------------
 
@@ -149,8 +170,7 @@ CREATE TABLE `pwd` (
 --
 
 INSERT INTO `pwd` (`id`, `first_name`, `middle_name`, `last_name`, `barangay`, `purok`, `birthday`, `age`, `gender`, `place_of_birth`, `civil_status`, `spouse_name`, `fatherLastName`, `fatherFirstName`, `fatherMiddleName`, `fatherExtension`, `motherLastName`, `motherFirstName`, `motherMiddleName`, `sss_id`, `gsis_sss_no`, `psn_no`, `philhealth_no`, `education_level`, `employment_status`, `employment_category`, `employment_type`, `disability_other_text`, `cause_other_text`, `status`, `archive_reason`, `created_at`, `updated_at`) VALUES
-(1, 'SQL3', 'SQL', 'SQL', 'Alacaygan', 'Alacaygan Example', '2002-06-07', 23, 'Male', 'BACOLOD', 'Single but Head of the Family', NULL, 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', 'SQL', '', '', '', '', 'College Graduate', 'Employee', 'Private', 'Seasonal', NULL, NULL, 'Archived', 'TEst', '2026-03-10 13:22:49', '2026-03-18 11:19:30'),
-(2, 'SQLS', 'SQLS', 'SQLS', 'Barangay Rizal', 'Matagoy', '1998-11-11', 27, 'Female', 'BACOLOD', 'Single but Head of the Family', NULL, 'SQLS', 'SQLS', 'SQLS', NULL, 'SQLS', 'SQLS', 'SQLS', '11', '22', '33', '44', 'College Graduate', 'Employee', 'Private', 'Seasonal', 'SQLS', 'SQLS', 'Active', NULL, '2026-03-11 14:12:04', '2026-03-11 14:12:04');
+(4, 'EXAMPLES', 'EXAMPLE', 'EXAMPLE', 'Tomongtong', 'Tomongtong Example', '2000-06-02', 25, 'Male', 'EXAMPLE', 'Single', NULL, 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', NULL, 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', '', '', '', '', 'College Graduate', 'Employee', 'Private', 'Seasonal', NULL, NULL, 'Active', NULL, '2026-04-02 09:19:09', '2026-04-04 16:37:07');
 
 -- --------------------------------------------------------
 
@@ -173,8 +193,7 @@ CREATE TABLE `pwd_contacts` (
 --
 
 INSERT INTO `pwd_contacts` (`id`, `pwd_id`, `type`, `name`, `relationship`, `phone`, `email`) VALUES
-(2, 2, 'primary', 'SQLS', 'SQLS', '09954417332', NULL),
-(5, 1, 'primary', 'SQL', 'SQL', '09954417332', 'sql@gmail.com');
+(9, 4, 'primary', 'EXAMPLE', 'EXAMPLE', '09954417332', 'sql@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -193,10 +212,7 @@ CREATE TABLE `pwd_disabilities` (
 --
 
 INSERT INTO `pwd_disabilities` (`id`, `pwd_id`, `disability`) VALUES
-(2, 2, 'Cancer (RA11215)'),
-(3, 2, 'Rare Disease (RA10747)'),
-(4, 2, 'Other'),
-(7, 1, 'Deaf or Hard of Hearing');
+(11, 4, 'Visual Disability');
 
 -- --------------------------------------------------------
 
@@ -215,9 +231,7 @@ CREATE TABLE `pwd_disability_causes` (
 --
 
 INSERT INTO `pwd_disability_causes` (`id`, `pwd_id`, `cause`) VALUES
-(2, 2, 'ADHD'),
-(3, 2, 'Other'),
-(6, 1, 'Congenital / Inborn');
+(10, 4, 'Congenital / Inborn');
 
 -- --------------------------------------------------------
 
@@ -240,10 +254,7 @@ CREATE TABLE `pwd_edit_logs` (
 --
 
 INSERT INTO `pwd_edit_logs` (`id`, `pwd_id`, `field`, `old_value`, `new_value`, `edited_by`, `edited_at`) VALUES
-(1, 1, 'first_name', 'SQLLLLL', 'SQL2', 'staff_001@gmail.com', '2026-03-17 17:55:32'),
-(2, 1, 'first_name', 'SQL2', 'SQL3', 'staff_001@gmail.com', '2026-03-18 19:19:12'),
-(3, 1, 'barangay', 'Barangay 1', 'Alacaygan', 'staff_001@gmail.com', '2026-03-18 19:19:12'),
-(4, 1, 'purok', 'Kamagong', 'Alacaygan Example', 'staff_001@gmail.com', '2026-03-18 19:19:12');
+(6, 4, 'first_name', 'EXAMPLE', 'EXAMPLES', 'staff_001@gmail.com', '2026-04-05 00:37:07');
 
 -- --------------------------------------------------------
 
@@ -266,7 +277,7 @@ CREATE TABLE `senior_children` (
 --
 
 INSERT INTO `senior_children` (`id`, `senior_id`, `full_name`, `occupation`, `income`, `age`, `working_status`) VALUES
-(3, 8, 'EBMAB', 'EBMAB', '6969', 22, 'working');
+(4, 10, 'EXAMPLE', 'EXAMPLE', '69', 22, 'working');
 
 -- --------------------------------------------------------
 
@@ -319,7 +330,7 @@ CREATE TABLE `senior_citizens` (
 --
 
 INSERT INTO `senior_citizens` (`id`, `reference_code`, `last_name`, `first_name`, `middle_name`, `extension`, `barangay`, `purok`, `date_of_birth`, `age`, `marital_status`, `gender`, `osca_id_number`, `gsis_sss`, `philhealth`, `sc_association_org_id_no`, `tin`, `other_govt_id`, `service_business_employment`, `current_pension`, `capability_to_travel`, `spouse_name`, `father_last_name`, `father_first_name`, `father_middle_name`, `father_extension`, `mother_last_name`, `mother_first_name`, `mother_middle_name`, `community_service_other_text`, `status`, `archive_reason`, `edited_by`, `edited_at`, `created_at`, `updated_at`, `place_of_birth`) VALUES
-(8, NULL, 'EBMAB', 'EBMAB', 'EBMAB', NULL, 'Pasil', 'Pasil Example', '1960-06-06', 65, 'Married', 'Male', NULL, NULL, NULL, NULL, NULL, NULL, '1', '1', 'Yes', 'EBMAB', 'EBMAB', 'EBMAB', 'EBMAB', NULL, 'EBMAB', 'EBMAB', NULL, NULL, 'Active', NULL, NULL, NULL, '2026-03-20 08:41:34', '2026-03-20 08:41:34', 'EB MAGALONA');
+(10, NULL, 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', NULL, 'Tomongtong', 'Tomongtong Example', '1960-04-02', 66, 'Married', 'Male', NULL, NULL, NULL, NULL, NULL, NULL, 'EXAMPLE', '1', 'Yes', 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', NULL, 'EXAMPLE', 'EXAMPLE', NULL, 'ESPORTS', 'Active', NULL, NULL, NULL, '2026-04-02 09:17:02', '2026-04-02 09:17:02', 'EXAMPLE');
 
 -- --------------------------------------------------------
 
@@ -338,7 +349,7 @@ CREATE TABLE `senior_community_services` (
 --
 
 INSERT INTO `senior_community_services` (`id`, `senior_id`, `service`) VALUES
-(6, 8, 'Resource Volunteer');
+(8, 10, 'Other');
 
 -- --------------------------------------------------------
 
@@ -361,7 +372,7 @@ CREATE TABLE `senior_contacts` (
 --
 
 INSERT INTO `senior_contacts` (`id`, `senior_id`, `type`, `name`, `relationship`, `phone`, `email`) VALUES
-(11, 8, 'primary', 'EBMAB', 'EBMAB', '09954417332', 'EBMAB@gmail.com');
+(15, 10, 'primary', 'EXAMPLE', 'EXAMPLE', '09954417332', 'EXAMPLE@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -374,9 +385,7 @@ CREATE TABLE `senior_edit_logs` (
   `senior_id` int(11) DEFAULT NULL,
   `field` varchar(255) DEFAULT NULL,
   `old_value` text DEFAULT NULL,
-  `new_value` text DEFAULT NULL,
-  `edited_by` varchar(255) DEFAULT NULL,
-  `edited_at` datetime DEFAULT current_timestamp()
+  `new_value` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -396,7 +405,7 @@ CREATE TABLE `senior_education` (
 --
 
 INSERT INTO `senior_education` (`id`, `senior_id`, `educational_attainment`) VALUES
-(5, 8, 'College Graduate');
+(7, 10, 'College Graduate');
 
 -- --------------------------------------------------------
 
@@ -415,7 +424,7 @@ CREATE TABLE `senior_skills` (
 --
 
 INSERT INTO `senior_skills` (`id`, `senior_id`, `skill`) VALUES
-(6, 8, 'Medical');
+(8, 10, 'Other');
 
 -- --------------------------------------------------------
 
@@ -573,6 +582,13 @@ ALTER TABLE `barangays`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `login_logs`
+--
+ALTER TABLE `login_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_login_logs_user` (`user_id`);
+
+--
 -- Indexes for table `puroks`
 --
 ALTER TABLE `puroks`
@@ -709,85 +725,91 @@ ALTER TABLE `youth_edit_logs`
 -- AUTO_INCREMENT for table `barangays`
 --
 ALTER TABLE `barangays`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
+-- AUTO_INCREMENT for table `login_logs`
+--
+ALTER TABLE `login_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `puroks`
 --
 ALTER TABLE `puroks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `pwd`
 --
 ALTER TABLE `pwd`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `pwd_contacts`
 --
 ALTER TABLE `pwd_contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `pwd_disabilities`
 --
 ALTER TABLE `pwd_disabilities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `pwd_disability_causes`
 --
 ALTER TABLE `pwd_disability_causes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `pwd_edit_logs`
 --
 ALTER TABLE `pwd_edit_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `senior_children`
 --
 ALTER TABLE `senior_children`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `senior_citizens`
 --
 ALTER TABLE `senior_citizens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `senior_community_services`
 --
 ALTER TABLE `senior_community_services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `senior_contacts`
 --
 ALTER TABLE `senior_contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `senior_edit_logs`
 --
 ALTER TABLE `senior_edit_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `senior_education`
 --
 ALTER TABLE `senior_education`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `senior_skills`
 --
 ALTER TABLE `senior_skills`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `sms_history`
@@ -828,6 +850,12 @@ ALTER TABLE `youth_edit_logs`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `login_logs`
+--
+ALTER TABLE `login_logs`
+  ADD CONSTRAINT `fk_login_logs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `puroks`

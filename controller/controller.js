@@ -185,6 +185,12 @@ exports.login = async (req, res) => {
           error: "Invalid credentials",
         });
       }
+
+      //Logs login
+      await query(
+        "INSERT INTO login_logs (user_id) VALUES (?)",
+        [user.id]
+      );
   
       // Store user data in session (excluding password)
       req.session.user = {
@@ -4570,9 +4576,27 @@ exports.renderSuperAdminLogs = async (req, res) => {
       );
     }
 
+    let loginLogs = [];
+    try {
+      const [rows] = await query(
+        `SELECT l.id, l.user_id, l.created_at,
+                u.name AS user_name, u.email AS user_email, u.role AS user_role, u.status AS user_status
+         FROM login_logs l
+         LEFT JOIN users u ON u.id = l.user_id
+         ORDER BY l.created_at DESC, l.id DESC`
+      );
+      loginLogs = rows || [];
+    } catch (loginErr) {
+      console.warn(
+        'renderSuperAdminLogs: login_logs query failed. Ensure the login_logs table exists and references users(id).',
+        loginErr.message
+      );
+    }
+
     res.render('superadmin/superadmin_logs', {
       pwdLogs: pwdLogs || [],
-      seniorLogs
+      seniorLogs,
+      loginLogs
     });
   } catch (error) {
     console.error('renderSuperAdminLogs:', error);
