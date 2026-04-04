@@ -374,7 +374,9 @@ CREATE TABLE `senior_edit_logs` (
   `senior_id` int(11) DEFAULT NULL,
   `field` varchar(255) DEFAULT NULL,
   `old_value` text DEFAULT NULL,
-  `new_value` text DEFAULT NULL
+  `new_value` text DEFAULT NULL,
+  `edited_by` varchar(255) DEFAULT NULL,
+  `edited_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

@@ -31,6 +31,8 @@ router.get('/Index', requireAuth, (req, res) => {
 
 router.get('/superadmin', requireAuth, controller.renderSuperAdmin);
 
+router.get('/superadmin-logs', requireAuth, controller.renderSuperAdminLogs);
+
 router.get('/Admin', requireAuth, controller.renderSuperAdmin);
 
 router.get('/Map', (req, res) => {

@@ -624,7 +624,7 @@ async function getSeniorByIdWithRelations(seniorId) {
     [id]
   );
   const [editRows] = await query(
-    "SELECT field, old_value, new_value FROM senior_edit_logs WHERE senior_id = ? ORDER BY id ASC",
+    "SELECT field, old_value, new_value, edited_by, edited_at FROM senior_edit_logs WHERE senior_id = ? ORDER BY id ASC",
     [id]
   );
 
@@ -659,7 +659,9 @@ async function getSeniorByIdWithRelations(seniorId) {
   const changes = editRows.map(e => ({
     field: e.field,
     old_value: e.old_value,
-    new_value: e.new_value
+    new_value: e.new_value,
+    edited_by: e.edited_by,
+    edited_at: e.edited_at
   }));
 
   return {
@@ -2712,9 +2714,9 @@ exports.updateSenior = async (req, res) => {
 
     for (const change of changeEntries) {
       await query(
-        `INSERT INTO senior_edit_logs (senior_id, field, old_value, new_value)
-         VALUES (?, ?, ?, ?)`,
-        [id, change.field, change.old_value, change.new_value]
+        `INSERT INTO senior_edit_logs (senior_id, field, old_value, new_value, edited_by, edited_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, change.field, change.old_value, change.new_value, editorEmail, editTimestamp]
       );
     }
 
@@ -4537,6 +4539,44 @@ exports.updateSmsReceived = async (req, res) => {
   } catch (err) {
     console.error('updateSmsReceived error:', err);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+
+exports.renderSuperAdminLogs = async (req, res) => {
+  try {
+    const [pwdLogs] = await query(
+      `SELECT l.id, l.pwd_id, l.field, l.old_value, l.new_value, l.edited_by, l.edited_at,
+              TRIM(CONCAT(IFNULL(p.first_name,''), ' ', IFNULL(p.middle_name,''), ' ', IFNULL(p.last_name,''))) AS record_name
+       FROM pwd_edit_logs l
+       LEFT JOIN pwd p ON p.id = l.pwd_id
+       ORDER BY (l.edited_at IS NULL), l.edited_at DESC, l.id DESC`
+    );
+
+    let seniorLogs = [];
+    try {
+      const [rows] = await query(
+        `SELECT l.id, l.senior_id, l.field, l.old_value, l.new_value, l.edited_by, l.edited_at,
+                TRIM(CONCAT(IFNULL(s.first_name,''), ' ', IFNULL(s.middle_name,''), ' ', IFNULL(s.last_name,''))) AS record_name
+         FROM senior_edit_logs l
+         LEFT JOIN senior_citizens s ON s.id = l.senior_id
+         ORDER BY (l.edited_at IS NULL), l.edited_at DESC, l.id DESC`
+      );
+      seniorLogs = rows || [];
+    } catch (seniorErr) {
+      console.warn(
+        'renderSuperAdminLogs: senior_edit_logs query failed. Apply model/alter_senior_edit_logs_audit.sql if columns are missing.',
+        seniorErr.message
+      );
+    }
+
+    res.render('superadmin/superadmin_logs', {
+      pwdLogs: pwdLogs || [],
+      seniorLogs
+    });
+  } catch (error) {
+    console.error('renderSuperAdminLogs:', error);
+    res.status(500).send('Unable to load logs');
   }
 };
 
