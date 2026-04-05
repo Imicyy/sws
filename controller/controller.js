@@ -86,7 +86,7 @@ function getBarangayCentroids() {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, password, confirm_password, role } = req.body;
+        const { name, email, password, confirm_password, role, barangay_id } = req.body;
 
         console.log(name, email, password, confirm_password, role);
         if (!name || !email || !password || !confirm_password || role=="user") {
@@ -104,6 +104,25 @@ exports.createUser = async (req, res) => {
             });
         }
 
+        let barangayIdVal = null;
+        if (role === "Barangay") {
+            if (barangay_id === undefined || barangay_id === null || String(barangay_id).trim() === "") {
+                return res.status(400).json({
+                    success: false,
+                    error: "Please select a barangay for Barangay accounts.",
+                });
+            }
+            const parsedId = parseInt(barangay_id, 10);
+            if (Number.isNaN(parsedId)) {
+                return res.status(400).json({ success: false, error: "Invalid barangay selection." });
+            }
+            const [br] = await query("SELECT id FROM barangays WHERE id = ? LIMIT 1", [parsedId]);
+            if (!br.length) {
+                return res.status(400).json({ success: false, error: "Invalid barangay selection." });
+            }
+            barangayIdVal = parsedId;
+        }
+
         // Check if user already exists in MySQL
         const [existingRows] = await query("SELECT id FROM users WHERE email = ? LIMIT 1", [email]);
         if (existingRows.length > 0) {
@@ -116,10 +135,10 @@ exports.createUser = async (req, res) => {
         // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, saltrounds);
 
-        // Insert new user into MySQL
+        // Insert new user into MySQL (barangay_id NULL for non-Barangay roles)
         const [result] = await query(
-            "INSERT INTO users (name, email, password, role, status) VALUES (?, ?, ?, ?, 'Active')",
-            [name, email, hashedPassword, role]
+            "INSERT INTO users (name, email, password, role, status, barangay_id) VALUES (?, ?, ?, ?, 'Active', ?)",
+            [name, email, hashedPassword, role, barangayIdVal]
         );
 
         // For security, don't return the hashed password in the response
@@ -128,7 +147,8 @@ exports.createUser = async (req, res) => {
             name,
             email,
             role,
-            status: "Active"
+            status: "Active",
+            barangay_id: barangayIdVal,
         };
 
         res.status(201).json({ 
@@ -156,9 +176,9 @@ exports.login = async (req, res) => {
         });
       }
   
-      // Check if user exists in MySQL
+      // Check if user exists in MySQL (barangay_id nullable — only set for Barangay role)
       const [rows] = await query(
-        "SELECT id, name, email, password, role, status FROM users WHERE email = ? LIMIT 1",
+        "SELECT id, name, email, password, role, status, barangay_id FROM users WHERE email = ? LIMIT 1",
         [email]
       );
       if (rows.length === 0) {
@@ -197,6 +217,7 @@ exports.login = async (req, res) => {
         _id: user.id,  // keep key name consistent for existing code
         email: user.email,
         role: user.role,  // Ensure 'role' exists in your database
+        barangay_id: user.barangay_id != null ? user.barangay_id : null,
     };
     
       // Successful login response
@@ -208,6 +229,8 @@ exports.login = async (req, res) => {
         return res.redirect("/index-superadmin");
     }else if (user.role === "Youth") {
         return res.redirect("/index-youth");
+    }else if (user.role === "Barangay") {
+        return res.redirect("/barangay");
     }else {
         return res.redirect("/index"); // Default redirection
     }
@@ -2382,6 +2405,26 @@ async function fetchBarangays() {
 
   return barangays;
 }
+
+/** Barangay role: resolve DB barangay name from users.barangay_id (nullable for other roles). */
+async function fetchBarangayScopeForSessionUser(sessionUser) {
+  if (!sessionUser || sessionUser.role !== "Barangay") return null;
+  const bid = sessionUser.barangay_id;
+  if (bid == null || bid === "") return null;
+  const [rows] = await query("SELECT id, barangay FROM barangays WHERE id = ? LIMIT 1", [bid]);
+  if (!rows || !rows.length) return null;
+  return { id: rows[0].id, name: rows[0].barangay };
+}
+
+exports.renderRegister = async (req, res) => {
+  try {
+    const [rows] = await query("SELECT id, barangay FROM barangays ORDER BY barangay ASC");
+    res.render("register", { barangayList: rows || [] });
+  } catch (err) {
+    console.error("renderRegister:", err);
+    res.render("register", { barangayList: [] });
+  }
+};
 
 exports.renderSeniorForm = async (req, res) => {
  try {
@@ -4609,28 +4652,102 @@ exports.renderSuperAdminLogs = async (req, res) => {
 
 exports.renderBarangay = async (req, res) => {
   try {
-    res.render('barangay/barangay');
+    const sessionUser = req.session?.user;
+    if (!sessionUser) return res.redirect("/");
+    if (sessionUser.role !== "Barangay") return res.status(403).send("Forbidden");
+    res.render("barangay/barangay", { user: sessionUser });
   } catch (error) {
-    console.error('renderBarangay:', error);
-    res.status(500).send('Unable to load barangay account');
+    console.error("renderBarangay:", error);
+    res.status(500).send("Unable to load barangay account");
   }
 };
 
 exports.renderBarangaySenior = async (req, res) => {
   try {
-    res.render('barangay/barangay_senior');
+    const sessionUser = req.session?.user;
+    if (!sessionUser) return res.redirect("/");
+    if (sessionUser.role !== "Barangay") return res.status(403).send("Forbidden");
+    const scope = await fetchBarangayScopeForSessionUser(sessionUser);
+    if (!scope) {
+      return res
+        .status(403)
+        .send("This account is not linked to a barangay. Contact an administrator.");
+    }
+
+    const barangays = await fetchBarangays();
+    const filteredBarangays = { [scope.name]: barangays[scope.name] || [] };
+
+    let statusSql;
+    const params = [scope.name];
+    if (req.query.status === "archived") {
+      statusSql = "WHERE status = 'Archived' AND barangay = ?";
+    } else if (req.query.status === "all") {
+      statusSql = "WHERE barangay = ?";
+    } else {
+      statusSql = "WHERE status <> 'Archived' AND barangay = ?";
+    }
+
+    const [rows] = await query(
+      `SELECT id FROM senior_citizens ${statusSql} ORDER BY created_at DESC`,
+      params
+    );
+
+    const seniorCitizens = await Promise.all(
+      rows.map((row) => getSeniorByIdWithRelations(row.id))
+    );
+
+    res.render("barangay/barangay_senior", {
+      barangays: filteredBarangays,
+      seniorCitizens: seniorCitizens || [],
+      user: sessionUser,
+      assignedBarangayName: scope.name,
+    });
   } catch (error) {
-    console.error('renderBarangaySenior:', error);
-    res.status(500).send('Unable to load barangay account');
+    console.error("renderBarangaySenior:", error);
+    res.status(500).send("Unable to load barangay OSCA list");
   }
 };
 
 exports.renderBarangayPwd = async (req, res) => {
   try {
-    res.render('barangay/barangay_pwd');
+    const sessionUser = req.session?.user;
+    if (!sessionUser) return res.redirect("/");
+    if (sessionUser.role !== "Barangay") return res.status(403).send("Forbidden");
+    const scope = await fetchBarangayScopeForSessionUser(sessionUser);
+    if (!scope) {
+      return res
+        .status(403)
+        .send("This account is not linked to a barangay. Contact an administrator.");
+    }
+
+    const barangays = await fetchBarangays();
+    const filteredBarangays = { [scope.name]: barangays[scope.name] || [] };
+
+    let statusSql;
+    const params = [scope.name];
+    if (req.query.status === "archived") {
+      statusSql = "WHERE status = 'Archived' AND barangay = ?";
+    } else if (req.query.status === "all") {
+      statusSql = "WHERE barangay = ?";
+    } else {
+      statusSql = "WHERE status <> 'Archived' AND barangay = ?";
+    }
+
+    const [rows] = await query(
+      `SELECT * FROM pwd ${statusSql} ORDER BY created_at DESC`,
+      params
+    );
+    const pwds = await Promise.all(rows.map((r) => getPwdByIdWithRelations(r.id)));
+
+    res.render("barangay/barangay_pwd", {
+      barangays: filteredBarangays,
+      pwds: pwds || [],
+      user: sessionUser,
+      assignedBarangayName: scope.name,
+    });
   } catch (error) {
-    console.error('renderBarangayPwd:', error);
-    res.status(500).send('Unable to load barangay account');
+    console.error("renderBarangayPwd:", error);
+    res.status(500).send("Unable to load barangay PWD list");
   }
 };
 

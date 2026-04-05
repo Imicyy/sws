@@ -1,6 +1,22 @@
 document.addEventListener("DOMContentLoaded", function () {
     const roleOptions = document.querySelectorAll('.role-option');
     const hiddenInput = document.getElementById('selected-role');
+    const barangayRow = document.getElementById('barangay-id-row');
+    const barangaySelect = document.getElementById('barangay_id');
+
+    function syncBarangayRow() {
+        const role = hiddenInput.value;
+        if (barangayRow && barangaySelect) {
+            if (role === 'Barangay') {
+                barangayRow.style.display = '';
+                barangaySelect.required = true;
+            } else {
+                barangayRow.style.display = 'none';
+                barangaySelect.required = false;
+                barangaySelect.value = '';
+            }
+        }
+    }
 
     roleOptions.forEach(option => {
         option.addEventListener('click', function () {
@@ -12,8 +28,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Update hidden input value
             hiddenInput.value = this.dataset.role;
+            syncBarangayRow();
         });
     });
+
+    syncBarangayRow();
 });
 
 document.getElementById('registerForm').addEventListener('submit', async function(e) {
@@ -39,6 +58,20 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
+
+    if (data.role === 'Barangay' && (!data.barangay_id || String(data.barangay_id).trim() === '')) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Barangay required',
+            text: 'Please select the barangay you represent.',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+
+    if (data.role !== 'Barangay') {
+        delete data.barangay_id;
+    }
     
     try {
         const response = await fetch(form.action, {

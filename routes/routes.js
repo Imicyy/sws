@@ -8,9 +8,7 @@ router.get('/', (req, res) => {
     res.render('auth');
 });
 
-router.get('/register', (req, res) => {
-    res.render('register');
-});
+router.get('/register', controller.renderRegister);
 
 // Authentication routes
 router.post('/create-user', controller.createUser);
@@ -157,7 +155,7 @@ router.get("/debug-senior-data", controller.debugSeniorData);
 
 //barangay account
 
-router.get('/barangay', controller.renderBarangay);
-router.get('/barangay-senior', controller.renderBarangaySenior);
-router.get('/barangay-pwd', controller.renderBarangayPwd);
+router.get('/barangay', requireAuth, controller.renderBarangay);
+router.get('/barangay-senior', requireAuth, controller.renderBarangaySenior);
+router.get('/barangay-pwd', requireAuth, controller.renderBarangayPwd);
 module.exports = router;
