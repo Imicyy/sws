@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 04, 2026 at 06:44 PM
+-- Generation Time: Apr 05, 2026 at 06:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -79,7 +79,20 @@ CREATE TABLE `login_logs` (
 --
 
 INSERT INTO `login_logs` (`id`, `user_id`, `created_at`) VALUES
-(1, 5, '2026-04-04 16:43:24');
+(1, 5, '2026-04-04 16:43:24'),
+(2, 7, '2026-04-04 16:47:10'),
+(3, 7, '2026-04-04 16:49:26'),
+(4, 7, '2026-04-04 16:52:10'),
+(5, 5, '2026-04-04 17:02:25'),
+(6, 5, '2026-04-04 17:05:12'),
+(7, 5, '2026-04-04 17:11:35'),
+(8, 7, '2026-04-05 15:27:53'),
+(9, 5, '2026-04-05 15:50:12'),
+(10, 7, '2026-04-05 15:50:35'),
+(11, 17, '2026-04-05 15:54:55'),
+(12, 17, '2026-04-05 15:59:31'),
+(13, 17, '2026-04-05 16:00:00'),
+(14, 5, '2026-04-05 16:01:24');
 
 -- --------------------------------------------------------
 
@@ -170,7 +183,8 @@ CREATE TABLE `pwd` (
 --
 
 INSERT INTO `pwd` (`id`, `first_name`, `middle_name`, `last_name`, `barangay`, `purok`, `birthday`, `age`, `gender`, `place_of_birth`, `civil_status`, `spouse_name`, `fatherLastName`, `fatherFirstName`, `fatherMiddleName`, `fatherExtension`, `motherLastName`, `motherFirstName`, `motherMiddleName`, `sss_id`, `gsis_sss_no`, `psn_no`, `philhealth_no`, `education_level`, `employment_status`, `employment_category`, `employment_type`, `disability_other_text`, `cause_other_text`, `status`, `archive_reason`, `created_at`, `updated_at`) VALUES
-(4, 'EXAMPLES', 'EXAMPLE', 'EXAMPLE', 'Tomongtong', 'Tomongtong Example', '2000-06-02', 25, 'Male', 'EXAMPLE', 'Single', NULL, 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', NULL, 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', '', '', '', '', 'College Graduate', 'Employee', 'Private', 'Seasonal', NULL, NULL, 'Active', NULL, '2026-04-02 09:19:09', '2026-04-04 16:37:07');
+(4, 'EXAMPLES', 'EXAMPLE', 'EXAMPLE', 'Tomongtong', 'Tomongtong Example', '2000-06-02', 25, 'Male', 'EXAMPLE', 'Single', NULL, 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', NULL, 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', '', '', '', '', 'College Graduate', 'Employee', 'Private', 'Seasonal', NULL, NULL, 'Active', NULL, '2026-04-02 09:19:09', '2026-04-04 16:37:07'),
+(5, 'ALI', 'C', 'ANTE', 'Alicante', 'Alicante Example', '2002-07-06', 23, 'Female', 'BACOLOD', 'Single', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'College Graduate', 'Employee', 'Private', 'Permanent/Regular', NULL, NULL, 'Active', NULL, '2026-04-05 16:01:05', '2026-04-05 16:01:05');
 
 -- --------------------------------------------------------
 
@@ -193,7 +207,8 @@ CREATE TABLE `pwd_contacts` (
 --
 
 INSERT INTO `pwd_contacts` (`id`, `pwd_id`, `type`, `name`, `relationship`, `phone`, `email`) VALUES
-(9, 4, 'primary', 'EXAMPLE', 'EXAMPLE', '09954417332', 'sql@gmail.com');
+(9, 4, 'primary', 'EXAMPLE', 'EXAMPLE', '09954417332', 'sql@gmail.com'),
+(10, 5, 'primary', 'JAMIN PAUL SAPALO', 'RELATIONSHIP', '09954417332', 'Sapalojaminpaul@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -212,7 +227,8 @@ CREATE TABLE `pwd_disabilities` (
 --
 
 INSERT INTO `pwd_disabilities` (`id`, `pwd_id`, `disability`) VALUES
-(11, 4, 'Visual Disability');
+(11, 4, 'Visual Disability'),
+(12, 5, 'Visual Disability');
 
 -- --------------------------------------------------------
 
@@ -231,7 +247,8 @@ CREATE TABLE `pwd_disability_causes` (
 --
 
 INSERT INTO `pwd_disability_causes` (`id`, `pwd_id`, `cause`) VALUES
-(10, 4, 'Congenital / Inborn');
+(10, 4, 'Congenital / Inborn'),
+(11, 5, 'Congenital / Inborn');
 
 -- --------------------------------------------------------
 
@@ -277,7 +294,7 @@ CREATE TABLE `senior_children` (
 --
 
 INSERT INTO `senior_children` (`id`, `senior_id`, `full_name`, `occupation`, `income`, `age`, `working_status`) VALUES
-(4, 10, 'EXAMPLE', 'EXAMPLE', '69', 22, 'working');
+(5, 11, 'JAMIN PAUL SAPALO', 'OCCUPATION CHILD', '1', 22, 'working');
 
 -- --------------------------------------------------------
 
@@ -330,7 +347,7 @@ CREATE TABLE `senior_citizens` (
 --
 
 INSERT INTO `senior_citizens` (`id`, `reference_code`, `last_name`, `first_name`, `middle_name`, `extension`, `barangay`, `purok`, `date_of_birth`, `age`, `marital_status`, `gender`, `osca_id_number`, `gsis_sss`, `philhealth`, `sc_association_org_id_no`, `tin`, `other_govt_id`, `service_business_employment`, `current_pension`, `capability_to_travel`, `spouse_name`, `father_last_name`, `father_first_name`, `father_middle_name`, `father_extension`, `mother_last_name`, `mother_first_name`, `mother_middle_name`, `community_service_other_text`, `status`, `archive_reason`, `edited_by`, `edited_at`, `created_at`, `updated_at`, `place_of_birth`) VALUES
-(10, NULL, 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', NULL, 'Tomongtong', 'Tomongtong Example', '1960-04-02', 66, 'Married', 'Male', NULL, NULL, NULL, NULL, NULL, NULL, 'EXAMPLE', '1', 'Yes', 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', 'EXAMPLE', NULL, 'EXAMPLE', 'EXAMPLE', NULL, 'ESPORTS', 'Active', NULL, NULL, NULL, '2026-04-02 09:17:02', '2026-04-02 09:17:02', 'EXAMPLE');
+(11, NULL, 'SAPALO', 'JAMINS', 'PAUL', NULL, 'Consing', 'Consing Example', '1960-07-07', 65, 'Single', 'Male', NULL, NULL, NULL, NULL, NULL, NULL, 'AA', '10000', 'No', NULL, 'SAPALO', 'JAMIN', 'PAUL', NULL, 'SAPALO', 'JAMIN', 'PAUL', NULL, 'Active', NULL, 'staff_001@gmail.com', '2026-04-05 01:12:54', '2026-04-04 17:12:39', '2026-04-04 17:12:55', 'BACOLOD');
 
 -- --------------------------------------------------------
 
@@ -349,7 +366,7 @@ CREATE TABLE `senior_community_services` (
 --
 
 INSERT INTO `senior_community_services` (`id`, `senior_id`, `service`) VALUES
-(8, 10, 'Other');
+(9, 11, 'Community / Organization Leader');
 
 -- --------------------------------------------------------
 
@@ -372,7 +389,7 @@ CREATE TABLE `senior_contacts` (
 --
 
 INSERT INTO `senior_contacts` (`id`, `senior_id`, `type`, `name`, `relationship`, `phone`, `email`) VALUES
-(15, 10, 'primary', 'EXAMPLE', 'EXAMPLE', '09954417332', 'EXAMPLE@gmail.com');
+(17, 11, 'primary', 'JAMIN PAUL SAPALO', 'ME', '09954417332', 'Sapalojaminpaul@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -389,6 +406,13 @@ CREATE TABLE `senior_edit_logs` (
   `edited_by` varchar(255) DEFAULT NULL,
   `edited_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `senior_edit_logs`
+--
+
+INSERT INTO `senior_edit_logs` (`id`, `senior_id`, `field`, `old_value`, `new_value`, `edited_by`, `edited_at`) VALUES
+(15, 11, 'first_name', 'JAMIN', 'JAMINS', 'staff_001@gmail.com', '2026-04-05 01:12:54');
 
 -- --------------------------------------------------------
 
@@ -407,7 +431,7 @@ CREATE TABLE `senior_education` (
 --
 
 INSERT INTO `senior_education` (`id`, `senior_id`, `educational_attainment`) VALUES
-(7, 10, 'College Graduate');
+(8, 11, 'College Graduate');
 
 -- --------------------------------------------------------
 
@@ -426,7 +450,7 @@ CREATE TABLE `senior_skills` (
 --
 
 INSERT INTO `senior_skills` (`id`, `senior_id`, `skill`) VALUES
-(8, 10, 'Other');
+(9, 11, 'Fishing');
 
 -- --------------------------------------------------------
 
@@ -471,31 +495,30 @@ CREATE TABLE `users` (
   `name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role` enum('Admin','Staff','Super Admin','Youth') NOT NULL,
-  `status` enum('Active','Suspended','Inactive') DEFAULT 'Active'
+  `role` enum('Admin','Staff','Super Admin','Barangay') NOT NULL,
+  `status` enum('Active','Suspended','Inactive') DEFAULT 'Active',
+  `barangay_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `status`) VALUES
-(1, 'Charles Ivan C. Monserate', 'ivancharles389@gmail.com', '$2b$10$gjcaBz4HskYRXoS.dIZw1em0HL6spJzR4XA9l1poOEg/1Lbcueib6', 'Staff', 'Active'),
-(2, 'Monserate, Charles Ivan C.', 'admin@gmail.com', '$2b$10$ATcty0512XM8u8yU52FDeue.VtaLCG5qeKJqga5NPmMd7Ni8uqhMi', 'Admin', 'Active'),
-(3, 'CHARLES IVAN C. MONSERATE', 'monseratecharles@gmail.com', '$2b$10$NbPP7BjfxP3gltzghii9decUyZMNxu7f58b752b1PNOTlg7.FEz4y', 'Staff', 'Active'),
-(4, 'Jen Chome', 'jenchm@gmail.com', '$2b$10$f6.7.NBHSEygDBTWpYb4wOlus0PGaVIoPHSuuE0JBJPELnBxeo2QC', 'Admin', 'Active'),
-(5, 'IC', 'staff_001@gmail.com', '$2b$10$LXSyuvM/3JvjVxQihdEuxOUHA99QdJ37iMTGi6/xXg/G1YdK/KKza', 'Staff', 'Active'),
-(6, 'Jen', 'Admin_001@gmail.com', '$2b$10$PUm3UfFoBZKXmEr4HkxKR.PXhKMLNFgPYszoaGmXXqjIwss6IcqyC', 'Admin', 'Active'),
-(7, 'Thea', 'Superadmin_001@gmail.com', '$2b$10$1RPYTaeTw2BXSNgq5kBLOOkan2JM6objE6OZCQ1e4oA6O3e30HIbK', 'Super Admin', 'Active'),
-(8, 'Bebz', 'Youth_001@gmail.com', '$2b$10$UYw.Otjrgkm1ndUH5VIH.eZt171etrNIKTjgUq2JjdRMdv8hNk6Xu', 'Youth', 'Active'),
-(9, 'Thea', 'thea@gmail.com', '$2b$10$gkQWxrWtfGrGs9nu.fCafOtN4Xj2hPs4wwM87KWmUy1yQbhBqx3ty', 'Youth', 'Active'),
-(10, 'Van Dough', 'Van@gmail.com', '$2b$10$qWyL/X90cXJxQmlLvEvrtetg.LiKuFleIE6HF3i27oI1JpIt0BIE.', 'Staff', 'Active'),
-(11, 'Angel Mae', 'angelmae@gmail.com', '$2b$10$ppGH9cGEf.NAqx2yHrdFNeztvyzk.W2BRyvIxLFCMnV7drdWublJ.', 'Staff', 'Active'),
-(12, 'Test Admin 1761679925602', 'testadmin1761679925602@gmail.com', '$2b$10$A5EwpsAnzEUQ.Po9gx2eB.u1Rir92lMgElyA0lAhhDtpY2RXrZCJa', 'Admin', 'Active'),
-(13, 'Test Youth 1761679930800', 'testyouth1761679930800@gmail.com', '$2b$10$JKJHFtLGz/R.3WYxcaeCn.NymkyULwnsbEQgDS885GvBNjSXH7UxG', 'Youth', 'Active'),
-(14, 'Test Staff 1761679946629', 'teststaff1761679946629@gmail.com', '$2b$10$SKgFUryGoNZQVVC.IT1cJ.c043DkCOuD.ggyUO.dBmOOVhXHqESje', 'Staff', 'Active'),
-(15, 'Test Admin 1761706590739', 'testadmin1761706590739@gmail.com', '$2b$10$tHt7VtL.YJeE.UV4ixiAqOV.N43Opqmk0tl7/4aPzvYPv1GmyqYGO', 'Admin', 'Active'),
-(16, 'Alysa Mae Dizon', 'chuchuu.chm@gmail.com', '$2b$10$WrPDeTXx7A.PEn.A32LvPeQpJVUaTAZAArZh1dwnmnjXt3LrUQ2bC', 'Staff', 'Active');
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `status`, `barangay_id`) VALUES
+(1, 'Charles Ivan C. Monserate', 'ivancharles389@gmail.com', '$2b$10$gjcaBz4HskYRXoS.dIZw1em0HL6spJzR4XA9l1poOEg/1Lbcueib6', 'Staff', 'Active', NULL),
+(2, 'Monserate, Charles Ivan C.', 'admin@gmail.com', '$2b$10$ATcty0512XM8u8yU52FDeue.VtaLCG5qeKJqga5NPmMd7Ni8uqhMi', 'Admin', 'Active', NULL),
+(3, 'CHARLES IVAN C. MONSERATE', 'monseratecharles@gmail.com', '$2b$10$NbPP7BjfxP3gltzghii9decUyZMNxu7f58b752b1PNOTlg7.FEz4y', 'Staff', 'Active', NULL),
+(4, 'Jen Chome', 'jenchm@gmail.com', '$2b$10$f6.7.NBHSEygDBTWpYb4wOlus0PGaVIoPHSuuE0JBJPELnBxeo2QC', 'Admin', 'Active', NULL),
+(5, 'IC', 'staff_001@gmail.com', '$2b$10$LXSyuvM/3JvjVxQihdEuxOUHA99QdJ37iMTGi6/xXg/G1YdK/KKza', 'Staff', 'Active', NULL),
+(6, 'Jen', 'Admin_001@gmail.com', '$2b$10$PUm3UfFoBZKXmEr4HkxKR.PXhKMLNFgPYszoaGmXXqjIwss6IcqyC', 'Admin', 'Active', NULL),
+(7, 'Thea', 'Superadmin_001@gmail.com', '$2b$10$1RPYTaeTw2BXSNgq5kBLOOkan2JM6objE6OZCQ1e4oA6O3e30HIbK', 'Super Admin', 'Active', NULL),
+(10, 'Van Dough', 'Van@gmail.com', '$2b$10$qWyL/X90cXJxQmlLvEvrtetg.LiKuFleIE6HF3i27oI1JpIt0BIE.', 'Staff', 'Active', NULL),
+(11, 'Angel Mae', 'angelmae@gmail.com', '$2b$10$ppGH9cGEf.NAqx2yHrdFNeztvyzk.W2BRyvIxLFCMnV7drdWublJ.', 'Staff', 'Active', NULL),
+(12, 'Test Admin 1761679925602', 'testadmin1761679925602@gmail.com', '$2b$10$A5EwpsAnzEUQ.Po9gx2eB.u1Rir92lMgElyA0lAhhDtpY2RXrZCJa', 'Admin', 'Active', NULL),
+(14, 'Test Staff 1761679946629', 'teststaff1761679946629@gmail.com', '$2b$10$SKgFUryGoNZQVVC.IT1cJ.c043DkCOuD.ggyUO.dBmOOVhXHqESje', 'Staff', 'Active', NULL),
+(15, 'Test Admin 1761706590739', 'testadmin1761706590739@gmail.com', '$2b$10$tHt7VtL.YJeE.UV4ixiAqOV.N43Opqmk0tl7/4aPzvYPv1GmyqYGO', 'Admin', 'Active', NULL),
+(16, 'Alysa Mae Dizon', 'chuchuu.chm@gmail.com', '$2b$10$WrPDeTXx7A.PEn.A32LvPeQpJVUaTAZAArZh1dwnmnjXt3LrUQ2bC', 'Staff', 'Inactive', NULL),
+(17, 'Ali Cante', 'Alicante_001@gmail.com', '$2b$10$Wn7fNSnwnoDWQufgTiJ3aO6G9XRSsVkz9B8d56tIgXDCOHSdJtlwK', 'Barangay', 'Active', 2);
 
 -- --------------------------------------------------------
 
@@ -690,7 +713,8 @@ ALTER TABLE `sms_history`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `fk_users_barangay` (`barangay_id`);
 
 --
 -- Indexes for table `youth`
@@ -733,7 +757,7 @@ ALTER TABLE `barangays`
 -- AUTO_INCREMENT for table `login_logs`
 --
 ALTER TABLE `login_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `puroks`
@@ -745,25 +769,25 @@ ALTER TABLE `puroks`
 -- AUTO_INCREMENT for table `pwd`
 --
 ALTER TABLE `pwd`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `pwd_contacts`
 --
 ALTER TABLE `pwd_contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `pwd_disabilities`
 --
 ALTER TABLE `pwd_disabilities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `pwd_disability_causes`
 --
 ALTER TABLE `pwd_disability_causes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `pwd_edit_logs`
@@ -775,43 +799,43 @@ ALTER TABLE `pwd_edit_logs`
 -- AUTO_INCREMENT for table `senior_children`
 --
 ALTER TABLE `senior_children`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `senior_citizens`
 --
 ALTER TABLE `senior_citizens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `senior_community_services`
 --
 ALTER TABLE `senior_community_services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `senior_contacts`
 --
 ALTER TABLE `senior_contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `senior_edit_logs`
 --
 ALTER TABLE `senior_edit_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `senior_education`
 --
 ALTER TABLE `senior_education`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `senior_skills`
 --
 ALTER TABLE `senior_skills`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `sms_history`
@@ -823,7 +847,7 @@ ALTER TABLE `sms_history`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `youth`
@@ -924,6 +948,12 @@ ALTER TABLE `senior_education`
 --
 ALTER TABLE `senior_skills`
   ADD CONSTRAINT `senior_skills_ibfk_1` FOREIGN KEY (`senior_id`) REFERENCES `senior_citizens` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `fk_users_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`id`);
 
 --
 -- Constraints for table `youth_age_groups`
