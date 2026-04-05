@@ -153,4 +153,11 @@ router.get("/pwd-map-data", controller.getPwdMapData);
 router.get("/youth-map-data", controller.getYouthMapData);
 router.get("/debug-senior-data", controller.debugSeniorData);
 
+
+
+//barangay account
+
+router.get('/barangay', controller.renderBarangay);
+router.get('/barangay-senior', controller.renderBarangaySenior);
+router.get('/barangay-pwd', controller.renderBarangayPwd);
 module.exports = router;

@@ -4604,3 +4604,33 @@ exports.renderSuperAdminLogs = async (req, res) => {
   }
 };
 
+
+
+
+exports.renderBarangay = async (req, res) => {
+  try {
+    res.render('barangay/barangay');
+  } catch (error) {
+    console.error('renderBarangay:', error);
+    res.status(500).send('Unable to load barangay account');
+  }
+};
+
+exports.renderBarangaySenior = async (req, res) => {
+  try {
+    res.render('barangay/barangay_senior');
+  } catch (error) {
+    console.error('renderBarangaySenior:', error);
+    res.status(500).send('Unable to load barangay account');
+  }
+};
+
+exports.renderBarangayPwd = async (req, res) => {
+  try {
+    res.render('barangay/barangay_pwd');
+  } catch (error) {
+    console.error('renderBarangayPwd:', error);
+    res.status(500).send('Unable to load barangay account');
+  }
+};
+
