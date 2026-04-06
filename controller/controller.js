@@ -1593,7 +1593,7 @@ exports.unarchiveSenior = async (req, res) => {
 
 
 
-// Unarchive Youth record
+
 
 
 // Generate Senior Citizen Application PDF
@@ -1828,7 +1828,7 @@ exports.generateSeniorApplicationPdf = async (req, res) => {
   }
 };
 
-// Generate Youth Application PDF
+
 
   
 // Analytics: OSCA (Senior Citizens) counts by barangay
@@ -2653,79 +2653,6 @@ exports.renderSuperAdminIndex = async (req, res) => {
   }
   };
 
-// Function to check birthdays and update ages, auto-archive if age > 30
-const checkBirthdaysAndUpdateAges = async () => {
-  try {
-    const today = new Date();
-    const todayMonth = today.getMonth() + 1; // JavaScript months are 0-indexed
-    const todayDay = today.getDate();
-
-    // Get all active youth records
-    const activeYouths = await Youth.find({ status: 'Active' });
-
-    let updatedCount = 0;
-    let archivedCount = 0;
-
-    for (const youth of activeYouths) {
-      if (!youth.birthday) continue;
-
-      const birthday = new Date(youth.birthday);
-      const birthdayMonth = birthday.getMonth() + 1;
-      const birthdayDay = birthday.getDate();
-
-      // Check if today is their birthday (month and day match)
-      if (birthdayMonth === todayMonth && birthdayDay === todayDay) {
-        // Calculate the correct age based on birthday
-        let correctAge = today.getFullYear() - birthday.getFullYear();
-        const monthDiff = today.getMonth() - birthday.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthday.getDate())) {
-          correctAge--;
-        }
-
-        // Only update if the stored age is less than the correct age
-        // This prevents multiple increments if the page is loaded multiple times on the same day
-        // On their birthday, the age should increase by 1 from what it was yesterday
-        if (youth.age < correctAge) {
-          const newAge = correctAge; // This is effectively adding 1 on their birthday
-          
-          // If age is over 30, archive the record
-          if (newAge > 30) {
-            await Youth.findByIdAndUpdate(
-              youth._id,
-              { 
-                age: newAge,
-                status: 'Archived'
-              },
-              { new: true, runValidators: true }
-            );
-            archivedCount++;
-            console.log(`Youth ${youth.first_name} ${youth.last_name} turned ${newAge} and was automatically archived.`);
-          } else {
-            // Just update the age (adds 1 on their birthday)
-            await Youth.findByIdAndUpdate(
-              youth._id,
-              { age: newAge },
-              { new: true, runValidators: true }
-            );
-            updatedCount++;
-            console.log(`Youth ${youth.first_name} ${youth.last_name} turned ${newAge} (birthday today).`);
-          }
-        }
-      }
-    }
-
-    if (updatedCount > 0 || archivedCount > 0) {
-      console.log(`Birthday check completed: ${updatedCount} ages updated, ${archivedCount} records archived.`);
-    }
-
-    return { updatedCount, archivedCount };
-  } catch (err) {
-    console.error('Error checking birthdays and updating ages:', err);
-    throw err;
-  }
-};
-
-
 
 // Send SMS via external API
 exports.sendSms = async (req, res) => {
@@ -3243,7 +3170,7 @@ const barangayData = [
   }
 };
 
-// Get Youth count data by barangay for the map
+
 
 
 // Get senior count data by barangay for the map
