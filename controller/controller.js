@@ -2885,82 +2885,10 @@ exports.getSilayBoundary = (req, res) => {
   }
 };
 
-exports.getVillages = (req, res) => {
-  const villages = [
-    { name: "Alegre", lat: 10.783000, lon: 123.054700 },
-    { name: "Bagacay", lat: 10.761700, lon: 122.996600 },
-    { name: "Bagtig", lat: 10.768600, lon: 123.040900 },
-    { name: "Balaring", lat: 10.822500, lon: 122.960100 },
-    { name: "Binonga", lat: 10.771900, lon: 122.981700 },
-    { name: "Capitan Ramon", lat: 10.760200, lon: 123.114800 },
-    { name: "Dalinzon", lat: 10.800000, lon: 123.100000 },
-    { name: "Eustaquio Lopez", lat: 10.819500, lon: 123.041200 },
-    { name: "Guimbalaon", lat: 10.755000, lon: 123.085400 },
-    { name: "Guinhalaran", lat: 10.781100, lon: 122.966600 },
-    { name: "Hacienda Cubay", lat: 10.788500, lon: 123.120800 },
-    { name: "Hacienda Hinacayan", lat: 10.808600, lon: 123.074700 },
-    { name: "Hacienda Kabungahan", lat: 10.803100, lon: 123.072200 },
-    { name: "Hacienda Malisbog", lat: 10.807200, lon: 123.013900 },
-    { name: "Hacienda Mansiquinon", lat: 10.746400, lon: 123.092100 },
-    { name: "Hacienda Pula", lat: 10.803800, lon: 123.093600 },
-    { name: "Imbang", lat: 10.796700, lon: 123.021300 },
-    { name: "Kabankalan", lat: 10.819400, lon: 123.029100 },
-    { name: "Lantad", lat: 10.815300, lon: 122.969900 },
-    { name: "Macanig", lat: 10.781200, lon: 123.045400 },
-    { name: "Macanig", lat: 10.798900, lon: 123.039800 },
-    { name: "Magcorco", lat: 10.724150, lon: 123.174000 },
-    { name: "Malinao", lat: 10.774300, lon: 123.105100 },
-    { name: "Malisbog", lat: 10.829400, lon: 123.003200 },
-    { name: "Mambulac", lat: 10.797500, lon: 122.967800 },
-    { name: "Naga", lat: 10.778900, lon: 123.019600 },
-    { name: "Napilas", lat: 10.768800, lon: 123.121400 },
-    { name: "Navales", lat: 10.761950, lon: 123.152100 },
-    { name: "Panaogao", lat: 10.792100, lon: 122.983400 },
-    { name: "Quinilata", lat: 10.739800, lon: 123.111600 },
-    { name: "Rizal", lat: 10.821200, lon: 122.978000 },
-    { name: "San Juan", lat: 10.724300, lon: 123.135700 },
-    { name: "Sangay", lat: 10.739700, lon: 123.102400 },
-    { name: "Silay City", lat: 10.800300, lon: 122.976300 }
-  ];
 
-  res.json(villages);
-};
 
 // Debug endpoint to see what's in the database
-exports.debugSeniorData = async (req, res) => {
-  try {
-    console.log('🔍 Debug: Fetching all senior data...');
-    
-    // Get all seniors with their barangay info
-    const allSeniors = await SeniorCitizen.find({}, 'identifying_information.address.barangay identifying_information.name');
-    
-    // Get unique barangay names
-    const uniqueBarangays = [...new Set(allSeniors.map(s => s.identifying_information.address.barangay).filter(Boolean))];
-    
-    // Count by barangay
-    const counts = {};
-    allSeniors.forEach(senior => {
-      const barangay = senior.identifying_information.address.barangay;
-      if (barangay) {
-        counts[barangay] = (counts[barangay] || 0) + 1;
-      }
-    });
-    
-    res.json({
-      success: true,
-      totalSeniors: allSeniors.length,
-      uniqueBarangays: uniqueBarangays,
-      countsByBarangay: counts,
-      sampleData: allSeniors.slice(0, 5).map(s => ({
-        name: s.identifying_information.name,
-        barangay: s.identifying_information.address.barangay
-      }))
-    });
-  } catch (err) {
-    console.error('❌ Debug error:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-};
+
 
 // Get PWD count data by barangay for the map
 exports.getAllPwds = async (req, res) => {
