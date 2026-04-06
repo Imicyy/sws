@@ -445,25 +445,15 @@ define([
         path: "M16 0C9.4 0 4 5.4 4 12c0 7.5 12 20 12 20s12-12.5 12-20C28 5.4 22.6 0 16 0z"
       };
 
-      const seniorPercentage = b.population && b.population > 0
-        ? ((b.seniorCount / b.population) * 100).toFixed(1)
-        : null;
-
       // Compact popup content
       const popupContent = `
         <div style="font-family: -apple-system, sans-serif; padding: 4px;">
           
           <!-- Stats Grid -->
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px;">
+          <div style="display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 8px;">
             <div style="text-align: center; padding: 6px; background: #ecf0f1; border-radius: 6px;">
               <strong style="font-size: 16px; color: #3498db;">${seniorCountNum}</strong>
               <div style="font-size: 9px; color: #7f8c8d;">Seniors</div>
-            </div>
-            <div style="text-align: center; padding: 6px; background: #ecf0f1; border-radius: 6px;">
-              <strong style="font-size: 16px; color: #3498db;">
-                ${seniorPercentage !== null ? `${seniorPercentage}%` : 'N/A'}
-              </strong>
-              <div style="font-size: 9px; color: #7f8c8d;">of Pop.</div>
             </div>
           </div>
 
@@ -477,11 +467,6 @@ define([
               <strong style="font-size: 13px;">${b.femaleCount || 0}</strong>
               <span style="font-size: 9px;"> Female</span>
             </div>
-          </div>
-
-          <!-- Population -->
-          <div style="padding: 5px; background: linear-gradient(90deg, #3498db, #2980b9); color: white; border-radius: 5px; text-align: center; font-size: 11px; margin-bottom: 8px;">
-            <strong>Population: ${b.population.toLocaleString()}</strong>
           </div>
 
           <!-- Category -->
@@ -499,8 +484,6 @@ define([
           seniorCount: seniorCountNum,
           maleCount: Number(b.maleCount || 0),
           femaleCount: Number(b.femaleCount || 0),
-          population: b.population,
-          percentage: seniorPercentage,
           category: category
         },
         popupTemplate: {
@@ -582,10 +565,6 @@ define([
     const totalSeniors = barangayData.reduce((sum, b) => sum + Number(b.seniorCount || 0), 0);
     const totalMales = barangayData.reduce((sum, b) => sum + Number(b.maleCount || 0), 0);
     const totalFemales = barangayData.reduce((sum, b) => sum + Number(b.femaleCount || 0), 0);
-    const totalPopulation = barangayData.reduce((sum, b) => sum + (b.population || 0), 0);
-    const averageSeniorPercentage = totalPopulation > 0
-      ? ((totalSeniors / totalPopulation) * 100).toFixed(1)
-      : null;
     const highestSenior = Math.max(...barangayData.map(b => Number(b.seniorCount || 0)));
     const highestBarangayObj = barangayData.find(b => Number(b.seniorCount || 0) === highestSenior);
     const highestBarangay = highestBarangayObj ? highestBarangayObj.name : 'N/A';
@@ -608,10 +587,6 @@ define([
         <div class="stat-item">
           <span class="stat-number">${totalFemales}</span>
           <div class="stat-label">Female</div>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">${averageSeniorPercentage !== null ? `${averageSeniorPercentage}%` : 'N/A'}</span>
-          <div class="stat-label">Average Rate</div>
         </div>
         <div class="stat-item">
           <span class="stat-number">${highestSenior}</span>

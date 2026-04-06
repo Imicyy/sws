@@ -207,10 +207,10 @@ exports.login = async (req, res) => {
       }
 
       //Logs login
-      await query(
-        "INSERT INTO login_logs (user_id) VALUES (?)",
-        [user.id]
-      );
+      // await query(
+      //   "INSERT INTO login_logs (user_id) VALUES (?)",
+      //   [user.id]
+      // );
   
       // Store user data in session (excluding password)
       req.session.user = {
@@ -4503,10 +4503,10 @@ exports.sendAlert = async (req, res) => {
     }
 
     // Validate room
-    if (room !== 'staff' && room !== 'youth') {
+    if (room !== 'staff' && room !== 'youth' && room !== 'barangay') {
       return res.status(400).json({
         success: false,
-        error: "Invalid room. Must be 'staff' or 'youth'"
+        error: "Invalid room. Must be 'staff', 'youth', or 'barangay'"
       });
     }
 

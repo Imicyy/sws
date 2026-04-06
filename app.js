@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
 
     // Handle user joining a room
     socket.on('join-room', (room) => {
-        if (room === 'staff' || room === 'youth') {
+        if (room === 'staff' || room === 'youth' || room === 'barangay') {
             socket.join(room);
             console.log(`User ${socket.id} joined ${room} room`);
         }
@@ -85,10 +85,8 @@ server.listen(PORT, '0.0.0.0',() => {
 });
 
 //to do
-// edit logs on OSCA and PWD, , MAPS, 
 
 
+//add pagination in edit logs
 
-//superadmin adding puroks, barangay
-
-//remove youth
+// fix PDAO map admin statistics male female bug

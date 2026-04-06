@@ -1,4 +1,4 @@
-// Socket.io Client Script for Staff and Youth
+// Socket.io Client Script for Staff, Youth, and Barangay
 
 const socket = io();
 
@@ -15,6 +15,9 @@ function joinRoom() {
     } else if (userRole === 'youth') {
         socket.emit('join-room', 'youth');
         console.log('✓ Emitted join-room event for youth');
+    } else if (userRole === 'barangay') {
+        socket.emit('join-room', 'barangay');
+        console.log('✓ Emitted join-room event for barangay');
     } else {
         console.warn('⚠ User role not detected - will not join any room');
     }
@@ -30,6 +33,11 @@ function getUserRole() {
     
     // Check current URL path - be more specific
     const path = window.location.pathname.toLowerCase();
+
+    // Barangay pages (must be checked before staff because these URLs include pwd/senior)
+    if (path.includes('barangay') || path === '/barangay' || path === '/barangay-pwd' || path === '/barangay-senior') {
+        return 'barangay';
+    }
     
     // Staff pages
     if (path.includes('staff') || path.includes('pwd') || path.includes('senior') || 

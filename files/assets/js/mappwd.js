@@ -401,6 +401,10 @@ define([
     view.graphics.removeAll();
     
     barangayData.forEach(b => {
+      const pwdCountNum = Number(b.pwdCount || 0);
+      const maleCountNum = Number(b.maleCount || 0);
+      const femaleCountNum = Number(b.femaleCount || 0);
+
       const point = {
         type: "point",
         longitude: b.lon,
@@ -409,11 +413,11 @@ define([
 
       // Color coding
       let markerColor, markerSize, category;
-      if (b.pwdCount >= 20) {
+      if (pwdCountNum >= 20) {
         markerColor = [231, 76, 60];
         markerSize = "24px";
         category = "High";
-      } else if (b.pwdCount >= 10) {
+      } else if (pwdCountNum >= 10) {
         markerColor = [241, 196, 15];
         markerSize = "22px";
         category = "Medium";
@@ -434,10 +438,6 @@ define([
         style: "path",
         path: "M16 0C9.4 0 4 5.4 4 12c0 7.5 12 20 12 20s12-12.5 12-20C28 5.4 22.6 0 16 0z"
       };
-
-      const pwdPercentage = b.population && b.population > 0
-        ? ((b.pwdCount / b.population) * 100).toFixed(1)
-        : null;
 
       // Compact disabilities HTML
       let disabilitiesHtml = '';
@@ -462,34 +462,23 @@ define([
         <div style="font-family: -apple-system, sans-serif; padding: 4px;">
           
           <!-- Stats Grid -->
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px;">
+          <div style="display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 8px;">
             <div style="text-align: center; padding: 6px; background: #ecf0f1; border-radius: 6px;">
-              <strong style="font-size: 16px; color: #e74c3c;">${b.pwdCount}</strong>
+              <strong style="font-size: 16px; color: #e74c3c;">${pwdCountNum}</strong>
               <div style="font-size: 9px; color: #7f8c8d;">PWDs</div>
-            </div>
-            <div style="text-align: center; padding: 6px; background: #ecf0f1; border-radius: 6px;">
-              <strong style="font-size: 16px; color: #e74c3c;">
-                ${pwdPercentage !== null ? `${pwdPercentage}%` : 'N/A'}
-              </strong>
-              <div style="font-size: 9px; color: #7f8c8d;">of Pop.</div>
             </div>
           </div>
 
           <!-- Gender -->
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px;">
             <div style="text-align: center; padding: 5px; background: #3498db; color: white; border-radius: 5px;">
-              <strong style="font-size: 13px;">${b.maleCount}</strong>
+              <strong style="font-size: 13px;">${maleCountNum}</strong>
               <span style="font-size: 9px;"> Male</span>
             </div>
             <div style="text-align: center; padding: 5px; background: #e91e63; color: white; border-radius: 5px;">
-              <strong style="font-size: 13px;">${b.femaleCount}</strong>
+              <strong style="font-size: 13px;">${femaleCountNum}</strong>
               <span style="font-size: 9px;"> Female</span>
             </div>
-          </div>
-
-          <!-- Population -->
-          <div style="padding: 5px; background: linear-gradient(90deg, #e74c3c, #c0392b); color: white; border-radius: 5px; text-align: center; font-size: 11px; margin-bottom: 8px;">
-            <strong>Population: ${b.population.toLocaleString()}</strong>
           </div>
 
           ${disabilitiesHtml}
@@ -506,11 +495,9 @@ define([
         symbol: markerSymbol,
         attributes: { 
           name: b.name, 
-          pwdCount: b.pwdCount,
-          maleCount: b.maleCount,
-          femaleCount: b.femaleCount,
-          population: b.population,
-          percentage: pwdPercentage,
+          pwdCount: pwdCountNum,
+          maleCount: maleCountNum,
+          femaleCount: femaleCountNum,
           category: category
         },
         popupTemplate: {
@@ -589,11 +576,12 @@ define([
   view.container.appendChild(statsContainer);
 
   function updateStatistics(barangayData) {
-    const totalPwds = barangayData.reduce((sum, b) => sum + b.pwdCount, 0);
-    const totalMales = barangayData.reduce((sum, b) => sum + b.maleCount, 0);
-    const totalFemales = barangayData.reduce((sum, b) => sum + b.femaleCount, 0);
-    const highestPwd = Math.max(...barangayData.map(b => b.pwdCount));
-    const highestBarangay = barangayData.find(b => b.pwdCount === highestPwd).name;
+    const totalPwds = barangayData.reduce((sum, b) => sum + Number(b.pwdCount || 0), 0);
+    const totalMales = barangayData.reduce((sum, b) => sum + Number(b.maleCount || 0), 0);
+    const totalFemales = barangayData.reduce((sum, b) => sum + Number(b.femaleCount || 0), 0);
+    const highestPwd = Math.max(...barangayData.map(b => Number(b.pwdCount || 0)));
+    const highestBarangayObj = barangayData.find(b => Number(b.pwdCount || 0) === highestPwd);
+    const highestBarangay = highestBarangayObj ? highestBarangayObj.name : "N/A";
 
     statsContainer.innerHTML = `
       <div class="legend-title">Statistics</div>
@@ -649,7 +637,12 @@ define([
     .then(res => res.json())
     .then(response => {
       if (response.success) {
-        barangays = response.data;
+        barangays = (response.data || []).map(b => ({
+          ...b,
+          pwdCount: Number(b.pwdCount || 0),
+          maleCount: Number(b.maleCount || 0),
+          femaleCount: Number(b.femaleCount || 0)
+        }));
         addBarangayMarkers(barangays);
         updateStatistics(barangays);
         console.log("✅ PWD data loaded successfully");
