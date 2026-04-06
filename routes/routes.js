@@ -52,24 +52,6 @@ router.get('/User', requireAuth, (req, res) => {
 });
 
 
-router.get('/index-youth', requireAuth,controller.renderYouth);
-
-router.get('/add_youth', requireAuth,(req, res) => {
-    res.render('youth/staff_youth_add');
-});
-
-router.get('/Youth',(req, res) => {
-    res.render('youth/admin_youth');
-});
-
-router.get('/Mapss', (req, res) => {
-    res.render('youth/youth_map');
-});
-
-router.post('/create-youth', controller.createYouth);
-router.put('/update-youth', controller.updateYouth);
-
-
 // Staff routes
 router.get('/index-staff', requireAuth, (req, res) => {
     res.render('staff/staff_dashboard');
@@ -84,8 +66,7 @@ router.post('/unarchive-pwd', requireAuth, controller.unarchivePwd);
 router.post('/update-senior', requireAuth, controller.updateSenior);
 router.post('/archive-senior', requireAuth, controller.archiveSenior);
 router.post('/unarchive-senior', requireAuth, controller.unarchiveSenior);
-router.post('/archive-youth', requireAuth, controller.archiveYouth);
-router.post('/unarchive-youth', requireAuth, controller.unarchiveYouth);
+
 
 router.get('/add_senior', controller.renderAddSenior);
 
@@ -108,19 +89,14 @@ router.get('/Senior-form', requireAuth, controller.renderSeniorForm);
 router.get('/Pwd-form', requireAuth, controller.renderPWDForm);
 router.get('/pwd/:id/application-pdf', requireAuth, controller.generatePwdApplicationPdf);
 router.get('/senior/:id/application-pdf', requireAuth, controller.generateSeniorApplicationPdf);
-router.get('/youth/:id/application-pdf', requireAuth, controller.generateYouthApplicationPdf);
+
 
 //admin alert
 router.get('/admin-alert',requireAuth,controller.renderAdminAlert);
 router.post('/send-alert', requireAuth, controller.sendAlert);
-//Youth routes
-router.get('', requireAuth, (req, res) => {
-    res.render(youth/staff_youth);
-});
 
-router.get('/youth-form', controller.renderYouthForm);
 
-router.post('/add-youth', requireAuth,controller.createYouth);
+
 
 
 // Data operations
@@ -129,13 +105,13 @@ router.post('/add-data', controller.createResident);
 // Analytics APIs
 router.get('/api/analytics/osca', requireAuth, controller.getOscaAnalytics);
 router.get('/api/analytics/pdao', requireAuth, controller.getPdaoAnalytics);
-router.get('/api/analytics/youth', controller.getYouthAnalytics);
+
 router.get('/api/pwds', requireAuth, controller.getAllPwds);
-router.get('/api/youths', requireAuth, controller.getAllYouths);
+
 router.get('/api/senior-citizens-for-report', requireAuth, controller.getSeniorCitizensForReport);
 router.get('/api/senior-citizens/barangay/:barangay', requireAuth, controller.getSeniorCitizensByBarangay);
 router.get('/api/pwds/barangay/:barangay', requireAuth, controller.getPwdsByBarangay);
-router.get('/api/youths/barangay/:barangay', requireAuth, controller.getYouthsByBarangay);
+
 
 // Barangay and Purok APIs
 router.get('/api/barangays', requireAuth, controller.getBarangays);
@@ -148,7 +124,7 @@ router.get("/silay-boundary", controller.getSilayBoundary);
 router.get("/villages", controller.getVillages);
 router.get("/senior-map-data", controller.getSeniorMapData);
 router.get("/pwd-map-data", controller.getPwdMapData);
-router.get("/youth-map-data", controller.getYouthMapData);
+
 router.get("/debug-senior-data", controller.debugSeniorData);
 
 

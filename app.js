@@ -3,7 +3,6 @@ const path = require("path");
 const express = require("express"); 
 const bodyParser = require("body-parser");
 const routes = require("./routes/routes");
-const connection = require("./model/database");
 const { getConnection } = require("./model/databasesql");
 const session = require('express-session');
 const http = require('http');
@@ -34,7 +33,7 @@ app.use(session({
 }));
 
 // MongoDB connection
-connection();
+
 
 // Test MySQL (mysql2) connection on startup without crashing the app
 (async () => {
