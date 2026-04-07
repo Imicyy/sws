@@ -32,7 +32,6 @@ app.use(session({
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 
-// MongoDB connection
 
 
 // Test MySQL (mysql2) connection on startup without crashing the app
@@ -89,3 +88,5 @@ server.listen(PORT, '0.0.0.0',() => {
 //add pagination in edit logs
 
 // fix PDAO map admin statistics male female bug
+
+//revert changes
