@@ -84,7 +84,7 @@ function getBarangayCentroids() {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, password, confirm_password, role, barangay_id } = req.body;
+        const { name, email, password, confirm_password, role, barangay_id, staff_classification } = req.body;
 
         console.log(name, email, password, confirm_password, role);
         if (!name || !email || !password || !confirm_password || role=="user") {
@@ -100,6 +100,25 @@ exports.createUser = async (req, res) => {
                 success: false,
                 error: "Passwords do not match" 
             });
+        }
+
+        // Validate staff classification for Staff role
+        let staffClassificationVal = null;
+        if (role === "Staff") {
+            if (!staff_classification) {
+                return res.status(400).json({
+                    success: false,
+                    error: "Please select a staff classification (PDAO or OSCA)."
+                });
+            }
+            const normalized = String(staff_classification).toUpperCase();
+            if (normalized !== "PDAO" && normalized !== "OSCA") {
+                return res.status(400).json({
+                    success: false,
+                    error: "Invalid staff classification. Must be PDAO or OSCA."
+                });
+            }
+            staffClassificationVal = normalized;
         }
 
         let barangayIdVal = null;
@@ -133,10 +152,10 @@ exports.createUser = async (req, res) => {
         // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, saltrounds);
 
-        // Insert new user into MySQL (barangay_id NULL for non-Barangay roles)
+        // Insert new user into MySQL (barangay_id NULL for non-Barangay roles, staff_classification only for Staff)
         const [result] = await query(
-            "INSERT INTO users (name, email, password, role, status, barangay_id) VALUES (?, ?, ?, ?, 'Active', ?)",
-            [name, email, hashedPassword, role, barangayIdVal]
+            "INSERT INTO users (name, email, password, role, status, barangay_id, staff_classification) VALUES (?, ?, ?, ?, 'Active', ?, ?)",
+            [name, email, hashedPassword, role, barangayIdVal, staffClassificationVal]
         );
 
         // For security, don't return the hashed password in the response
@@ -147,6 +166,7 @@ exports.createUser = async (req, res) => {
             role,
             status: "Active",
             barangay_id: barangayIdVal,
+            staff_classification: staffClassificationVal,
         };
 
         res.status(201).json({ 
@@ -176,7 +196,7 @@ exports.login = async (req, res) => {
   
       // Check if user exists in MySQL (barangay_id nullable — only set for Barangay role)
       const [rows] = await query(
-        "SELECT id, name, email, password, role, status, barangay_id FROM users WHERE email = ? LIMIT 1",
+        "SELECT id, name, email, password, role, status, barangay_id, staff_classification FROM users WHERE email = ? LIMIT 1",
         [email]
       );
       if (rows.length === 0) {
@@ -216,20 +236,28 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,  // Ensure 'role' exists in your database
         barangay_id: user.barangay_id != null ? user.barangay_id : null,
+        staff_classification: user.staff_classification || null,
     };
     
       // Successful login response
       if (user.role === "Admin") {
         return res.redirect("/index");
-    } else if (user.role === "Staff") {
+      } else if (user.role === "Staff") {
+        // Route Staff based on staff_classification
+        if (user.staff_classification === "PDAO") {
+          return res.redirect("/Pwd-form");
+        } else if (user.staff_classification === "OSCA") {
+          return res.redirect("/Senior-form");
+        }
+        // Fallback if classification is missing or unknown
         return res.redirect("/Pwd-form");
-    }else if (user.role === "Super Admin") {
+      } else if (user.role === "Super Admin") {
         return res.redirect("/index-superadmin");
-    }else if (user.role === "Barangay") {
+      } else if (user.role === "Barangay") {
         return res.redirect("/barangay");
-    }else {
+      } else {
         return res.redirect("/index"); // Default redirection
-    }
+      }
   
     } catch (err) {
       res.status(500).json({

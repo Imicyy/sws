@@ -3,9 +3,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const hiddenInput = document.getElementById('selected-role');
     const barangayRow = document.getElementById('barangay-id-row');
     const barangaySelect = document.getElementById('barangay_id');
+    const staffRow = document.getElementById('staff-type-row');
+    const staffSelect = document.getElementById('staff_type');
 
-    function syncBarangayRow() {
+    function syncRoleFields() {
         const role = hiddenInput.value;
+
         if (barangayRow && barangaySelect) {
             if (role === 'Barangay') {
                 barangayRow.style.display = '';
@@ -14,6 +17,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 barangayRow.style.display = 'none';
                 barangaySelect.required = false;
                 barangaySelect.value = '';
+            }
+        }
+
+        if (staffRow && staffSelect) {
+            if (role === 'Staff') {
+                staffRow.style.display = '';
+                staffSelect.required = true;
+            } else {
+                staffRow.style.display = 'none';
+                staffSelect.required = false;
+                staffSelect.value = '';
             }
         }
     }
@@ -28,11 +42,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Update hidden input value
             hiddenInput.value = this.dataset.role;
-            syncBarangayRow();
+            syncRoleFields();
         });
     });
 
-    syncBarangayRow();
+    syncRoleFields();
 });
 
 document.getElementById('registerForm').addEventListener('submit', async function(e) {
@@ -69,8 +83,21 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         return;
     }
 
+    if (data.role === 'Staff' && (!data.staff_type || String(data.staff_type).trim() === '')) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Staff type required',
+            text: 'Please select either PDAO or OSCA.',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+
     if (data.role !== 'Barangay') {
         delete data.barangay_id;
+    }
+    if (data.role !== 'Staff') {
+        delete data.staff_type;
     }
     
     try {

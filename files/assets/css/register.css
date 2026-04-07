@@ -181,6 +181,29 @@ h3 {
     box-shadow: var(--shadow-secondary);
 }
 
+select.form-control,
+select.form-control:focus,
+select.form-control:hover {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    background: #fff !important;
+    background-color: #fff !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+select.form-control option,
+select.form-control optgroup {
+    color: #000 !important;
+    background: #fff !important;
+    background-color: #fff !important;
+}
+
+select.form-control::-ms-expand {
+    color: #000 !important;
+}
+
 .form-control::placeholder {
     color: var(--text-muted);
     font-weight: 400;
