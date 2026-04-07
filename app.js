@@ -1,91 +1,106 @@
 require("dotenv").config();
+
 const path = require("path");
-const express = require("express"); 
-const bodyParser = require("body-parser");
+const express = require("express");
+const session = require("express-session");
+const http = require("http");
+const socketIo = require("socket.io");
+
 const routes = require("./routes/routes");
+const connection = require("./model/database");
 const { getConnection } = require("./model/databasesql");
-const session = require('express-session');
-const http = require('http');
-const socketIo = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, {
+    cors: {
+        origin: "*"
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 
-// Set EJS as the templating engine
+// ======================
+// VIEW ENGINE
+// ======================
 app.set("view engine", "ejs");
-
 app.set("views", path.join(__dirname, "default"));
 
-// Middleware to serve static files
+// ======================
+// MIDDLEWARE
+// ======================
 app.use(express.static(path.join(__dirname, "files")));
-
-// Middleware to parse request body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ======================
+// SESSION (FIXED)
+// ======================
 app.use(session({
-    secret: process.env.SESSION_SECRET, // Change this to a strong, random string
+    secret: process.env.SESSION_SECRET || "fallback_secret_key",
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // change to true if HTTPS
+        httpOnly: true
+    }
 }));
 
-// MongoDB connection
+// ======================
+// DATABASE CONNECTIONS
+// ======================
 
+// MongoDB
+connection()
+    .then(() => console.log("MongoDB Connected"))
+    .catch(err => {
+        console.error("MongoDB Connection Failed:", err.message);
+        process.exit(1); // stop container if DB fails
+    });
 
-// Test MySQL (mysql2) connection on startup without crashing the app
+// MySQL (non-blocking)
 (async () => {
     try {
         const conn = await getConnection();
-        console.log("MySQL (mysql2) Connected Successfully!");
+        console.log("MySQL Connected");
         conn.release();
     } catch (err) {
-        console.error("MySQL (mysql2) Connection Failed:", err.message);
+        console.error("MySQL Connection Failed:", err.message);
     }
 })();
 
-// Socket.io connection handling
-io.on('connection', (socket) => {
-    console.log('New user connected:', socket.id);
+// ======================
+// SOCKET.IO
+// ======================
+io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
 
-    // Handle user joining a room
-    socket.on('join-room', (room) => {
-        if (room === 'staff' || room === 'youth' || room === 'barangay') {
+    socket.on("join-room", (room) => {
+        if (["staff", "youth"].includes(room)) {
             socket.join(room);
-            console.log(`User ${socket.id} joined ${room} room`);
+            console.log(`User ${socket.id} joined ${room}`);
         }
     });
 
-    // Handle disconnect
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
     });
 });
 
-// Make io accessible to routes
+// Make io available in routes
 app.use((req, res, next) => {
     req.io = io;
     next();
 });
 
-// Import routes
+// ======================
+// ROUTES
+// ======================
 app.use("/", routes);
 
-// Start server
-// app.listen(PORT, () => {
-//     console.log(`Server is running on http://localhost:${PORT}`);
-// });
-
-//hosted
-server.listen(PORT, '0.0.0.0',() => {
-    console.log(`Server is running`);
+// ======================
+// START SERVER
+// ======================
+server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
 });
-
-//to do
-
-
-//add pagination in edit logs
-
-// fix PDAO map admin statistics male female bug
