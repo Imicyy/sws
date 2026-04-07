@@ -3,6 +3,7 @@ const path = require("path");
 const express = require("express"); 
 const bodyParser = require("body-parser");
 const routes = require("./routes/routes");
+const connection = require("./model/database");
 const { getConnection } = require("./model/databasesql");
 const session = require('express-session');
 const http = require('http');
@@ -33,7 +34,6 @@ app.use(session({
 }));
 
 
-
 // Test MySQL (mysql2) connection on startup without crashing the app
 (async () => {
     try {
@@ -51,7 +51,7 @@ io.on('connection', (socket) => {
 
     // Handle user joining a room
     socket.on('join-room', (room) => {
-        if (room === 'staff' || room === 'youth' || room === 'barangay') {
+        if (room === 'staff' || room === 'youth') {
             socket.join(room);
             console.log(`User ${socket.id} joined ${room} room`);
         }
@@ -83,6 +83,7 @@ server.listen(PORT, '0.0.0.0',() => {
 });
 
 //to do
+// edit logs on OSCA and PWD, Analytics, MAPS, Barangay
 
 
 //add pagination in edit logs
