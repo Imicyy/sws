@@ -3,7 +3,6 @@ const path = require("path");
 const express = require("express"); 
 const bodyParser = require("body-parser");
 const routes = require("./routes/routes");
-const connection = require("./model/database");
 const { getConnection } = require("./model/databasesql");
 const session = require('express-session');
 const http = require('http');
