@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link rel="stylesheet" type="text/css" href="\assets\css\register.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/register.css">
 </head>
 <body>
     <div class="main-container">
@@ -36,7 +36,7 @@
                     </div>
                     <div class="form-group" id="barangay-id-row" style="display: none;">
                         <label for="barangay_id" class="sr-only">Barangay</label>
-                        <select class="form-control" name="barangay_id" id="barangay_id">
+                        <select class="form-control" name="barangay_id" id="barangay_id" style="color:#000;background-color:#fff;">
                             <option value="">Select your barangay</option>
                             <% if (typeof barangayList !== 'undefined' && barangayList && barangayList.length) { %>
                                 <% barangayList.forEach(function (b) { %>
@@ -47,8 +47,8 @@
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
                     <div class="form-group" id="staff-type-row" style="display: none;">
-                        <label for="staff_type" class="sr-only">Staff Type</label>
-                        <select class="form-control" name="staff_type" id="staff_type">
+                        <label for="staff_classification" class="sr-only">Staff Type</label>
+                        <select class="form-control" name="staff_classification" id="staff_classification" style="color:#000;background-color:#fff;">
                             <option value="">Select your department</option>
                             <option value="PDAO">PDAO</option>
                             <option value="OSCA">OSCA</option>
@@ -84,7 +84,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-    <script type="text/javascript" src="\assets\js\register.js"></script>
+    <script type="text/javascript" src="/assets/js/register.js"></script>
 
 </body>
 </html>

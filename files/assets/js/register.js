@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const barangayRow = document.getElementById('barangay-id-row');
     const barangaySelect = document.getElementById('barangay_id');
     const staffRow = document.getElementById('staff-type-row');
-    const staffSelect = document.getElementById('staff_type');
+    const staffSelect = document.getElementById('staff_classification');
 
     function syncRoleFields() {
         const role = hiddenInput.value;
@@ -83,7 +83,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         return;
     }
 
-    if (data.role === 'Staff' && (!data.staff_type || String(data.staff_type).trim() === '')) {
+    if (data.role === 'Staff' && (!data.staff_classification || String(data.staff_classification).trim() === '')) {
         Swal.fire({
             icon: 'error',
             title: 'Staff type required',
@@ -97,7 +97,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         delete data.barangay_id;
     }
     if (data.role !== 'Staff') {
-        delete data.staff_type;
+        delete data.staff_classification;
     }
     
     try {

@@ -188,9 +188,14 @@ select.form-control:hover {
     -webkit-text-fill-color: #000 !important;
     background: #fff !important;
     background-color: #fff !important;
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+    line-height: 1.5 !important;
+    appearance: auto !important;
+    -webkit-appearance: menulist !important;
+    -moz-appearance: menulist !important;
 }
 
 select.form-control option,
@@ -202,6 +207,21 @@ select.form-control optgroup {
 
 select.form-control::-ms-expand {
     color: #000 !important;
+}
+
+/* Force readable text for native dropdowns on all themes */
+#barangay_id,
+#staff_classification {
+    color: #111 !important;
+    background-color: #fff !important;
+    -webkit-text-fill-color: #111 !important;
+    color-scheme: light;
+}
+
+#barangay_id option,
+#staff_classification option {
+    color: #111 !important;
+    background-color: #fff !important;
 }
 
 .form-control::placeholder {
