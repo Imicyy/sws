@@ -30,35 +30,46 @@
                 
                 <form method="POST" action="/create-user" id="registerForm">
                     <input type="hidden" name="role" id="selected-role" value="user">
+                    
                     <div class="form-group">
                         <input type="text" class="form-control" name="name" id="name" placeholder="Name" required>
                         <i class="fas fa-user"></i>
                     </div>
+                    
+                    <!-- Barangay Dropdown with Custom Wrapper -->
                     <div class="form-group" id="barangay-id-row" style="display: none;">
                         <label for="barangay_id" class="sr-only">Barangay</label>
-                        <select class="form-control" name="barangay_id" id="barangay_id" style="color:#000;background-color:#fff;">
-                            <option value="">Select your barangay</option>
-                            <% if (typeof barangayList !== 'undefined' && barangayList && barangayList.length) { %>
-                                <% barangayList.forEach(function (b) { %>
-                                    <option value="<%= b.id %>"><%= b.barangay %></option>
-                                <% }); %>
-                            <% } %>
-                        </select>
-                        <i class="fas fa-map-marker-alt"></i>
+                        <div class="select-wrapper">
+                            <select name="barangay_id" id="barangay_id">
+                                <option value="">Select your barangay</option>
+                                <% if (typeof barangayList !== 'undefined' && barangayList && barangayList.length) { %>
+                                    <% barangayList.forEach(function (b) { %>
+                                        <option value="<%= b.id %>"><%= b.barangay %></option>
+                                    <% }); %>
+                                <% } %>
+                            </select>
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
                     </div>
+                    
+                    <!-- Staff Type Dropdown with Custom Wrapper -->
                     <div class="form-group" id="staff-type-row" style="display: none;">
                         <label for="staff_classification" class="sr-only">Staff Type</label>
-                        <select class="form-control" name="staff_classification" id="staff_classification" style="color:#000;background-color:#fff;">
-                            <option value="">Select your department</option>
-                            <option value="PDAO">PDAO</option>
-                            <option value="OSCA">OSCA</option>
-                        </select>
-                        <i class="fas fa-user-tie"></i>
+                        <div class="select-wrapper">
+                            <select name="staff_classification" id="staff_classification">
+                                <option value="">Select your department</option>
+                                <option value="PDAO">PDAO</option>
+                                <option value="OSCA">OSCA</option>
+                            </select>
+                            <i class="fas fa-user-tie"></i>
+                        </div>
                     </div>
+                    
                     <div class="form-group">
                         <input type="email" class="form-control" name="email" placeholder="Email Address" required>
                         <i class="fas fa-envelope"></i>
                     </div>
+                    
                     <div class="form-group">
                         <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
                         <i class="fas fa-lock"></i>
@@ -69,11 +80,17 @@
                             <div class="requirement"><i class="fas fa-circle"></i> Contains numbers</div>
                         </div>
                     </div>
+                    
                     <div class="form-group">
                         <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password" required>
                         <i class="fas fa-lock"></i>
                     </div>
+                    
                     <button type="submit" class="btn btn-register btn-block">Create Account</button>
+                    
+                    <div class="login-link">
+                        Already have an account? <a href="/login">Sign In</a>
+                    </div>
                 </form>
             </div>
         </div>
@@ -86,5 +103,193 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script type="text/javascript" src="/assets/js/register.js"></script>
 
+    <!-- Additional JavaScript for Role Selection and Dropdown Visibility -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleOptions = document.querySelectorAll('.role-option');
+            const selectedRoleInput = document.getElementById('selected-role');
+            const barangayRow = document.getElementById('barangay-id-row');
+            const staffTypeRow = document.getElementById('staff-type-row');
+            const barangaySelect = document.getElementById('barangay_id');
+            const staffSelect = document.getElementById('staff_classification');
+
+            // Role selection handler
+            roleOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove active class from all options
+                    roleOptions.forEach(opt => opt.classList.remove('active'));
+                    
+                    // Add active class to selected option
+                    this.classList.add('active');
+                    
+                    // Update hidden input value
+                    const role = this.getAttribute('data-role');
+                    selectedRoleInput.value = role;
+                    
+                    // Show/hide appropriate dropdowns
+                    if (role === 'Barangay') {
+                        barangayRow.style.display = 'block';
+                        staffTypeRow.style.display = 'none';
+                        barangaySelect.required = true;
+                        staffSelect.required = false;
+                    } else if (role === 'Staff') {
+                        barangayRow.style.display = 'none';
+                        staffTypeRow.style.display = 'block';
+                        barangaySelect.required = false;
+                        staffSelect.required = true;
+                    } else {
+                        barangayRow.style.display = 'none';
+                        staffTypeRow.style.display = 'none';
+                        barangaySelect.required = false;
+                        staffSelect.required = false;
+                    }
+                });
+            });
+
+            // Password strength validation
+            const passwordInput = document.getElementById('password');
+            const requirements = document.querySelectorAll('.requirement');
+            const strengthBar = document.querySelector('.password-strength');
+
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    let strength = 0;
+                    
+                    // Check length
+                    if (password.length >= 8) {
+                        requirements[0].classList.add('valid');
+                        strength += 33;
+                    } else {
+                        requirements[0].classList.remove('valid');
+                    }
+                    
+                    // Check for uppercase and lowercase
+                    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) {
+                        requirements[1].classList.add('valid');
+                        strength += 33;
+                    } else {
+                        requirements[1].classList.remove('valid');
+                    }
+                    
+                    // Check for numbers
+                    if (/\d/.test(password)) {
+                        requirements[2].classList.add('valid');
+                        strength += 34;
+                    } else {
+                        requirements[2].classList.remove('valid');
+                    }
+                    
+                    // Update strength bar
+                    if (strengthBar) {
+                        strengthBar.style.setProperty('--strength-width', strength + '%');
+                        
+                        if (strength < 34) {
+                            strengthBar.style.setProperty('--strength-color', '#ef4444');
+                        } else if (strength < 67) {
+                            strengthBar.style.setProperty('--strength-color', '#f59e0b');
+                        } else {
+                            strengthBar.style.setProperty('--strength-color', '#10b981');
+                        }
+                    }
+                });
+            }
+
+            // Form validation
+            const form = document.getElementById('registerForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const password = document.getElementById('password').value;
+                    const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+                    const selectedRole = selectedRoleInput.value;
+                    
+                    // Check if role is selected
+                    if (selectedRole === 'user') {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Role Required',
+                            text: 'Please select a role (Staff, Admin, Super Admin, or Barangay)',
+                            confirmButtonColor: '#2962ff'
+                        });
+                        return false;
+                    }
+                    
+                    // Check if passwords match
+                    if (password !== confirmPassword) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Password Mismatch',
+                            text: 'Passwords do not match!',
+                            confirmButtonColor: '#2962ff'
+                        });
+                        return false;
+                    }
+                    
+                    // Check password strength
+                    if (password.length < 8 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Weak Password',
+                            text: 'Please ensure your password meets all requirements',
+                            confirmButtonColor: '#2962ff'
+                        });
+                        return false;
+                    }
+                    
+                    // Check barangay selection for Barangay role
+                    if (selectedRole === 'Barangay' && !barangaySelect.value) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Barangay Required',
+                            text: 'Please select your barangay',
+                            confirmButtonColor: '#2962ff'
+                        });
+                        return false;
+                    }
+                    
+                    // Check staff classification for Staff role
+                    if (selectedRole === 'Staff' && !staffSelect.value) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Department Required',
+                            text: 'Please select your department',
+                            confirmButtonColor: '#2962ff'
+                        });
+                        return false;
+                    }
+                });
+            }
+
+            // Check for success/error messages from server
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const success = urlParams.get('success');
+            
+            if (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Registration Failed',
+                    text: decodeURIComponent(error),
+                    confirmButtonColor: '#2962ff'
+                });
+            }
+            
+            if (success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Registration Successful',
+                    text: 'Your account has been created. You can now login.',
+                    confirmButtonColor: '#2962ff'
+                }).then(() => {
+                    window.location.href = '/login';
+                });
+            }
+        });
+    </script>
 </body>
 </html>

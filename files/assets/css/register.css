@@ -61,7 +61,7 @@ h3 {
 }
 
 .register-container {
-    background:  #0B192C;
+    background: #0B192C;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border-color);
@@ -181,48 +181,91 @@ h3 {
     box-shadow: var(--shadow-secondary);
 }
 
-select.form-control,
-select.form-control:focus,
-select.form-control:hover {
-    color: #000 !important;
-    -webkit-text-fill-color: #000 !important;
-    background: #fff !important;
-    background-color: #fff !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    opacity: 1 !important;
-    text-shadow: none !important;
-    line-height: 1.5 !important;
-    appearance: auto !important;
-    -webkit-appearance: menulist !important;
-    -moz-appearance: menulist !important;
+/* ============================================ */
+/* DROPDOWN FIX - SECOND SOLUTION (Custom Wrapper) */
+/* ============================================ */
+
+/* Custom Dropdown Wrapper */
+.select-wrapper {
+    position: relative;
+    width: 100%;
 }
 
-select.form-control option,
-select.form-control optgroup {
-    color: #000 !important;
-    background: #fff !important;
-    background-color: #fff !important;
+.select-wrapper select {
+    width: 100%;
+    padding: 1rem 3rem 1rem 1rem;
+    font-size: 1rem;
+    font-weight: 400;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-secondary);
 }
 
-select.form-control::-ms-expand {
-    color: #000 !important;
+.select-wrapper select option {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 10px !important;
 }
 
-/* Force readable text for native dropdowns on all themes */
-#barangay_id,
-#staff_classification {
-    color: #111 !important;
-    background-color: #fff !important;
-    -webkit-text-fill-color: #111 !important;
-    color-scheme: light;
+.select-wrapper select option:checked {
+    background-color: var(--accent-color) !important;
+    color: #ffffff !important;
 }
 
-#barangay_id option,
-#staff_classification option {
-    color: #111 !important;
-    background-color: #fff !important;
+.select-wrapper i {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    z-index: 1;
+    transition: color 0.3s ease;
 }
+
+.select-wrapper select:hover {
+    border-color: var(--accent-color);
+    box-shadow: var(--shadow-secondary), 0 0 0 1px rgba(41, 98, 255, 0.1);
+}
+
+.select-wrapper select:focus {
+    border-color: var(--accent-color);
+    box-shadow: var(--shadow-secondary), 0 0 0 3px rgba(41, 98, 255, 0.1);
+    outline: none;
+}
+
+.select-wrapper select:focus + i {
+    color: var(--accent-color);
+}
+
+/* Fix for Firefox */
+.select-wrapper select:-moz-focusring {
+    color: transparent !important;
+    text-shadow: 0 0 0 #000000 !important;
+}
+
+/* Fix for Edge/IE */
+.select-wrapper select::-ms-expand {
+    display: none;
+}
+
+/* Disabled state */
+.select-wrapper select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ============================================ */
+/* END DROPDOWN FIX */
+/* ============================================ */
 
 .form-control::placeholder {
     color: var(--text-muted);
@@ -574,7 +617,8 @@ select.form-control::-ms-expand {
 /* Focus management for accessibility */
 .form-control:focus-visible,
 .btn-register:focus-visible,
-.role-option:focus-visible {
+.role-option:focus-visible,
+.select-wrapper select:focus-visible {
     outline: 2px solid var(--accent-color);
     outline-offset: 2px;
 }
