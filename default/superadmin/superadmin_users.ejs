@@ -209,6 +209,7 @@
 							data-name="<%= user.name %>" 
 							data-email="<%= user.email %>" 
 							data-role="<%= user.role %>" 
+							data-barangay-id="<%= user.barangay_id || '' %>"
 							data-status="<%= user.status %>">Edit</button>
 						<form action="/edit-user" method="POST" style="display:inline-block; margin-left:8px;">
 								<input type="hidden" name="id" value="<%= user.id %>" required>
@@ -259,7 +260,18 @@
 															<option value="Admin">Admin</option>
 															<option value="Staff">Staff</option>
 															<option value="Super Admin">Super Admin</option>
-															<option value="Youth">Youth</option>
+															<option value="Barangay">Barangay</option>
+														</select>
+													</div>
+													<div class="form-group" id="edit-barangay-row" style="display: none;">
+														<label for="edit-barangay-id">Barangay:</label>
+														<select id="edit-barangay-id" name="barangay_id">
+															<option value="">Select barangay</option>
+															<% if (typeof barangayList !== 'undefined' && barangayList && barangayList.length) { %>
+																<% barangayList.forEach(function (b) { %>
+																	<option value="<%= b.id %>"><%= b.barangay %></option>
+																<% }); %>
+															<% } %>
 														</select>
 													</div>
 													<div class="form-actions">
@@ -369,15 +381,78 @@
 			const name = $(this).data('name');
 			const email = $(this).data('email');
 			const role = $(this).data('role');
+			const barangayId = $(this).data('barangay-id');
 			const status = $(this).data('status');
 
 			$('#edit-user-id').val(id);
 			$('#edit-username').val(name);
 			$('#edit-email').val(email);
 			$('#edit-role').val(role);
+			$('#edit-password').val('');
+			$('#edit-confirm').val('');
+			$('#edit-barangay-id').val(barangayId || '');
+			toggleEditBarangayDropdown();
 			$('#edit-status').val(status);
 
 			$('#edit-modal').show();
+		  });
+
+		  function toggleEditBarangayDropdown() {
+			const selectedRole = $('#edit-role').val();
+			const barangayRow = $('#edit-barangay-row');
+			const barangaySelect = $('#edit-barangay-id');
+
+			if (selectedRole === 'Barangay') {
+			  barangayRow.show();
+			  barangaySelect.prop('required', true);
+			} else {
+			  barangayRow.hide();
+			  barangaySelect.prop('required', false);
+			  barangaySelect.val('');
+			}
+		  }
+
+		  $('#edit-role').on('change', function() {
+			toggleEditBarangayDropdown();
+		  });
+
+		  $('#edit-user-form').on('submit', function(e) {
+			const password = ($('#edit-password').val() || '').trim();
+			const confirmPassword = ($('#edit-confirm').val() || '').trim();
+
+			// Allow updating other fields without changing password.
+			if (!password && !confirmPassword) {
+			  return;
+			}
+
+			if (!password || !confirmPassword) {
+			  e.preventDefault();
+			  Swal.fire({
+				icon: 'error',
+				title: 'Password fields required',
+				text: 'Enter both New Password and Confirm Password, or leave both blank.'
+			  });
+			  return;
+			}
+
+			if (password.length < 6) {
+			  e.preventDefault();
+			  Swal.fire({
+				icon: 'error',
+				title: 'Password too short',
+				text: 'New password must be at least 6 characters.'
+			  });
+			  return;
+			}
+
+			if (password !== confirmPassword) {
+			  e.preventDefault();
+			  Swal.fire({
+				icon: 'error',
+				title: 'Passwords do not match',
+				text: 'Please make sure both password fields match.'
+			  });
+			}
 		  });
 
 		  $('.close-btn, .cancel-btn').on('click', function(){

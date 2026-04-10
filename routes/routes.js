@@ -13,6 +13,7 @@ router.get('/register', controller.renderRegister);
 // Authentication routes
 router.post('/create-user', controller.createUser);
 router.post('/login', controller.login);
+router.post('/verify-login-code', controller.verifyLoginCode);
 router.get('/logout', controller.logout);
 
 // SMS sending endpoint (receives requests from frontend and relays to external SMS API)

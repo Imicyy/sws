@@ -8,6 +8,7 @@ const axios = require('axios');
 const path = require("path");
 const fs = require("fs");
 const { PDFDocument } = require('pdf-lib');
+const nodemailer = require('nodemailer');
 
 // ---- ArcGIS map helpers (MySQL + GeoJSON name alignment) ----
 // We generate marker coordinates from the same `all_barangays.geojson` used by the ArcGIS boundary,
@@ -22,6 +23,41 @@ const ALL_BARANGAYS_GEOJSON_PATH = path.join(
 );
 
 let barangayCentroidsCache = null;
+
+function getRedirectPathByRole(user) {
+  if (user.role === "Admin") return "/index";
+  if (user.role === "Staff") {
+    if (user.staff_classification === "OSCA") return "/Senior-form";
+    return "/Pwd-form";
+  }
+  if (user.role === "Super Admin") return "/index-superadmin";
+  if (user.role === "Barangay") return "/barangay";
+  return "/index";
+}
+
+function generateVerificationCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+async function sendLoginVerificationEmail(toEmail, code) {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: toEmail,
+    subject: "Your login verification code",
+    text: `Your verification code is ${code}. This code will expire in 10 minutes.`,
+    html: `<p>Your verification code is <strong>${code}</strong>.</p><p>This code will expire in 10 minutes.</p>`
+  });
+}
 
 function computePolygonCentroid(feature) {
   const geometry = feature?.geometry;
@@ -196,7 +232,7 @@ exports.login = async (req, res) => {
   
       // Check if user exists in MySQL (barangay_id nullable — only set for Barangay role)
       const [rows] = await query(
-        "SELECT id, name, email, password, role, status, barangay_id, staff_classification FROM users WHERE email = ? LIMIT 1",
+        "SELECT id, name, email, password, role, status, barangay_id, staff_classification, is_verified FROM users WHERE email = ? LIMIT 1",
         [email]
       );
       if (rows.length === 0) {
@@ -224,6 +260,37 @@ exports.login = async (req, res) => {
         });
       }
 
+      if (Number(user.is_verified) === 0) {
+        const verificationCode = generateVerificationCode();
+        const expiresAt = Date.now() + 10 * 60 * 1000;
+
+        req.session.pendingVerification = {
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+          barangay_id: user.barangay_id != null ? user.barangay_id : null,
+          staff_classification: user.staff_classification || null,
+          code: verificationCode,
+          expiresAt
+        };
+
+        try {
+          await sendLoginVerificationEmail(user.email, verificationCode);
+        } catch (mailErr) {
+          req.session.pendingVerification = null;
+          return res.status(500).json({
+            success: false,
+            error: "Unable to send verification email. Please try again."
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          verificationRequired: true,
+          message: "A verification code has been sent to your email."
+        });
+      }
+
       //Logs login
       // await query(
       //   "INSERT INTO login_logs (user_id) VALUES (?)",
@@ -240,24 +307,7 @@ exports.login = async (req, res) => {
     };
     
       // Successful login response
-      if (user.role === "Admin") {
-        return res.redirect("/index");
-      } else if (user.role === "Staff") {
-        // Route Staff based on staff_classification
-        if (user.staff_classification === "PDAO") {
-          return res.redirect("/Pwd-form");
-        } else if (user.staff_classification === "OSCA") {
-          return res.redirect("/Senior-form");
-        }
-        // Fallback if classification is missing or unknown
-        return res.redirect("/Pwd-form");
-      } else if (user.role === "Super Admin") {
-        return res.redirect("/index-superadmin");
-      } else if (user.role === "Barangay") {
-        return res.redirect("/barangay");
-      } else {
-        return res.redirect("/index"); // Default redirection
-      }
+      return res.redirect(getRedirectPathByRole(user));
   
     } catch (err) {
       res.status(500).json({
@@ -265,6 +315,63 @@ exports.login = async (req, res) => {
         error: err.message,
       });
     }
+}
+
+exports.verifyLoginCode = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const pending = req.session.pendingVerification;
+
+    if (!pending) {
+      return res.status(400).json({
+        success: false,
+        error: "No pending verification found. Please log in again."
+      });
+    }
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        error: "Verification code is required."
+      });
+    }
+
+    if (Date.now() > pending.expiresAt) {
+      req.session.pendingVerification = null;
+      return res.status(400).json({
+        success: false,
+        error: "Verification code has expired. Please log in again."
+      });
+    }
+
+    if (String(code).trim() !== String(pending.code)) {
+      return res.status(401).json({
+        success: false,
+        error: "Invalid verification code."
+      });
+    }
+
+    await query("UPDATE users SET is_verified = 1 WHERE id = ?", [pending.userId]);
+
+    req.session.user = {
+      _id: pending.userId,
+      email: pending.email,
+      role: pending.role,
+      barangay_id: pending.barangay_id,
+      staff_classification: pending.staff_classification
+    };
+    req.session.pendingVerification = null;
+
+    return res.status(200).json({
+      success: true,
+      redirectUrl: getRedirectPathByRole(req.session.user)
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
 }
 
 exports.logout = (req, res) => {
@@ -2627,14 +2734,22 @@ exports.updateSenior = async (req, res) => {
    exports.renderSuperAdminUser = async (req, res) => {
 try {
    const [users] = await query(
-     "SELECT id, name, email, role, status FROM users ORDER BY id ASC"
+     "SELECT id, name, email, role, status, barangay_id FROM users ORDER BY id ASC"
    );
+   const [barangayRows] = await query(
+     "SELECT id, barangay FROM barangays ORDER BY barangay ASC"
+   );
+   const barangayList = (barangayRows || []).map((row) => ({
+     id: row.id,
+     barangay: row.barangay
+   }));
     if (!users || users.length === 0) {
       console.log('No users found');
     }
   
     res.render('superadmin/superadmin_users', {
-      users: users || []
+      users: users || [],
+      barangayList: barangayList || []
     });
   } catch (err) {
     console.error(err);
@@ -3271,7 +3386,9 @@ exports.editUserStatus = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { id, name, email, role, status, password, confirm_password } = req.body;
+    const { id, name, email, role, status, password, confirm_password, barangay_id } = req.body;
+    const normalizedPassword = (password || '').trim();
+    const normalizedConfirmPassword = (confirm_password || '').trim();
 
     if (!id) {
       return res.status(400).json({ message: 'User id is required' });
@@ -3291,20 +3408,30 @@ exports.updateUser = async (req, res) => {
     if (role) {
       fields.push("role = ?");
       params.push(role);
+      if (role === 'Barangay') {
+        fields.push("barangay_id = ?");
+        params.push(barangay_id || null);
+      } else {
+        fields.push("barangay_id = ?");
+        params.push(null);
+      }
     }
     if (status) {
       fields.push("status = ?");
       params.push(status);
     }
 
-    if (password || confirm_password) {
-      if (!password || !confirm_password) {
+    if (normalizedPassword || normalizedConfirmPassword) {
+      if (!normalizedPassword || !normalizedConfirmPassword) {
         return res.status(400).json({ message: 'Both password and confirm_password are required' });
       }
-      if (password !== confirm_password) {
+      if (normalizedPassword.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      }
+      if (normalizedPassword !== normalizedConfirmPassword) {
         return res.status(400).json({ message: 'Passwords do not match' });
       }
-      const hashedPassword = await bcrypt.hash(password, saltrounds);
+      const hashedPassword = await bcrypt.hash(normalizedPassword, saltrounds);
       fields.push("password = ?");
       params.push(hashedPassword);
     }
