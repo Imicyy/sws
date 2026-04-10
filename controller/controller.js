@@ -122,7 +122,7 @@ exports.createUser = async (req, res) => {
     try {
         const { name, email, password, confirm_password, role, barangay_id, staff_classification } = req.body;
 
-        console.log(name, email, password, confirm_password, role);
+       
         if (!name || !email || !password || !confirm_password || role=="user") {
             return res.status(400).json({ 
                 success: false,
@@ -388,7 +388,7 @@ exports.logout = (req, res) => {
 
  //senior citizen form
   exports.createResident = async (req, res) => {
-    console.log('Raw body:', req.body);
+ 
   
     try {
       const body = req.body;
@@ -891,7 +891,7 @@ async function getSeniorByIdWithRelations(seniorId) {
 
 exports.registerPwd = async (req, res) => {
   try {
-    console.log('Raw body:', req.body);
+   
 
     const birthday = new Date(req.body.birthday);
     if (Number.isNaN(birthday.getTime())) {
@@ -1034,12 +1034,10 @@ exports.registerPwd = async (req, res) => {
 
 exports.updatePwd = async (req, res) => {
   try {
-    console.log('Update PWD - Request body:', req.body);
+   
     const { pwd_id, ...updateData } = req.body;
     
-    console.log('PWD ID:', pwd_id);
-    console.log('Update data:', updateData);
-    
+ 
     if (!pwd_id) {
       return res.status(400).json({
         message: 'PWD ID is required',
@@ -2930,7 +2928,7 @@ exports.sendSms = async (req, res) => {
           ) VALUES ?`,
           [values]
         );
-        console.log(`Saved ${historyRecords.length} SMS history records`);
+      
       } catch (historyErr) {
         console.error('Error saving SMS history:', historyErr);
         // Don't fail the request if history save fails
@@ -3086,13 +3084,13 @@ exports.getAllPwds = async (req, res) => {
 
 exports.getPwdMapData = async (req, res) => {
   try {
-    console.log('🔍 Fetching PWD data from database...');
+ 
     
     // First, let's see what barangay names are actually in the database
     const [allPwds] = await query(
       "SELECT DISTINCT barangay FROM pwd WHERE COALESCE(status,'Active') <> 'Archived' ORDER BY barangay"
     );
-    console.log('🔍 All barangay names in PWD database:', allPwds.map(p => p.barangay));
+   
     
     // Get PWD count by barangay
     const [pwdCounts] = await query(`
@@ -3137,8 +3135,7 @@ exports.getPwdMapData = async (req, res) => {
     }, {});
     const disabilityCounts = Object.values(disabilityCountsMap);
 
-    console.log('📊 PWD counts from database:', pwdCounts);
-    console.log('📊 Disability counts from database:', disabilityCounts);
+   
 
     // Define barangay coordinates and other data - Updated to match database names
 const barangayData = [
@@ -3219,7 +3216,7 @@ const barangayData = [
           .sort((a, b) => b.count - a.count);
       }
       
-      console.log(`📍 ${barangay.name}: ${pwdCount} PWDs (${maleCount}M, ${femaleCount}F) (matched with: ${countData ? countData._id : 'none'})`);
+     
       if (disabilities.length > 0) {
         console.log(`   Disabilities: ${disabilities.map(d => `${d.type} (${d.count})`).join(', ')}`);
       }
@@ -3233,7 +3230,7 @@ const barangayData = [
       };
     });
 
-    console.log('✅ Final PWD result with database data:', result);
+  
     res.json({ success: true, data: result });
   } catch (err) {
     console.error('❌ Error fetching PWD map data:', err);
@@ -3247,13 +3244,13 @@ const barangayData = [
 // Get senior count data by barangay for the map
 exports.getSeniorMapData = async (req, res) => {
   try {
-    console.log('🔍 Fetching senior data from database...');
+  
     
     // First, let's see what barangay names are actually in the database
     const [allSeniors] = await query(
       "SELECT DISTINCT barangay FROM senior_citizens WHERE COALESCE(status,'Active') <> 'Archived' ORDER BY barangay"
     );
-    console.log('🔍 All barangay names in database:', allSeniors.map(s => s.barangay));
+  
     
     // Get senior count by barangay with gender breakdown
     const [seniorCounts] = await query(`
@@ -3268,7 +3265,7 @@ exports.getSeniorMapData = async (req, res) => {
       ORDER BY barangay
     `);
 
-    console.log('📊 Senior counts from database:', seniorCounts);
+
 
     // Barangay marker coordinates.
     // Keep this aligned with the barangay strings stored in MySQL (`senior_citizens.barangay`)
@@ -3342,7 +3339,6 @@ exports.getSeniorMapData = async (req, res) => {
         }
       }
       
-      console.log(`📍 ${barangay.name}: ${seniorCount} seniors (matched with: ${countData ? countData._id : 'none'})`);
       
       return {
         ...barangay,
@@ -3352,7 +3348,7 @@ exports.getSeniorMapData = async (req, res) => {
       };
     });
 
-    console.log('✅ Final result with database data:', result);
+ 
     res.json({ success: true, data: result });
   } catch (err) {
     console.error('❌ Error fetching senior map data:', err);
