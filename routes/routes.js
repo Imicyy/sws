@@ -13,6 +13,7 @@ router.get('/register', controller.renderRegister);
 // Authentication routes
 router.post('/create-user', controller.createUser);
 router.post('/login', controller.login);
+router.post('/verify-login-code', controller.verifyLoginCode);
 router.get('/logout', controller.logout);
 
 // SMS sending endpoint (receives requests from frontend and relays to external SMS API)
@@ -131,6 +132,7 @@ router.get("/pwd-map-data", controller.getPwdMapData);
 //barangay account
 
 router.get('/barangay', requireAuth, controller.renderBarangay);
+router.get('/barangay-senior-dashboard', requireAuth, controller.renderBarangaySeniorDashboard);
 router.get('/barangay-senior', requireAuth, controller.renderBarangaySenior);
 router.get('/barangay-pwd', requireAuth, controller.renderBarangayPwd);
 module.exports = router;

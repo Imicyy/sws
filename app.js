@@ -3,7 +3,6 @@ const path = require("path");
 const express = require("express"); 
 const bodyParser = require("body-parser");
 const routes = require("./routes/routes");
-const connection = require("./model/database");
 const { getConnection } = require("./model/databasesql");
 const session = require('express-session');
 const http = require('http');
@@ -33,8 +32,7 @@ app.use(session({
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 
-// MongoDB connection
-connection();
+
 
 // Test MySQL (mysql2) connection on startup without crashing the app
 (async () => {
@@ -84,8 +82,3 @@ server.listen(PORT, '0.0.0.0',() => {
     console.log(`Server is running`);
 });
 
-//to do
-// edit logs on OSCA and PWD, Analytics, MAPS, Barangay
-
-// edit logs on pwd still not on database, might be error on date same as error on 
-//all of youth

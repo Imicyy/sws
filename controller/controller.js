@@ -8,6 +8,7 @@ const axios = require('axios');
 const path = require("path");
 const fs = require("fs");
 const { PDFDocument } = require('pdf-lib');
+const nodemailer = require('nodemailer');
 
 // ---- ArcGIS map helpers (MySQL + GeoJSON name alignment) ----
 // We generate marker coordinates from the same `all_barangays.geojson` used by the ArcGIS boundary,
@@ -22,6 +23,41 @@ const ALL_BARANGAYS_GEOJSON_PATH = path.join(
 );
 
 let barangayCentroidsCache = null;
+
+function getRedirectPathByRole(user) {
+  if (user.role === "Admin") return "/index";
+  if (user.role === "Staff") {
+    if (user.staff_classification === "OSCA") return "/Senior-form";
+    return "/Pwd-form";
+  }
+  if (user.role === "Super Admin") return "/index-superadmin";
+  if (user.role === "Barangay") return "/barangay";
+  return "/index";
+}
+
+function generateVerificationCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+async function sendLoginVerificationEmail(toEmail, code) {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: toEmail,
+    subject: "Your login verification code",
+    text: `Your verification code is ${code}. This code will expire in 10 minutes.`,
+    html: `<p>Your verification code is <strong>${code}</strong>.</p><p>This code will expire in 10 minutes.</p>`
+  });
+}
 
 function computePolygonCentroid(feature) {
   const geometry = feature?.geometry;
@@ -84,9 +120,9 @@ function getBarangayCentroids() {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, password, confirm_password, role, barangay_id } = req.body;
+        const { name, email, password, confirm_password, role, barangay_id, staff_classification } = req.body;
 
-        console.log(name, email, password, confirm_password, role);
+       
         if (!name || !email || !password || !confirm_password || role=="user") {
             return res.status(400).json({ 
                 success: false,
@@ -100,6 +136,25 @@ exports.createUser = async (req, res) => {
                 success: false,
                 error: "Passwords do not match" 
             });
+        }
+
+        // Validate staff classification for Staff role
+        let staffClassificationVal = null;
+        if (role === "Staff") {
+            if (!staff_classification) {
+                return res.status(400).json({
+                    success: false,
+                    error: "Please select a staff classification (PDAO or OSCA)."
+                });
+            }
+            const normalized = String(staff_classification).toUpperCase();
+            if (normalized !== "PDAO" && normalized !== "OSCA") {
+                return res.status(400).json({
+                    success: false,
+                    error: "Invalid staff classification. Must be PDAO or OSCA."
+                });
+            }
+            staffClassificationVal = normalized;
         }
 
         let barangayIdVal = null;
@@ -133,10 +188,10 @@ exports.createUser = async (req, res) => {
         // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, saltrounds);
 
-        // Insert new user into MySQL (barangay_id NULL for non-Barangay roles)
+        // Insert new user into MySQL (barangay_id NULL for non-Barangay roles, staff_classification only for Staff)
         const [result] = await query(
-            "INSERT INTO users (name, email, password, role, status, barangay_id) VALUES (?, ?, ?, ?, 'Active', ?)",
-            [name, email, hashedPassword, role, barangayIdVal]
+            "INSERT INTO users (name, email, password, role, status, barangay_id, staff_classification) VALUES (?, ?, ?, ?, 'Active', ?, ?)",
+            [name, email, hashedPassword, role, barangayIdVal, staffClassificationVal]
         );
 
         // For security, don't return the hashed password in the response
@@ -147,6 +202,7 @@ exports.createUser = async (req, res) => {
             role,
             status: "Active",
             barangay_id: barangayIdVal,
+            staff_classification: staffClassificationVal,
         };
 
         res.status(201).json({ 
@@ -176,7 +232,7 @@ exports.login = async (req, res) => {
   
       // Check if user exists in MySQL (barangay_id nullable — only set for Barangay role)
       const [rows] = await query(
-        "SELECT id, name, email, password, role, status, barangay_id FROM users WHERE email = ? LIMIT 1",
+        "SELECT id, name, email, password, role, status, barangay_id, staff_classification, is_verified FROM users WHERE email = ? LIMIT 1",
         [email]
       );
       if (rows.length === 0) {
@@ -204,6 +260,37 @@ exports.login = async (req, res) => {
         });
       }
 
+      if (Number(user.is_verified) === 0) {
+        const verificationCode = generateVerificationCode();
+        const expiresAt = Date.now() + 10 * 60 * 1000;
+
+        req.session.pendingVerification = {
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+          barangay_id: user.barangay_id != null ? user.barangay_id : null,
+          staff_classification: user.staff_classification || null,
+          code: verificationCode,
+          expiresAt
+        };
+
+        try {
+          await sendLoginVerificationEmail(user.email, verificationCode);
+        } catch (mailErr) {
+          req.session.pendingVerification = null;
+          return res.status(500).json({
+            success: false,
+            error: "Unable to send verification email. Please try again."
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          verificationRequired: true,
+          message: "A verification code has been sent to your email."
+        });
+      }
+
       //Logs login
       // await query(
       //   "INSERT INTO login_logs (user_id) VALUES (?)",
@@ -216,20 +303,11 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,  // Ensure 'role' exists in your database
         barangay_id: user.barangay_id != null ? user.barangay_id : null,
+        staff_classification: user.staff_classification || null,
     };
     
       // Successful login response
-      if (user.role === "Admin") {
-        return res.redirect("/index");
-    } else if (user.role === "Staff") {
-        return res.redirect("/Pwd-form");
-    }else if (user.role === "Super Admin") {
-        return res.redirect("/index-superadmin");
-    }else if (user.role === "Barangay") {
-        return res.redirect("/barangay");
-    }else {
-        return res.redirect("/index"); // Default redirection
-    }
+      return res.redirect(getRedirectPathByRole(user));
   
     } catch (err) {
       res.status(500).json({
@@ -237,6 +315,63 @@ exports.login = async (req, res) => {
         error: err.message,
       });
     }
+}
+
+exports.verifyLoginCode = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const pending = req.session.pendingVerification;
+
+    if (!pending) {
+      return res.status(400).json({
+        success: false,
+        error: "No pending verification found. Please log in again."
+      });
+    }
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        error: "Verification code is required."
+      });
+    }
+
+    if (Date.now() > pending.expiresAt) {
+      req.session.pendingVerification = null;
+      return res.status(400).json({
+        success: false,
+        error: "Verification code has expired. Please log in again."
+      });
+    }
+
+    if (String(code).trim() !== String(pending.code)) {
+      return res.status(401).json({
+        success: false,
+        error: "Invalid verification code."
+      });
+    }
+
+    await query("UPDATE users SET is_verified = 1 WHERE id = ?", [pending.userId]);
+
+    req.session.user = {
+      _id: pending.userId,
+      email: pending.email,
+      role: pending.role,
+      barangay_id: pending.barangay_id,
+      staff_classification: pending.staff_classification
+    };
+    req.session.pendingVerification = null;
+
+    return res.status(200).json({
+      success: true,
+      redirectUrl: getRedirectPathByRole(req.session.user)
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
 }
 
 exports.logout = (req, res) => {
@@ -253,7 +388,7 @@ exports.logout = (req, res) => {
 
  //senior citizen form
   exports.createResident = async (req, res) => {
-    console.log('Raw body:', req.body);
+ 
   
     try {
       const body = req.body;
@@ -756,7 +891,7 @@ async function getSeniorByIdWithRelations(seniorId) {
 
 exports.registerPwd = async (req, res) => {
   try {
-    console.log('Raw body:', req.body);
+   
 
     const birthday = new Date(req.body.birthday);
     if (Number.isNaN(birthday.getTime())) {
@@ -899,12 +1034,10 @@ exports.registerPwd = async (req, res) => {
 
 exports.updatePwd = async (req, res) => {
   try {
-    console.log('Update PWD - Request body:', req.body);
+   
     const { pwd_id, ...updateData } = req.body;
     
-    console.log('PWD ID:', pwd_id);
-    console.log('Update data:', updateData);
-    
+ 
     if (!pwd_id) {
       return res.status(400).json({
         message: 'PWD ID is required',
@@ -1834,14 +1967,29 @@ exports.generateSeniorApplicationPdf = async (req, res) => {
 // Analytics: OSCA (Senior Citizens) counts by barangay
 exports.getOscaAnalytics = async (req, res) => {
   try {
+    let barangayFilter = "";
+    const barangayParams = [];
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      barangayFilter = " AND barangay = ?";
+      barangayParams.push(scope.name);
+    }
+
     const [rows] = await query(
       `SELECT
          barangay AS name,
          COUNT(*) AS oscaCount
        FROM senior_citizens
-       WHERE status <> 'Archived'
+       WHERE status <> 'Archived'${barangayFilter}
        GROUP BY barangay
-       ORDER BY barangay ASC`
+       ORDER BY barangay ASC`,
+      barangayParams
     );
 
     const data = (rows || [])
@@ -1866,6 +2014,18 @@ exports.getSeniorCitizensForReport = async (req, res) => {
 
     const filters = ["status <> 'Archived'"];
     const params = [];
+
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      filters.push("barangay = ?");
+      params.push(scope.name);
+    }
 
     // Add date filter if month is provided (for monthly reports)
     if (month) {
@@ -1922,6 +2082,20 @@ exports.getSeniorCitizensByBarangay = async (req, res) => {
 
     if (!barangay) {
       return res.status(400).json({ success: false, message: 'Barangay is required' });
+    }
+
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      const requested = decodeURIComponent(String(barangay)).trim();
+      if (requested !== String(scope.name).trim()) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+      }
     }
 
     const filters = ['s.barangay = ?', "s.status <> 'Archived'"];
@@ -2006,6 +2180,20 @@ exports.getSeniorCitizensByBarangay = async (req, res) => {
 // Analytics: PDAO (PWD) counts and gender breakdown by barangay
 exports.getPdaoAnalytics = async (req, res) => {
   try {
+    let barangayFilter = "";
+    const barangayParams = [];
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      barangayFilter = " AND barangay = ?";
+      barangayParams.push(scope.name);
+    }
+
     const [rows] = await query(
       `SELECT 
          barangay AS name,
@@ -2013,9 +2201,10 @@ exports.getPdaoAnalytics = async (req, res) => {
          SUM(CASE WHEN gender = 'Male' THEN 1 ELSE 0 END) AS maleCount,
          SUM(CASE WHEN gender = 'Female' THEN 1 ELSE 0 END) AS femaleCount
        FROM pwd
-       WHERE status <> 'Archived'
+       WHERE status <> 'Archived'${barangayFilter}
        GROUP BY barangay
-       ORDER BY barangay ASC`
+       ORDER BY barangay ASC`,
+      barangayParams
     );
 
     const data = rows
@@ -2043,6 +2232,20 @@ exports.getPwdsByBarangay = async (req, res) => {
 
     if (!barangay) {
       return res.status(400).json({ success: false, message: 'Barangay is required' });
+    }
+
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      const requested = decodeURIComponent(String(barangay)).trim();
+      if (requested !== String(scope.name).trim()) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+      }
     }
 
     const filters = ['p.barangay = ?', "p.status <> 'Archived'"];
@@ -2599,14 +2802,22 @@ exports.updateSenior = async (req, res) => {
    exports.renderSuperAdminUser = async (req, res) => {
 try {
    const [users] = await query(
-     "SELECT id, name, email, role, status FROM users ORDER BY id ASC"
+     "SELECT id, name, email, role, status, barangay_id FROM users ORDER BY id ASC"
    );
+   const [barangayRows] = await query(
+     "SELECT id, barangay FROM barangays ORDER BY barangay ASC"
+   );
+   const barangayList = (barangayRows || []).map((row) => ({
+     id: row.id,
+     barangay: row.barangay
+   }));
     if (!users || users.length === 0) {
       console.log('No users found');
     }
   
     res.render('superadmin/superadmin_users', {
-      users: users || []
+      users: users || [],
+      barangayList: barangayList || []
     });
   } catch (err) {
     console.error(err);
@@ -2787,7 +2998,7 @@ exports.sendSms = async (req, res) => {
           ) VALUES ?`,
           [values]
         );
-        console.log(`Saved ${historyRecords.length} SMS history records`);
+      
       } catch (historyErr) {
         console.error('Error saving SMS history:', historyErr);
         // Don't fail the request if history save fails
@@ -2898,6 +3109,18 @@ exports.getAllPwds = async (req, res) => {
     const filters = [];
     const params = [];
 
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, error: "Barangay account has no assigned barangay." });
+      }
+      filters.push("barangay = ?");
+      params.push(scope.name);
+    }
+
     if (req.query.status !== 'all') {
       filters.push("status <> 'Archived'");
     }
@@ -2943,13 +3166,13 @@ exports.getAllPwds = async (req, res) => {
 
 exports.getPwdMapData = async (req, res) => {
   try {
-    console.log('🔍 Fetching PWD data from database...');
+ 
     
     // First, let's see what barangay names are actually in the database
     const [allPwds] = await query(
       "SELECT DISTINCT barangay FROM pwd WHERE COALESCE(status,'Active') <> 'Archived' ORDER BY barangay"
     );
-    console.log('🔍 All barangay names in PWD database:', allPwds.map(p => p.barangay));
+   
     
     // Get PWD count by barangay
     const [pwdCounts] = await query(`
@@ -2994,8 +3217,7 @@ exports.getPwdMapData = async (req, res) => {
     }, {});
     const disabilityCounts = Object.values(disabilityCountsMap);
 
-    console.log('📊 PWD counts from database:', pwdCounts);
-    console.log('📊 Disability counts from database:', disabilityCounts);
+   
 
     // Define barangay coordinates and other data - Updated to match database names
 const barangayData = [
@@ -3076,7 +3298,7 @@ const barangayData = [
           .sort((a, b) => b.count - a.count);
       }
       
-      console.log(`📍 ${barangay.name}: ${pwdCount} PWDs (${maleCount}M, ${femaleCount}F) (matched with: ${countData ? countData._id : 'none'})`);
+     
       if (disabilities.length > 0) {
         console.log(`   Disabilities: ${disabilities.map(d => `${d.type} (${d.count})`).join(', ')}`);
       }
@@ -3090,7 +3312,7 @@ const barangayData = [
       };
     });
 
-    console.log('✅ Final PWD result with database data:', result);
+  
     res.json({ success: true, data: result });
   } catch (err) {
     console.error('❌ Error fetching PWD map data:', err);
@@ -3104,13 +3326,13 @@ const barangayData = [
 // Get senior count data by barangay for the map
 exports.getSeniorMapData = async (req, res) => {
   try {
-    console.log('🔍 Fetching senior data from database...');
+  
     
     // First, let's see what barangay names are actually in the database
     const [allSeniors] = await query(
       "SELECT DISTINCT barangay FROM senior_citizens WHERE COALESCE(status,'Active') <> 'Archived' ORDER BY barangay"
     );
-    console.log('🔍 All barangay names in database:', allSeniors.map(s => s.barangay));
+  
     
     // Get senior count by barangay with gender breakdown
     const [seniorCounts] = await query(`
@@ -3125,7 +3347,7 @@ exports.getSeniorMapData = async (req, res) => {
       ORDER BY barangay
     `);
 
-    console.log('📊 Senior counts from database:', seniorCounts);
+
 
     // Barangay marker coordinates.
     // Keep this aligned with the barangay strings stored in MySQL (`senior_citizens.barangay`)
@@ -3199,7 +3421,6 @@ exports.getSeniorMapData = async (req, res) => {
         }
       }
       
-      console.log(`📍 ${barangay.name}: ${seniorCount} seniors (matched with: ${countData ? countData._id : 'none'})`);
       
       return {
         ...barangay,
@@ -3209,7 +3430,7 @@ exports.getSeniorMapData = async (req, res) => {
       };
     });
 
-    console.log('✅ Final result with database data:', result);
+ 
     res.json({ success: true, data: result });
   } catch (err) {
     console.error('❌ Error fetching senior map data:', err);
@@ -3243,7 +3464,9 @@ exports.editUserStatus = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { id, name, email, role, status, password, confirm_password } = req.body;
+    const { id, name, email, role, status, password, confirm_password, barangay_id } = req.body;
+    const normalizedPassword = (password || '').trim();
+    const normalizedConfirmPassword = (confirm_password || '').trim();
 
     if (!id) {
       return res.status(400).json({ message: 'User id is required' });
@@ -3263,20 +3486,30 @@ exports.updateUser = async (req, res) => {
     if (role) {
       fields.push("role = ?");
       params.push(role);
+      if (role === 'Barangay') {
+        fields.push("barangay_id = ?");
+        params.push(barangay_id || null);
+      } else {
+        fields.push("barangay_id = ?");
+        params.push(null);
+      }
     }
     if (status) {
       fields.push("status = ?");
       params.push(status);
     }
 
-    if (password || confirm_password) {
-      if (!password || !confirm_password) {
+    if (normalizedPassword || normalizedConfirmPassword) {
+      if (!normalizedPassword || !normalizedConfirmPassword) {
         return res.status(400).json({ message: 'Both password and confirm_password are required' });
       }
-      if (password !== confirm_password) {
+      if (normalizedPassword.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      }
+      if (normalizedPassword !== normalizedConfirmPassword) {
         return res.status(400).json({ message: 'Passwords do not match' });
       }
-      const hashedPassword = await bcrypt.hash(password, saltrounds);
+      const hashedPassword = await bcrypt.hash(normalizedPassword, saltrounds);
       fields.push("password = ?");
       params.push(hashedPassword);
     }
@@ -3643,10 +3876,35 @@ exports.renderBarangay = async (req, res) => {
     const sessionUser = req.session?.user;
     if (!sessionUser) return res.redirect("/");
     if (sessionUser.role !== "Barangay") return res.status(403).send("Forbidden");
-    res.render("barangay/barangay", { user: sessionUser });
+    const scope = await fetchBarangayScopeForSessionUser(sessionUser);
+    res.render("barangay/barangay", {
+      user: sessionUser,
+      assignedBarangayName: scope ? scope.name : "",
+    });
   } catch (error) {
     console.error("renderBarangay:", error);
     res.status(500).send("Unable to load barangay account");
+  }
+};
+
+exports.renderBarangaySeniorDashboard = async (req, res) => {
+  try {
+    const sessionUser = req.session?.user;
+    if (!sessionUser) return res.redirect("/");
+    if (sessionUser.role !== "Barangay") return res.status(403).send("Forbidden");
+    const scope = await fetchBarangayScopeForSessionUser(sessionUser);
+    if (!scope) {
+      return res
+        .status(403)
+        .send("This account is not linked to a barangay. Contact an administrator.");
+    }
+    res.render("barangay/barangay_senior_dashboard", {
+      user: sessionUser,
+      assignedBarangayName: scope.name,
+    });
+  } catch (error) {
+    console.error("renderBarangaySeniorDashboard:", error);
+    res.status(500).send("Unable to load barangay OSCA analytics");
   }
 };
 

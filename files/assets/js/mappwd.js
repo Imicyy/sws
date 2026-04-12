@@ -515,7 +515,7 @@ define([
   headerContainer.className = "header-container modern-panel";
   headerContainer.innerHTML = `
     <h1 class="header-title">PWD Distribution Map</h1>
-    <p class="header-subtitle">Silay City, Negros Occidental</p>
+    <p class="header-subtitle">Municipality of Enrique B. Magalona, Negros Occidental</p>
   `;
   view.container.appendChild(headerContainer);
 
