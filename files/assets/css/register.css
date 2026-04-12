@@ -498,11 +498,11 @@ h3 {
 }
 
 .role-option.active {
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+    background: #b39229;
     color: white;
-    border-color: var(--accent-color);
+    border-color: #b39229;
     box-shadow: 
-        0 8px 20px rgba(41, 98, 255, 0.25),
+        0 8px 20px rgba(179, 146, 41, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
 }
