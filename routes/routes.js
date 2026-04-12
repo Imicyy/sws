@@ -132,6 +132,7 @@ router.get("/pwd-map-data", controller.getPwdMapData);
 //barangay account
 
 router.get('/barangay', requireAuth, controller.renderBarangay);
+router.get('/barangay-senior-dashboard', requireAuth, controller.renderBarangaySeniorDashboard);
 router.get('/barangay-senior', requireAuth, controller.renderBarangaySenior);
 router.get('/barangay-pwd', requireAuth, controller.renderBarangayPwd);
 module.exports = router;

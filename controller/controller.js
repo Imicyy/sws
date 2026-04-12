@@ -1967,14 +1967,29 @@ exports.generateSeniorApplicationPdf = async (req, res) => {
 // Analytics: OSCA (Senior Citizens) counts by barangay
 exports.getOscaAnalytics = async (req, res) => {
   try {
+    let barangayFilter = "";
+    const barangayParams = [];
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      barangayFilter = " AND barangay = ?";
+      barangayParams.push(scope.name);
+    }
+
     const [rows] = await query(
       `SELECT
          barangay AS name,
          COUNT(*) AS oscaCount
        FROM senior_citizens
-       WHERE status <> 'Archived'
+       WHERE status <> 'Archived'${barangayFilter}
        GROUP BY barangay
-       ORDER BY barangay ASC`
+       ORDER BY barangay ASC`,
+      barangayParams
     );
 
     const data = (rows || [])
@@ -1999,6 +2014,18 @@ exports.getSeniorCitizensForReport = async (req, res) => {
 
     const filters = ["status <> 'Archived'"];
     const params = [];
+
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      filters.push("barangay = ?");
+      params.push(scope.name);
+    }
 
     // Add date filter if month is provided (for monthly reports)
     if (month) {
@@ -2055,6 +2082,20 @@ exports.getSeniorCitizensByBarangay = async (req, res) => {
 
     if (!barangay) {
       return res.status(400).json({ success: false, message: 'Barangay is required' });
+    }
+
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      const requested = decodeURIComponent(String(barangay)).trim();
+      if (requested !== String(scope.name).trim()) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+      }
     }
 
     const filters = ['s.barangay = ?', "s.status <> 'Archived'"];
@@ -2139,6 +2180,20 @@ exports.getSeniorCitizensByBarangay = async (req, res) => {
 // Analytics: PDAO (PWD) counts and gender breakdown by barangay
 exports.getPdaoAnalytics = async (req, res) => {
   try {
+    let barangayFilter = "";
+    const barangayParams = [];
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      barangayFilter = " AND barangay = ?";
+      barangayParams.push(scope.name);
+    }
+
     const [rows] = await query(
       `SELECT 
          barangay AS name,
@@ -2146,9 +2201,10 @@ exports.getPdaoAnalytics = async (req, res) => {
          SUM(CASE WHEN gender = 'Male' THEN 1 ELSE 0 END) AS maleCount,
          SUM(CASE WHEN gender = 'Female' THEN 1 ELSE 0 END) AS femaleCount
        FROM pwd
-       WHERE status <> 'Archived'
+       WHERE status <> 'Archived'${barangayFilter}
        GROUP BY barangay
-       ORDER BY barangay ASC`
+       ORDER BY barangay ASC`,
+      barangayParams
     );
 
     const data = rows
@@ -2176,6 +2232,20 @@ exports.getPwdsByBarangay = async (req, res) => {
 
     if (!barangay) {
       return res.status(400).json({ success: false, message: 'Barangay is required' });
+    }
+
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      const requested = decodeURIComponent(String(barangay)).trim();
+      if (requested !== String(scope.name).trim()) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+      }
     }
 
     const filters = ['p.barangay = ?', "p.status <> 'Archived'"];
@@ -3039,6 +3109,18 @@ exports.getAllPwds = async (req, res) => {
     const filters = [];
     const params = [];
 
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, error: "Barangay account has no assigned barangay." });
+      }
+      filters.push("barangay = ?");
+      params.push(scope.name);
+    }
+
     if (req.query.status !== 'all') {
       filters.push("status <> 'Archived'");
     }
@@ -3794,10 +3876,35 @@ exports.renderBarangay = async (req, res) => {
     const sessionUser = req.session?.user;
     if (!sessionUser) return res.redirect("/");
     if (sessionUser.role !== "Barangay") return res.status(403).send("Forbidden");
-    res.render("barangay/barangay", { user: sessionUser });
+    const scope = await fetchBarangayScopeForSessionUser(sessionUser);
+    res.render("barangay/barangay", {
+      user: sessionUser,
+      assignedBarangayName: scope ? scope.name : "",
+    });
   } catch (error) {
     console.error("renderBarangay:", error);
     res.status(500).send("Unable to load barangay account");
+  }
+};
+
+exports.renderBarangaySeniorDashboard = async (req, res) => {
+  try {
+    const sessionUser = req.session?.user;
+    if (!sessionUser) return res.redirect("/");
+    if (sessionUser.role !== "Barangay") return res.status(403).send("Forbidden");
+    const scope = await fetchBarangayScopeForSessionUser(sessionUser);
+    if (!scope) {
+      return res
+        .status(403)
+        .send("This account is not linked to a barangay. Contact an administrator.");
+    }
+    res.render("barangay/barangay_senior_dashboard", {
+      user: sessionUser,
+      assignedBarangayName: scope.name,
+    });
+  } catch (error) {
+    console.error("renderBarangaySeniorDashboard:", error);
+    res.status(500).send("Unable to load barangay OSCA analytics");
   }
 };
 
