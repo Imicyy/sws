@@ -18,16 +18,24 @@
 
 body {
     min-height: 100vh;
-    background: var(--background-dark);
-    background-image: 
-        radial-gradient(circle at 25% 25%, rgba(41, 98, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(26, 35, 126, 0.1) 0%, transparent 50%);
     margin: 0;
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     font-weight: 400;
     line-height: 1.6;
     color: var(--text-light);
     overflow-x: hidden;
+    background: url('../images/ebmagtownhall.png');
+    background-size: cover;
+    background-position: center;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+    z-index: -1;
 }
 
 h3 {
@@ -61,10 +69,10 @@ h3 {
 }
 
 .register-container {
-    background: #0B192C;
+    background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 24px;
     box-shadow: var(--shadow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     overflow: hidden;
@@ -83,24 +91,14 @@ h3 {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.08) 0%, 
-        rgba(255, 255, 255, 0.02) 50%, 
-        rgba(255, 255, 255, 0.08) 100%);
+    background: none;
     pointer-events: none;
     z-index: -1;
 }
 
 .register-image {
     flex: 1;
-    background: 
-        linear-gradient(135deg, 
-            rgba(41, 98, 255, 0.9) 0%, 
-            rgba(26, 35, 126, 0.8) 50%, 
-            rgba(13, 71, 161, 0.9) 100%),
-        url('../images/city.jpg');
-    background-size: cover;
-    background-position: center;
+    background: transparent;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -112,16 +110,16 @@ h3 {
 }
 
 .register-image::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-        rgba(0, 0, 0, 0.1) 0%, 
-        rgba(0, 0, 0, 0.3) 100%);
-    pointer-events: none;
+    content: none;
+}
+
+.register-image h2,
+.register-image p {
+    color: #00127c;
+}
+
+.register-image h1 {
+    color: #b39229;
 }
 
 .register-image > * {
@@ -135,8 +133,20 @@ h3 {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(10px);
+    background: white;
+    color: #111;
+}
+
+.register-form h3 {
+    color: #111;
+}
+
+.register-form .role-option,
+.register-form .login-link,
+.register-form .login-link a,
+.register-form .requirements,
+.register-form .requirement {
+    color: #111;
 }
 
 .logo {
@@ -168,17 +178,17 @@ h3 {
 
 .form-control {
     width: 100%;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border: none;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0;
     padding: 1rem 3rem 1rem 1rem;
     font-size: 1rem;
     font-weight: 400;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
-    color: var(--text-light);
+    background: white;
+    color: #333;
     outline: none;
-    box-shadow: var(--shadow-secondary);
+    box-shadow: none;
 }
 
 /* ============================================ */
@@ -268,16 +278,16 @@ h3 {
 /* ============================================ */
 
 .form-control::placeholder {
-    color: var(--text-muted);
+    color: rgba(0, 0, 0, 0.45);
     font-weight: 400;
 }
 
 .form-control:focus {
     border-color: var(--accent-color);
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.9);
     box-shadow: 
-        var(--shadow-secondary),
-        0 0 0 3px rgba(41, 98, 255, 0.1);
+        0 0 0 2px rgba(41, 98, 255, 0.2),
+        0 8px 25px rgba(41, 98, 255, 0.1);
     transform: translateY(-1px);
 }
 
@@ -322,7 +332,7 @@ h3 {
 }
 
 .btn-register {
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+    background: #b39229;
     color: white;
     padding: 1rem 2rem;
     border-radius: 12px;
@@ -332,7 +342,7 @@ h3 {
     border: none;
     cursor: pointer;
     box-shadow: 
-        0 10px 25px rgba(41, 98, 255, 0.25),
+        0 10px 25px rgba(179, 146, 41, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 1.5rem;
@@ -355,9 +365,9 @@ h3 {
 }
 
 .btn-register:hover {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+    background: #a67820;
     box-shadow: 
-        0 15px 35px rgba(41, 98, 255, 0.35),
+        0 15px 35px rgba(179, 146, 41, 0.35),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
 }
