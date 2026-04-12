@@ -919,6 +919,18 @@ fieldset:hover legend {
     outline: none;
 }
 
+/* Selects outside .form-group: Bootstrap fixed height + generous padding clips option text */
+select.form-control {
+  height: auto;
+  min-height: calc(1.5em + 1rem + 2px);
+  line-height: 1.5;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  padding-right: 2rem;
+  box-sizing: border-box;
+}
+
 .text-muted {
     color: #64748b !important;
     font-size: 0.875rem;
