@@ -24,7 +24,7 @@ body {
     line-height: 1.6;
     color: var(--text-light);
     overflow-x: hidden;
-    background: url('../images/ebmagtownhall.png');
+     background: linear-gradient(180deg, rgba(243, 188, 8, 0.8) 0%, rgba(0, 18, 124, 0.8) 100%), url('../images/ebmagtownhall.png');
     background-size: cover;
     background-position: center;
 }
