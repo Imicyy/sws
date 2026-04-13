@@ -172,17 +172,3 @@ input:focus, select:focus {
         gap: 20px;
     }
 }
-
-/* Blue primary + yellow accent theme overrides */
-:root {
-    --primary: rgba(0, 18, 124, 0.8);
-    --primary-dark: rgba(0, 18, 124, 0.8);
-    --theme-accent: rgba(243, 188, 8, 0.8);
-}
-
-.maintenance-alert,
-.tab.active {
-    background: var(--theme-accent) !important;
-    border-color: var(--theme-accent) !important;
-    color: #111 !important;
-}
