@@ -991,3 +991,35 @@ select.form-control {
     font-weight: 600;
     color: #0f172a;
 }
+
+/* Blue primary + yellow accent theme overrides */
+:root {
+    --theme-primary: rgba(0, 18, 124, 0.8);
+    --theme-accent: rgba(243, 188, 8, 0.8);
+}
+
+.header,
+.header-navbar,
+.navbar-logo,
+.pcoded-navbar,
+.btn,
+.btn-primary,
+.btn-info {
+    background: var(--theme-primary) !important;
+    border-color: var(--theme-primary) !important;
+}
+
+.count-badge,
+.status-badge,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--theme-accent) !important;
+    border-color: var(--theme-accent) !important;
+    color: #111 !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--theme-accent) !important;
+    box-shadow: 0 0 0 3px rgba(243, 188, 8, 0.3) !important;
+}
