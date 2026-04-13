@@ -609,4 +609,10 @@ body.horizontal-icon .pcoded .pcoded-navbar, body.horizontal-icon-fixed .pcoded 
 body.horizontal-icon .pcoded[pcoded-device-type="desktop"] .pcoded-navbar .pcoded-item > li.pcoded-hasmenu > a, body.horizontal-icon-fixed .pcoded[pcoded-device-type="desktop"] .pcoded-navbar .pcoded-item > li.pcoded-hasmenu > a {
   height: 70px; }
 
+/* custom global navbar/sidebar color */
+.pcoded .pcoded-navbar,
+.pcoded .pcoded-navbar .pcoded-item li.pcoded-hasmenu .pcoded-submenu,
+.pcoded .pcoded-navbar .pcoded-item .pcoded-submenu .pcoded-submenu {
+  background: #00127c !important; }
+
 /*# sourceMappingURL=pcoded-horizontal.min.css.map */
