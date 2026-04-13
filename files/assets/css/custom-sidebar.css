@@ -1,0 +1,22 @@
+/* Global sidebar color override */
+.pcoded .pcoded-navbar,
+.pcoded .pcoded-navbar .main-menu,
+.pcoded .pcoded-navbar .main-menu .main-menu-header,
+.pcoded .pcoded-navbar .pcoded-item > li > a,
+.pcoded .pcoded-navbar .pcoded-item > li.active > a,
+.pcoded .pcoded-navbar .pcoded-item > li:hover > a,
+.pcoded .pcoded-navbar .pcoded-item > li.pcoded-trigger > a,
+.pcoded .pcoded-navbar .pcoded-item li.pcoded-hasmenu .pcoded-submenu,
+.pcoded .pcoded-navbar .pcoded-item li.pcoded-hasmenu .pcoded-submenu li > a,
+.pcoded .pcoded-navbar .pcoded-item li.pcoded-hasmenu .pcoded-submenu li.active > a,
+.pcoded .pcoded-navbar .pcoded-item li.pcoded-hasmenu .pcoded-submenu li:hover > a {
+  background: #00127c !important;
+}
+
+/* Match top brand/logo strip with sidebar color */
+.pcoded .pcoded-header .navbar-logo,
+.pcoded .pcoded-header .navbar-logo[logo-theme],
+.pcoded .pcoded-header .pcoded-left-header,
+.pcoded .pcoded-navbar .pcoded-header .pcoded-left-header[lheader-theme] {
+  background: #00127c !important;
+}
