@@ -40,26 +40,58 @@ function generateVerificationCode() {
 }
 
 async function sendLoginVerificationEmail(toEmail, code) {
+  console.log(`--- Starting Email Process ---`);
+  console.log(`Attempting to send code to: ${toEmail}`);
+  console.log(`Using SMTP Host: ${process.env.SMTP_HOST} on Port: ${process.env.SMTP_PORT}`);
+
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT), 
-    secure: process.env.SMTP_SECURE === "true", // Strictly checks for boolean true
+    secure: process.env.SMTP_SECURE === "true", 
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS // Use the 16-character App Password here
+      pass: process.env.SMTP_PASS 
     },
     tls: {
-      rejectUnauthorized: false // Helps if you are on a local or restricted network
+      rejectUnauthorized: false 
     }
   });
 
-  await transporter.sendMail({
-    from: `"Social Welfare Office" <${process.env.SMTP_USER}>`,
-    to: toEmail,
-    subject: "Your login verification code",
-    text: `Your verification code is ${code}.`,
-    html: `<p>Your verification code is <strong>${code}</strong>.</p>`
-  });
+  try {
+    // 1. Verify the connection configuration
+    await transporter.verify();
+    console.log("SMTP Configuration is correct. Connection established.");
+
+    // 2. Attempt to send the mail
+    const info = await transporter.sendMail({
+      from: `"Social Welfare Office" <${process.env.SMTP_USER}>`,
+      to: toEmail,
+      subject: "Your login verification code",
+      text: `Your verification code is ${code}.`,
+      html: `<p>Your verification code is <strong>${code}</strong>.</p>`
+    });
+
+    console.log("Email sent successfully!");
+    console.log("Message ID:", info.messageId);
+    console.log(`--- Email Process Complete ---`);
+
+  } catch (error) {
+    console.error("--- SMTP ERROR ---");
+    console.error("Error Code:", error.code);
+    console.error("Error Message:", error.message);
+    
+    if (error.code === 'EAUTH') {
+      console.error("DEBUG TIP: Authentication failed. This usually means your SMTP_PASS (App Password) is incorrect or your SMTP_USER email is wrong.");
+    } else if (error.code === 'ETIMEDOUT') {
+      console.error("DEBUG TIP: Connection timed out. Check if your firewall or ISP blocks port " + process.env.SMTP_PORT);
+    }
+    
+    console.error("Full Error Stack:", error);
+    console.error("--- End of Error Report ---");
+    
+    // Throw the error so your login route can handle the failure
+    throw error; 
+  }
 }
 
 function computePolygonCentroid(feature) {
