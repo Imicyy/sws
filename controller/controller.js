@@ -251,15 +251,17 @@ exports.login = async (req, res) => {
       });
     }
   
-      // Verify password
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({
-          success: false,
-          error: "Invalid credentials",
-        });
-      }
+      if (user) {
+        console.log("---------------- DATABASE DEBUG ----------------");
+        console.log("User found in DB:", user.username);
+        console.log("Password string from DB:", user.password); 
+        console.log("------------------------------------------------");
 
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, error: "Invalid credentials" });
+        }
+      }
       if (Number(user.is_verified) === 0) {
         const verificationCode = generateVerificationCode();
         const expiresAt = Date.now() + 10 * 60 * 1000;

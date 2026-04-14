@@ -513,28 +513,29 @@ CREATE TABLE `users` (
   `role` enum('Admin','Staff','Super Admin','Barangay') NOT NULL,
   `status` enum('Active','Suspended','Inactive') DEFAULT 'Active',
   `barangay_id` int(11) DEFAULT NULL,
-  `staff_classification` enum('PDAO','OSCA') DEFAULT NULL
+  `staff_classification` enum('PDAO','OSCA') DEFAULT NULL,
+  `is_verified` enum('Yes','No') DEFAULT 'No'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `status`, `barangay_id`, `staff_classification`) VALUES
-(1, 'Charles Ivan C. Monserate', 'ivancharles389@gmail.com', '$2b$10$gjcaBz4HskYRXoS.dIZw1em0HL6spJzR4XA9l1poOEg/1Lbcueib6', 'Staff', 'Active', NULL, NULL),
-(2, 'Monserate, Charles Ivan C.', 'admin@gmail.com', '$2b$10$ATcty0512XM8u8yU52FDeue.VtaLCG5qeKJqga5NPmMd7Ni8uqhMi', 'Admin', 'Active', NULL, NULL),
-(3, 'CHARLES IVAN C. MONSERATE', 'monseratecharles@gmail.com', '$2b$10$NbPP7BjfxP3gltzghii9decUyZMNxu7f58b752b1PNOTlg7.FEz4y', 'Staff', 'Active', NULL, NULL),
-(4, 'Jen Chome', 'jenchm@gmail.com', '$2b$10$f6.7.NBHSEygDBTWpYb4wOlus0PGaVIoPHSuuE0JBJPELnBxeo2QC', 'Admin', 'Active', NULL, NULL),
-(5, 'IC', 'staff_001@gmail.com', '$2b$10$LXSyuvM/3JvjVxQihdEuxOUHA99QdJ37iMTGi6/xXg/G1YdK/KKza', 'Staff', 'Active', NULL, NULL),
-(6, 'Jen', 'Admin_001@gmail.com', '$2b$10$PUm3UfFoBZKXmEr4HkxKR.PXhKMLNFgPYszoaGmXXqjIwss6IcqyC', 'Admin', 'Active', NULL, NULL),
-(7, 'Thea', 'Superadmin_001@gmail.com', '$2b$10$1RPYTaeTw2BXSNgq5kBLOOkan2JM6objE6OZCQ1e4oA6O3e30HIbK', 'Super Admin', 'Active', NULL, NULL),
-(10, 'Van Dough', 'Van@gmail.com', '$2b$10$qWyL/X90cXJxQmlLvEvrtetg.LiKuFleIE6HF3i27oI1JpIt0BIE.', 'Staff', 'Active', NULL, NULL),
-(11, 'Angel Mae', 'angelmae@gmail.com', '$2b$10$ppGH9cGEf.NAqx2yHrdFNeztvyzk.W2BRyvIxLFCMnV7drdWublJ.', 'Staff', 'Active', NULL, NULL),
-(12, 'Test Admin 1761679925602', 'testadmin1761679925602@gmail.com', '$2b$10$A5EwpsAnzEUQ.Po9gx2eB.u1Rir92lMgElyA0lAhhDtpY2RXrZCJa', 'Admin', 'Active', NULL, NULL),
-(14, 'Test Staff 1761679946629', 'teststaff1761679946629@gmail.com', '$2b$10$SKgFUryGoNZQVVC.IT1cJ.c043DkCOuD.ggyUO.dBmOOVhXHqESje', 'Staff', 'Active', NULL, NULL),
-(15, 'Test Admin 1761706590739', 'testadmin1761706590739@gmail.com', '$2b$10$tHt7VtL.YJeE.UV4ixiAqOV.N43Opqmk0tl7/4aPzvYPv1GmyqYGO', 'Admin', 'Active', NULL, NULL),
-(16, 'Alysa Mae Dizon', 'chuchuu.chm@gmail.com', '$2b$10$WrPDeTXx7A.PEn.A32LvPeQpJVUaTAZAArZh1dwnmnjXt3LrUQ2bC', 'Staff', 'Inactive', NULL, NULL),
-(17, 'Ali Cante', 'Alicante_001@gmail.com', '$2b$10$Wn7fNSnwnoDWQufgTiJ3aO6G9XRSsVkz9B8d56tIgXDCOHSdJtlwK', 'Barangay', 'Active', 2, NULL);
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `status`, `barangay_id`, `staff_classification`, `is_verified`) VALUES
+(1, 'Charles Ivan C. Monserate', 'ivancharles389@gmail.com', '$2b$10$gjcaBz4HskYRXoS.dIZw1em0HL6spJzR4XA9l1poOEg/1Lbcueib6', 'Staff', 'Active', NULL, NULL, 'No'),
+(2, 'Monserate, Charles Ivan C.', 'admin@gmail.com', '$2b$10$ATcty0512XM8u8yU52FDeue.VtaLCG5qeKJqga5NPmMd7Ni8uqhMi', 'Admin', 'Active', NULL, NULL, 'No'),
+(3, 'CHARLES IVAN C. MONSERATE', 'monseratecharles@gmail.com', '$2b$10$NbPP7BjfxP3gltzghii9decUyZMNxu7f58b752b1PNOTlg7.FEz4y', 'Staff', 'Active', NULL, NULL, 'No'),
+(4, 'Jen Chome', 'jenchm@gmail.com', '$2b$10$f6.7.NBHSEygDBTWpYb4wOlus0PGaVIoPHSuuE0JBJPELnBxeo2QC', 'Admin', 'Active', NULL, NULL, 'No'),
+(5, 'IC', 'staff_001@gmail.com', '$2b$10$LXSyuvM/3JvjVxQihdEuxOUHA99QdJ37iMTGi6/xXg/G1YdK/KKza', 'Staff', 'Active', NULL, NULL,'Yes'),
+(6, 'Jen', 'Admin_001@gmail.com', '$2b$10$PUm3UfFoBZKXmEr4HkxKR.PXhKMLNFgPYszoaGmXXqjIwss6IcqyC', 'Admin', 'Active', NULL, NULL, 'No'),
+(7, 'Thea', 'Superadmin_001@gmail.com', '$2b$10$1RPYTaeTw2BXSNgq5kBLOOkan2JM6objE6OZCQ1e4oA6O3e30HIbK', 'Super Admin', 'Active', NULL, NULL,'Yes'),
+(10, 'Van Dough', 'Van@gmail.com', '$2b$10$qWyL/X90cXJxQmlLvEvrtetg.LiKuFleIE6HF3i27oI1JpIt0BIE.', 'Staff', 'Active', NULL, NULL, 'No'),
+(11, 'Angel Mae', 'angelmae@gmail.com', '$2b$10$ppGH9cGEf.NAqx2yHrdFNeztvyzk.W2BRyvIxLFCMnV7drdWublJ.', 'Staff', 'Active', NULL, NULL, 'No'),
+(12, 'Test Admin 1761679925602', 'testadmin1761679925602@gmail.com', '$2b$10$A5EwpsAnzEUQ.Po9gx2eB.u1Rir92lMgElyA0lAhhDtpY2RXrZCJa', 'Admin', 'Active', NULL, NULL, 'No'),
+(14, 'Test Staff 1761679946629', 'teststaff1761679946629@gmail.com', '$2b$10$SKgFUryGoNZQVVC.IT1cJ.c043DkCOuD.ggyUO.dBmOOVhXHqESje', 'Staff', 'Active', NULL, NULL, 'No'),
+(15, 'Test Admin 1761706590739', 'testadmin1761706590739@gmail.com', '$2b$10$tHt7VtL.YJeE.UV4ixiAqOV.N43Opqmk0tl7/4aPzvYPv1GmyqYGO', 'Admin', 'Active', NULL, NULL, 'No'),
+(16, 'Alysa Mae Dizon', 'chuchuu.chm@gmail.com', '$2b$10$WrPDeTXx7A.PEn.A32LvPeQpJVUaTAZAArZh1dwnmnjXt3LrUQ2bC', 'Staff', 'Inactive', NULL, NULL, 'No'),
+(17, 'Ali Cante', 'Alicante_001@gmail.com', '$2b$10$Wn7fNSnwnoDWQufgTiJ3aO6G9XRSsVkz9B8d56tIgXDCOHSdJtlwK', 'Barangay', 'Active', 2, NULL, 'No');
 
 -- --------------------------------------------------------
 
