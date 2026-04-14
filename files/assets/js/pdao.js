@@ -15,6 +15,47 @@ let totalFemale = 0;
 let averagePDAO = 0;
 let averageMalePercentage = '0.0';
 let averageFemalePercentage = '0.0';
+let averageDivisor = 0;
+
+function normalizeName(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+function getAssignedBarangayName() {
+    if (window.assignedBarangayName) {
+        return window.assignedBarangayName;
+    }
+
+    const assignedLabel = document.querySelector('.container .text-muted');
+    if (!assignedLabel) return '';
+    const text = (assignedLabel.textContent || '').trim();
+    return text.replace(/^barangay:\s*/i, '').trim();
+}
+
+async function resolveAverageDivisor(defaultDivisor) {
+    if (window.analyticsAverageScope !== 'purok') {
+        return defaultDivisor;
+    }
+
+    const assignedName = normalizeName(getAssignedBarangayName());
+    if (!assignedName) {
+        return defaultDivisor;
+    }
+
+    try {
+        const res = await fetch('/api/barangays', { credentials: 'same-origin' });
+        if (!res.ok) return defaultDivisor;
+        const json = await res.json();
+        if (!json.success || !Array.isArray(json.barangayList)) return defaultDivisor;
+
+        const match = json.barangayList.find(item => normalizeName(item.barangay) === assignedName);
+        const purokCount = match && Array.isArray(match.puroks) ? match.puroks.length : 0;
+        return purokCount > 0 ? purokCount : defaultDivisor;
+    } catch (err) {
+        console.warn('Unable to resolve purok divisor for average:', err);
+        return defaultDivisor;
+    }
+}
 
 // Update stats display (after load)
 function updateStatsDisplay() {
@@ -23,12 +64,13 @@ function updateStatsDisplay() {
 }
 
 // Initialize data
-function initializeData() {
+async function initializeData() {
     const entries = Object.entries(barangayData);
     totalPDAO = entries.reduce((sum, [_, d]) => sum + d.pdaoCount, 0);
     totalMale = entries.reduce((sum, [_, d]) => sum + (d.maleCount || 0), 0);
     totalFemale = entries.reduce((sum, [_, d]) => sum + (d.femaleCount || 0), 0);
-    averagePDAO = entries.length ? Math.round(totalPDAO / entries.length) : 0;
+    averageDivisor = await resolveAverageDivisor(entries.length);
+    averagePDAO = averageDivisor ? Math.round(totalPDAO / averageDivisor) : 0;
     averageMalePercentage = totalPDAO ? ((totalMale / totalPDAO) * 100).toFixed(1) : '0.0';
     averageFemalePercentage = totalPDAO ? ((totalFemale / totalPDAO) * 100).toFixed(1) : '0.0';
     updateStatsDisplay();
@@ -62,13 +104,13 @@ async function loadPdaoData() {
             };
         });
 
-        initializeData();
+        await initializeData();
         renderTable();
         renderPagination();
     } catch (err) {
         console.error(err);
         barangayData = {};
-        initializeData();
+        await initializeData();
         renderTable();
         renderPagination();
     }
