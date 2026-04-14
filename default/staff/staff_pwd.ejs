@@ -225,7 +225,73 @@
 												if (md < 0 || (md === 0 && as.getDate() < bd.getDate())) a--;
 												return a < 0 ? 'N/A' : a;
 											}
+
+											var now = new Date();
+											var currentMonth = now.getMonth();
+											var currentDate = now.getDate();
+											var birthdayTodayList = [];
+											var birthdayMonthList = [];
+
+											(pwds || []).forEach(function(pwd) {
+												if (!pwd || !pwd.birthday) return;
+												var bd = new Date(pwd.birthday);
+												if (isNaN(bd.getTime())) return;
+
+												var fullName = [pwd.first_name || '', pwd.middle_name || '', pwd.last_name || ''].join(' ').replace(/\s+/g, ' ').trim();
+												if (!fullName) fullName = 'Unnamed record';
+
+												if (bd.getMonth() === currentMonth) {
+													birthdayMonthList.push({ name: fullName, day: bd.getDate() });
+													if (bd.getDate() === currentDate) {
+														birthdayTodayList.push(fullName);
+													}
+												}
+											});
+
+											birthdayMonthList.sort(function(a, b) {
+												if (a.day !== b.day) return a.day - b.day;
+												return a.name.localeCompare(b.name);
+											});
 											%>
+											<div class="card mb-3">
+												<div class="card-body py-3">
+													<h6 class="mb-3">
+														<i class="feather icon-gift mr-1"></i> Birthday Celebrants
+													</h6>
+													<div class="row">
+														<div class="col-md-6 mb-3 mb-md-0">
+															<div class="d-flex align-items-center justify-content-between">
+																<strong>Today</strong>
+																<span class="badge badge-primary"><%= birthdayTodayList.length %></span>
+															</div>
+															<ul class="mb-0 mt-2 pl-3">
+																<% if (birthdayTodayList.length) { %>
+																	<% birthdayTodayList.forEach(function(name) { %>
+																		<li><%= name %></li>
+																	<% }) %>
+																<% } else { %>
+																	<li class="text-muted">No celebrants today.</li>
+																<% } %>
+															</ul>
+														</div>
+														<div class="col-md-6">
+															<div class="d-flex align-items-center justify-content-between">
+																<strong>This Month</strong>
+																<span class="badge badge-info"><%= birthdayMonthList.length %></span>
+															</div>
+															<ul class="mb-0 mt-2 pl-3" style="max-height: 180px; overflow-y: auto;">
+																<% if (birthdayMonthList.length) { %>
+																	<% birthdayMonthList.forEach(function(item) { %>
+																		<li><%= item.name %> <span class="text-muted">(Day <%= item.day %>)</span></li>
+																	<% }) %>
+																<% } else { %>
+																	<li class="text-muted">No birthday celebrants this month.</li>
+																<% } %>
+															</ul>
+														</div>
+													</div>
+												</div>
+											</div>
 											 <table id="example" class="display" style="width:100%">
 	<thead>
 		<tr>
