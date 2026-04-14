@@ -41,21 +41,24 @@ function generateVerificationCode() {
 
 async function sendLoginVerificationEmail(toEmail, code) {
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT), 
+    secure: process.env.SMTP_SECURE === "true", // Strictly checks for boolean true
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
+      pass: process.env.SMTP_PASS // Use the 16-character App Password here
+    },
+    tls: {
+      rejectUnauthorized: false // Helps if you are on a local or restricted network
     }
   });
 
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    from: `"Social Welfare Office" <${process.env.SMTP_USER}>`,
     to: toEmail,
     subject: "Your login verification code",
-    text: `Your verification code is ${code}. This code will expire in 10 minutes.`,
-    html: `<p>Your verification code is <strong>${code}</strong>.</p><p>This code will expire in 10 minutes.</p>`
+    text: `Your verification code is ${code}.`,
+    html: `<p>Your verification code is <strong>${code}</strong>.</p>`
   });
 }
 
