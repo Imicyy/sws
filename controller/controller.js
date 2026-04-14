@@ -25,7 +25,10 @@ const ALL_BARANGAYS_GEOJSON_PATH = path.join(
 let barangayCentroidsCache = null;
 
 function getRedirectPathByRole(user) {
-  if (user.role === "Admin") return "/index";
+  if (user.role === "Admin") {
+    if (user.staff_classification === "OSCA") return "/Analytics";
+    return "/index";
+  }
   if (user.role === "Staff") {
     if (user.staff_classification === "OSCA") return "/Senior-form";
     return "/Pwd-form";
@@ -138,9 +141,9 @@ exports.createUser = async (req, res) => {
             });
         }
 
-        // Validate staff classification for Staff role
+        // Validate staff classification for Staff and Admin roles
         let staffClassificationVal = null;
-        if (role === "Staff") {
+        if (role === "Staff" || role === "Admin") {
             if (!staff_classification) {
                 return res.status(400).json({
                     success: false,
@@ -188,7 +191,7 @@ exports.createUser = async (req, res) => {
         // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, saltrounds);
 
-        // Insert new user into MySQL (barangay_id NULL for non-Barangay roles, staff_classification only for Staff)
+        // Insert new user into MySQL (barangay_id NULL for non-Barangay roles, staff_classification for Staff/Admin)
         const [result] = await query(
             "INSERT INTO users (name, email, password, role, status, barangay_id, staff_classification) VALUES (?, ?, ?, ?, 'Active', ?, ?)",
             [name, email, hashedPassword, role, barangayIdVal, staffClassificationVal]
@@ -221,6 +224,18 @@ exports.createUser = async (req, res) => {
 exports.login = async (req, res) => {
     try {
       const { email, password } = req.body;
+
+      async function logLoginAttempt(userId, status) {
+        if (!userId) return;
+        try {
+          await query(
+            "INSERT INTO login_logs (user_id, status) VALUES (?, ?)",
+            [userId, status]
+          );
+        } catch (logErr) {
+          console.warn("login attempt log failed:", logErr.message);
+        }
+      }
   
       // Validate input
       if (!email || !password) {
@@ -245,6 +260,7 @@ exports.login = async (req, res) => {
       const user = rows[0];
 
       if (user.status !== "Active") {
+      await logLoginAttempt(user.id, "failed");
       return res.status(403).json({
         success: false,
         error: "Account is not active. Please contact the administrator.",
@@ -254,6 +270,7 @@ exports.login = async (req, res) => {
       // Verify password
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
+        await logLoginAttempt(user.id, "failed");
         return res.status(401).json({
           success: false,
           error: "Invalid credentials",
@@ -291,11 +308,8 @@ exports.login = async (req, res) => {
         });
       }
 
-      //Logs login
-      // await query(
-      //   "INSERT INTO login_logs (user_id) VALUES (?)",
-      //   [user.id]
-      // );
+      // Log successful login.
+      await logLoginAttempt(user.id, "success");
   
       // Store user data in session (excluding password)
       req.session.user = {
@@ -352,6 +366,10 @@ exports.verifyLoginCode = async (req, res) => {
     }
 
     await query("UPDATE users SET is_verified = 1 WHERE id = ?", [pending.userId]);
+    await query(
+      "INSERT INTO login_logs (user_id, status) VALUES (?, ?)",
+      [pending.userId, "success"]
+    );
 
     req.session.user = {
       _id: pending.userId,
@@ -3705,7 +3723,9 @@ exports.addPurok = async (req, res) => {
 
 exports.renderAdminAlert = async (req, res) => {
   try {
-    res.render('admin/admin_alert');
+    res.render('admin/admin_alert', {
+      user: req.session?.user || null
+    });
   } catch (error) {
     
   }
@@ -3843,7 +3863,7 @@ exports.renderSuperAdminLogs = async (req, res) => {
     let loginLogs = [];
     try {
       const [rows] = await query(
-        `SELECT l.id, l.user_id, l.created_at,
+        `SELECT l.id, l.user_id, l.status AS login_result, l.created_at,
                 u.name AS user_name, u.email AS user_email, u.role AS user_role, u.status AS user_status
          FROM login_logs l
          LEFT JOIN users u ON u.id = l.user_id
