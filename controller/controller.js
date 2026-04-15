@@ -1982,9 +1982,11 @@ exports.generateSeniorApplicationPdf = async (req, res) => {
 
 
   
-// Analytics: OSCA (Senior Citizens) counts by barangay
+// Analytics: OSCA (Senior Citizens) counts by barangay/purok
 exports.getOscaAnalytics = async (req, res) => {
   try {
+    const groupBy = String(req.query?.groupBy || '').toLowerCase() === 'purok' ? 'purok' : 'barangay';
+    const groupField = groupBy === 'purok' ? 'purok' : 'barangay';
     let barangayFilter = "";
     const barangayParams = [];
     const su = req.session?.user;
@@ -2001,12 +2003,12 @@ exports.getOscaAnalytics = async (req, res) => {
 
     const [rows] = await query(
       `SELECT
-         barangay AS name,
+         ${groupField} AS name,
          COUNT(*) AS oscaCount
        FROM senior_citizens
        WHERE status <> 'Archived'${barangayFilter}
-       GROUP BY barangay
-       ORDER BY barangay ASC`,
+       GROUP BY ${groupField}
+       ORDER BY ${groupField} ASC`,
       barangayParams
     );
 
@@ -2071,6 +2073,7 @@ exports.getSeniorCitizensForReport = async (req, res) => {
       `SELECT
          id,
          barangay,
+         purok,
          gender
        FROM senior_citizens
        ${whereClause}`,
@@ -2080,7 +2083,7 @@ exports.getSeniorCitizensForReport = async (req, res) => {
     const data = (rows || []).map(r => ({
       _id: r.id,
       identifying_information: {
-        address: { barangay: r.barangay },
+        address: { barangay: r.barangay, purok: r.purok },
         gender: r.gender
       }
     }));
@@ -2195,9 +2198,107 @@ exports.getSeniorCitizensByBarangay = async (req, res) => {
   }
 };
 
-// Analytics: PDAO (PWD) counts and gender breakdown by barangay
+// Get senior citizens (essential fields) for a specific purok
+exports.getSeniorCitizensByPurok = async (req, res) => {
+  try {
+    const { purok } = req.params;
+    const { month, year } = req.query;
+
+    if (!purok) {
+      return res.status(400).json({ success: false, message: 'Purok is required' });
+    }
+
+    const filters = ['s.purok = ?', "s.status <> 'Archived'"];
+    const params = [purok];
+
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      filters.push('s.barangay = ?');
+      params.push(scope.name);
+    }
+
+    if (month) {
+      const monthNum = parseInt(month, 10);
+      const parsedYear = parseInt(year, 10);
+      const yearNum = Number.isNaN(parsedYear) ? new Date().getFullYear() : parsedYear;
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+      filters.push('s.created_at >= ?', 's.created_at <= ?');
+      params.push(startDate, endDate);
+    } else if (year) {
+      const yearNum = parseInt(year, 10);
+      const startDate = new Date(yearNum, 0, 1);
+      const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+      filters.push('s.created_at >= ?', 's.created_at <= ?');
+      params.push(startDate, endDate);
+    }
+
+    const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+
+    const [rows] = await query(
+      `SELECT
+         s.id,
+         s.last_name,
+         s.first_name,
+         s.middle_name,
+         s.extension,
+         s.age,
+         s.gender,
+         (
+           SELECT sc.phone
+           FROM senior_contacts sc
+           WHERE sc.senior_id = s.id
+             AND sc.phone IS NOT NULL
+             AND sc.phone <> ''
+           ORDER BY
+             CASE WHEN sc.type = 'primary' THEN 0 ELSE 1 END,
+             sc.id ASC
+           LIMIT 1
+         ) AS contact
+       FROM senior_citizens s
+       ${whereClause}
+       ORDER BY s.id DESC`,
+      params
+    );
+
+    const data = (rows || []).map(s => {
+      const fullName = [
+        s.last_name,
+        s.first_name,
+        s.middle_name,
+        s.extension
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      return {
+        id: s.id,
+        fullName: fullName || 'Unnamed',
+        gender: s.gender || 'N/A',
+        age: s.age ?? 'N/A',
+        contact: s.contact || 'N/A'
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching senior citizens by purok:', err);
+    res.status(500).json({ success: false, message: 'Failed to load purok senior citizens' });
+  }
+};
+
+// Analytics: PDAO (PWD) counts and gender breakdown by barangay/purok
 exports.getPdaoAnalytics = async (req, res) => {
   try {
+    const groupBy = String(req.query?.groupBy || '').toLowerCase() === 'purok' ? 'purok' : 'barangay';
+    const groupField = groupBy === 'purok' ? 'purok' : 'barangay';
     let barangayFilter = "";
     const barangayParams = [];
     const su = req.session?.user;
@@ -2214,14 +2315,14 @@ exports.getPdaoAnalytics = async (req, res) => {
 
     const [rows] = await query(
       `SELECT 
-         barangay AS name,
+         ${groupField} AS name,
          COUNT(*) AS pdaoCount,
          SUM(CASE WHEN gender = 'Male' THEN 1 ELSE 0 END) AS maleCount,
          SUM(CASE WHEN gender = 'Female' THEN 1 ELSE 0 END) AS femaleCount
        FROM pwd
        WHERE status <> 'Archived'${barangayFilter}
-       GROUP BY barangay
-       ORDER BY barangay ASC`,
+       GROUP BY ${groupField}
+       ORDER BY ${groupField} ASC`,
       barangayParams
     );
 
@@ -2332,6 +2433,97 @@ exports.getPwdsByBarangay = async (req, res) => {
   } catch (err) {
     console.error('Error fetching PWDs by barangay:', err);
     res.status(500).json({ success: false, message: 'Failed to load barangay PWDs' });
+  }
+};
+
+// Get PWDs (essential fields) for a specific purok
+exports.getPwdsByPurok = async (req, res) => {
+  try {
+    const { purok } = req.params;
+    const { month, year } = req.query;
+
+    if (!purok) {
+      return res.status(400).json({ success: false, message: 'Purok is required' });
+    }
+
+    const filters = ['p.purok = ?', "p.status <> 'Archived'"];
+    const params = [purok];
+
+    const su = req.session?.user;
+    if (su?.role === "Barangay") {
+      const scope = await fetchBarangayScopeForSessionUser(su);
+      if (!scope) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Barangay account has no assigned barangay." });
+      }
+      filters.push('p.barangay = ?');
+      params.push(scope.name);
+    }
+
+    if (month) {
+      const monthNum = parseInt(month, 10);
+      const yearNum = parseInt(year, 10) || new Date().getFullYear();
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+      filters.push('p.created_at >= ?', 'p.created_at <= ?');
+      params.push(startDate, endDate);
+    } else if (year) {
+      const yearNum = parseInt(year, 10);
+      const startDate = new Date(yearNum, 0, 1);
+      const endDate = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+      filters.push('p.created_at >= ?', 'p.created_at <= ?');
+      params.push(startDate, endDate);
+    }
+
+    const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+
+    const [rows] = await query(
+      `SELECT 
+         p.id,
+         p.first_name,
+         p.middle_name,
+         p.last_name,
+         p.age,
+         p.gender,
+         c.phone AS primary_phone,
+         GROUP_CONCAT(DISTINCT d.disability ORDER BY d.disability SEPARATOR ', ') AS disabilities
+       FROM pwd p
+       LEFT JOIN pwd_contacts c 
+         ON c.pwd_id = p.id AND c.type = 'primary'
+       LEFT JOIN pwd_disabilities d
+         ON d.pwd_id = p.id
+       ${whereClause}
+       GROUP BY p.id, p.first_name, p.middle_name, p.last_name, p.age, p.gender, c.phone`,
+      params
+    );
+
+    const data = rows.map((pwd) => {
+      const fullName = [
+        pwd.last_name,
+        pwd.first_name,
+        pwd.middle_name
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      const disabilities = pwd.disabilities || 'N/A';
+
+      return {
+        id: pwd.id,
+        fullName: fullName || 'Unnamed',
+        gender: pwd.gender || 'N/A',
+        age: pwd.age ?? 'N/A',
+        contact: pwd.primary_phone || 'N/A',
+        disability: disabilities
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching PWDs by purok:', err);
+    res.status(500).json({ success: false, message: 'Failed to load purok PWDs' });
   }
 };
 

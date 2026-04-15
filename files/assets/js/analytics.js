@@ -7,6 +7,8 @@ const itemsPerPage = 5;
 let filteredData = [];
 let allData = [];
 let currentChartType = 'doughnut';
+const analyticsGroupBy = window.analyticsGroupBy === 'purok' ? 'purok' : 'barangay';
+const analyticsGroupLabel = analyticsGroupBy === 'purok' ? 'Purok' : 'Barangay';
 
 // Calculate statistics (computed after data load)
 let totalOSCA = 0;
@@ -111,7 +113,7 @@ async function initializeData() {
 
 async function loadOscaData() {
     try {
-        const res = await fetch('/api/analytics/osca', { credentials: 'same-origin' });
+        const res = await fetch(`/api/analytics/osca?groupBy=${encodeURIComponent(analyticsGroupBy)}`, { credentials: 'same-origin' });
         const json = await res.json();
         if (!json.success) throw new Error('Failed to fetch OSCA data');
 
@@ -160,7 +162,7 @@ function renderTable() {
     document.getElementById('pagination').style.display = 'flex';
 
     pageData.forEach(item => {
-        const safeBarangay = item.name.replace(/"/g, '&quot;');
+        const safeScopeName = item.name.replace(/"/g, '&quot;');
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="barangay-name">${item.name}</td>
@@ -169,10 +171,10 @@ function renderTable() {
                 <button class="view-chart-btn" onclick="showChart(${item.id})">
                      View Chart
                 </button>
-                <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="openBarangayPrint(this.dataset.barangay, this)">
+                <button class="view-chart-btn" data-scope-name="${safeScopeName}" onclick="openBarangayPrint(this.dataset.scopeName, this)">
                      Print
                 </button>
-                <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="generateBarangayReport(this.dataset.barangay, this)">
+                <button class="view-chart-btn" data-scope-name="${safeScopeName}" onclick="generateBarangayReport(this.dataset.scopeName, this)">
                      Monthly Report
                 </button>
             </td>
@@ -281,7 +283,7 @@ function renderChartTable() {
     
     const data = [
         { name: currentBarangay.name, percentage: currentBarangay.percentage },
-        { name: 'Other Barangays', percentage: (100 - parseFloat(currentBarangay.percentage)).toFixed(1) }
+        { name: `Other ${analyticsGroupLabel}s`, percentage: (100 - parseFloat(currentBarangay.percentage)).toFixed(1) }
     ];
     
     tableBody.innerHTML = '';
@@ -316,7 +318,7 @@ function updateChart() {
     currentChart = new Chart(ctx, {
         type: currentChartType,
         data: {
-            labels: [barangay.name, 'Other Barangays'],
+            labels: [barangay.name, `Other ${analyticsGroupLabel}s`],
             datasets: [{
                 data: [selectedPercentage, othersPercentage],
                 backgroundColor: ['#061727', '#415E72'],
@@ -378,11 +380,11 @@ function showChart(barangayId) {
     let insight = '';
     const avgComparison = ((selectedCount - averageOSCA) / averageOSCA * 100).toFixed(1);
     if (selectedCount > averageOSCA) {
-        insight = `This barangay has ${Math.abs(avgComparison)}% more seniors than the municipal average.`;
+        insight = `This ${analyticsGroupLabel.toLowerCase()} has ${Math.abs(avgComparison)}% more seniors than the municipal average.`;
     } else if (selectedCount < averageOSCA) {
-        insight = `This barangay has ${Math.abs(avgComparison)}% fewer seniors than the municipal average.`;
+        insight = `This ${analyticsGroupLabel.toLowerCase()} has ${Math.abs(avgComparison)}% fewer seniors than the municipal average.`;
     } else {
-        insight = 'This barangay has an average senior citizen population.';
+        insight = `This ${analyticsGroupLabel.toLowerCase()} has an average senior citizen population.`;
     }
 
     // Update chart info with simple clean style
@@ -418,8 +420,8 @@ function showChart(barangayId) {
 }
 
 // Open printable view for a barangay's senior citizens
-async function openBarangayPrint(barangayName, btnEl) {
-    if (!barangayName) return;
+async function openBarangayPrint(scopeName, btnEl) {
+    if (!scopeName) return;
 
     // Provide lightweight UI feedback
     const originalText = btnEl ? btnEl.innerHTML : '';
@@ -429,7 +431,8 @@ async function openBarangayPrint(barangayName, btnEl) {
     }
 
     try {
-        const res = await fetch(`/api/senior-citizens/barangay/${encodeURIComponent(barangayName)}`, {
+        const endpoint = analyticsGroupBy === 'purok' ? 'purok' : 'barangay';
+        const res = await fetch(`/api/senior-citizens/${endpoint}/${encodeURIComponent(scopeName)}`, {
             credentials: 'same-origin'
         });
         if (!res.ok) throw new Error('Unable to load senior citizens');
@@ -437,7 +440,7 @@ async function openBarangayPrint(barangayName, btnEl) {
         const json = await res.json();
         if (!json.success) throw new Error(json.message || 'Failed to load data');
 
-        const printHtml = buildBarangayPrintHtml(barangayName, json.data || []);
+        const printHtml = buildBarangayPrintHtml(scopeName, json.data || []);
 
         const newWin = window.open('', '_blank', 'width=1200,height=900,scrollbars=yes');
         if (!newWin) {
@@ -491,7 +494,7 @@ function buildBarangayPrintHtml(barangayName, seniors) {
 
     const emptyState = `
         <tr>
-            <td colspan="5" class="text-center">No senior citizens found for this barangay.</td>
+            <td colspan="5" class="text-center">No senior citizens found for this ${analyticsGroupBy}.</td>
         </tr>
     `;
 
@@ -952,16 +955,16 @@ function buildSeniorCitizensReportTableHtml(seniors, barangayData) {
     }
     
     // Group seniors by barangay and count by gender
-    const barangayStats = {};
+    const groupStats = {};
     
     // If we have detailed senior data, use it
     if (seniors && seniors.length > 0) {
         seniors.forEach(senior => {
-            const barangay = senior.identifying_information?.address?.barangay || 'Unknown';
+            const groupName = senior.identifying_information?.address?.[analyticsGroupBy] || 'Unknown';
             const gender = (senior.identifying_information?.gender || 'Unknown').toString().toLowerCase();
             
-            if (!barangayStats[barangay]) {
-                barangayStats[barangay] = {
+            if (!groupStats[groupName]) {
+                groupStats[groupName] = {
                     male: 0,
                     female: 0,
                     total: 0
@@ -969,17 +972,17 @@ function buildSeniorCitizensReportTableHtml(seniors, barangayData) {
             }
             
             if (gender === 'male') {
-                barangayStats[barangay].male++;
+                groupStats[groupName].male++;
             } else if (gender === 'female') {
-                barangayStats[barangay].female++;
+                groupStats[groupName].female++;
             }
             
-            barangayStats[barangay].total++;
+            groupStats[groupName].total++;
         });
     } else {
-        // Fallback: use barangay data from analytics (no gender breakdown available)
+        // Fallback: use analytics data (no gender breakdown available)
         allData.forEach(item => {
-            barangayStats[item.name] = {
+            groupStats[item.name] = {
                 male: 0,
                 female: 0,
                 total: item.oscaCount || 0
@@ -987,8 +990,7 @@ function buildSeniorCitizensReportTableHtml(seniors, barangayData) {
         });
     }
     
-    // Sort barangays alphabetically
-    const sortedBarangays = Object.keys(barangayStats).sort();
+    const sortedGroups = Object.keys(groupStats).sort();
     
     // Build table HTML
     let html = `
@@ -996,7 +998,7 @@ function buildSeniorCitizensReportTableHtml(seniors, barangayData) {
             <table class="table table-striped table-bordered table-hover">
                 <thead class="table-dark">
                     <tr>
-                        <th>Barangay</th>
+                        <th>${analyticsGroupLabel}</th>
                         <th>Male</th>
                         <th>Female</th>
                         <th>Total of Citizens</th>
@@ -1008,15 +1010,15 @@ function buildSeniorCitizensReportTableHtml(seniors, barangayData) {
     let grandTotalFemale = 0;
     let grandTotal = 0;
     
-    sortedBarangays.forEach(barangay => {
-        const stats = barangayStats[barangay];
+    sortedGroups.forEach(groupName => {
+        const stats = groupStats[groupName];
         grandTotalMale += stats.male;
         grandTotalFemale += stats.female;
         grandTotal += stats.total;
         
         html += `
             <tr>
-                <td><strong>${esc(barangay)}</strong></td>
+                <td><strong>${esc(groupName)}</strong></td>
                 <td>${stats.male}</td>
                 <td>${stats.female}</td>
                 <td><span class="badge bg-primary">${stats.total}</span></td>
@@ -1052,7 +1054,7 @@ function buildSeniorCitizensReportTableHtml(seniors, barangayData) {
                 </div>
                 <div class="col-md-6">
                     <ul class="list-unstyled">
-                        <li><strong>Number of Barangays:</strong> ${sortedBarangays.length}</li>
+                        <li><strong>Number of ${analyticsGroupLabel}s:</strong> ${sortedGroups.length}</li>
                     </ul>
                 </div>
             </div>
@@ -1062,8 +1064,8 @@ function buildSeniorCitizensReportTableHtml(seniors, barangayData) {
 }
 
 // Generate Report for a specific barangay
-async function generateBarangayReport(barangayName, btnEl) {
-    if (!barangayName) return;
+async function generateBarangayReport(scopeName, btnEl) {
+    if (!scopeName) return;
 
     const originalText = btnEl ? btnEl.innerHTML : '';
     if (btnEl) {
@@ -1078,7 +1080,8 @@ async function generateBarangayReport(barangayName, btnEl) {
         const currentYear = now.getFullYear();
         
         // Fetch senior citizens data for this specific barangay, filtered by current month
-        const res = await fetch(`/api/senior-citizens/barangay/${encodeURIComponent(barangayName)}?month=${currentMonth}&year=${currentYear}`, {
+        const endpoint = analyticsGroupBy === 'purok' ? 'purok' : 'barangay';
+        const res = await fetch(`/api/senior-citizens/${endpoint}/${encodeURIComponent(scopeName)}?month=${currentMonth}&year=${currentYear}`, {
             credentials: 'same-origin'
         });
         
@@ -1094,7 +1097,7 @@ async function generateBarangayReport(barangayName, btnEl) {
         const seniors = json.data || [];
         
         if (seniors.length === 0) {
-            alert('No senior citizens data available for this barangay.');
+            alert(`No senior citizens data available for this ${analyticsGroupBy}.`);
             if (btnEl) {
                 btnEl.disabled = false;
                 btnEl.innerHTML = originalText;
@@ -1103,7 +1106,7 @@ async function generateBarangayReport(barangayName, btnEl) {
         }
 
         // Build report table HTML for this barangay
-        const tableHtml = buildBarangaySeniorCitizensReportTableHtml(barangayName, seniors);
+        const tableHtml = buildBarangaySeniorCitizensReportTableHtml(scopeName, seniors);
         
         // Open new window for report
         const newWin = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
@@ -1117,7 +1120,7 @@ async function generateBarangayReport(barangayName, btnEl) {
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Senior Citizens Report - ${barangayName}</title>
+    <title>Senior Citizens Report - ${scopeName}</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
     <style>
@@ -1243,7 +1246,7 @@ async function generateBarangayReport(barangayName, btnEl) {
     <div class="title-section">
         <h5>OFFICE OF SENIOR CITIZENS AFFAIRS</h5>
         <h5>MONTHLY ACCOMPLISHMENT REPORT</h5>
-        <h5><strong>${barangayName}</strong></h5>
+        <h5><strong>${scopeName}</strong></h5>
         <small class="text-center">
             As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
         </small>
@@ -1332,7 +1335,7 @@ function buildBarangaySeniorCitizensReportTableHtml(barangayName, seniors) {
             <div class="row">
                 <div class="col-md-6">
                     <ul class="list-unstyled">
-                        <li><strong>Barangay:</strong> ${esc(barangayName)}</li>
+                        <li><strong>${analyticsGroupLabel}:</strong> ${esc(barangayName)}</li>
                         <li><strong>Total Senior Citizens:</strong> ${totalCount}</li>
                         <li><strong>Total Male:</strong> ${totalMale}</li>
                         <li><strong>Total Female:</strong> ${totalFemale}</li>

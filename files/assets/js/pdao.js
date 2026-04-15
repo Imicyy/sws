@@ -7,6 +7,8 @@ const itemsPerPage = 5;
 let filteredData = [];
 let allData = [];
 let currentChartType = 'doughnut'; // Default chart type
+const analyticsGroupBy = window.analyticsGroupBy === 'purok' ? 'purok' : 'barangay';
+const analyticsGroupLabel = analyticsGroupBy === 'purok' ? 'Purok' : 'Barangay';
 
 // Calculate statistics (after load)
 let totalPDAO = 0;
@@ -90,7 +92,7 @@ async function initializeData() {
 
 async function loadPdaoData() {
     try {
-        const res = await fetch('/api/analytics/pdao', { credentials: 'same-origin' });
+        const res = await fetch(`/api/analytics/pdao?groupBy=${encodeURIComponent(analyticsGroupBy)}`, { credentials: 'same-origin' });
         const json = await res.json();
         if (!json.success) throw new Error('Failed to fetch PDAO data');
 
@@ -137,7 +139,7 @@ function renderTable() {
     document.getElementById('pagination').style.display = 'flex';
 
     pageData.forEach(item => {
-        const safeBarangay = item.name.replace(/"/g, '&quot;');
+        const safeScopeName = item.name.replace(/"/g, '&quot;');
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="barangay-name">${item.name}</td>
@@ -146,10 +148,10 @@ function renderTable() {
                 <button class="view-chart-btn" onclick="showChart(${item.id})">
                      View Chart
                 </button>
-                <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="openPwdBarangayPrint(this.dataset.barangay, this)">
+                <button class="view-chart-btn" data-scope-name="${safeScopeName}" onclick="openPwdBarangayPrint(this.dataset.scopeName, this)">
                      Print
                 </button>
-                <button class="view-chart-btn" data-barangay="${safeBarangay}" onclick="generatePwdBarangayReport(this.dataset.barangay, this)">
+                <button class="view-chart-btn" data-scope-name="${safeScopeName}" onclick="generatePwdBarangayReport(this.dataset.scopeName, this)">
                      Monthly Report
                 </button>
             </td>
@@ -411,8 +413,8 @@ function showChart(barangayId) {
 }
 
 // Open printable view for a barangay's PWDs
-async function openPwdBarangayPrint(barangayName, btnEl) {
-    if (!barangayName) return;
+async function openPwdBarangayPrint(scopeName, btnEl) {
+    if (!scopeName) return;
 
     const originalText = btnEl ? btnEl.innerHTML : '';
     if (btnEl) {
@@ -421,7 +423,8 @@ async function openPwdBarangayPrint(barangayName, btnEl) {
     }
 
     try {
-        const res = await fetch(`/api/pwds/barangay/${encodeURIComponent(barangayName)}`, {
+        const endpoint = analyticsGroupBy === 'purok' ? 'purok' : 'barangay';
+        const res = await fetch(`/api/pwds/${endpoint}/${encodeURIComponent(scopeName)}`, {
             credentials: 'same-origin'
         });
         if (!res.ok) throw new Error('Unable to load PWD data');
@@ -429,7 +432,7 @@ async function openPwdBarangayPrint(barangayName, btnEl) {
         const json = await res.json();
         if (!json.success) throw new Error(json.message || 'Failed to load data');
 
-        const printHtml = buildPwdBarangayPrintHtml(barangayName, json.data || []);
+        const printHtml = buildPwdBarangayPrintHtml(scopeName, json.data || []);
 
         const newWin = window.open('', '_blank', 'width=1200,height=900,scrollbars=yes');
         if (!newWin) {
@@ -493,7 +496,7 @@ function buildPwdBarangayPrintHtml(barangayName, pwds) {
 
     const emptyState = `
         <tr>
-            <td colspan="6" class="text-center">No PWDs found for this barangay.</td>
+            <td colspan="6" class="text-center">No PWDs found for this ${analyticsGroupBy}.</td>
         </tr>
     `;
 
@@ -780,8 +783,8 @@ document.addEventListener('keydown', function(event) {
 });
 
 // Generate Report for a specific barangay's PWDs
-async function generatePwdBarangayReport(barangayName, btnEl) {
-    if (!barangayName) return;
+async function generatePwdBarangayReport(scopeName, btnEl) {
+    if (!scopeName) return;
 
     const originalText = btnEl ? btnEl.innerHTML : '';
     if (btnEl) {
@@ -796,7 +799,8 @@ async function generatePwdBarangayReport(barangayName, btnEl) {
         const currentYear = now.getFullYear();
         
         // Fetch PWD data for this specific barangay, filtered by current month
-        const res = await fetch(`/api/pwds/barangay/${encodeURIComponent(barangayName)}?month=${currentMonth}&year=${currentYear}`, {
+        const endpoint = analyticsGroupBy === 'purok' ? 'purok' : 'barangay';
+        const res = await fetch(`/api/pwds/${endpoint}/${encodeURIComponent(scopeName)}?month=${currentMonth}&year=${currentYear}`, {
             credentials: 'same-origin'
         });
         
@@ -812,7 +816,7 @@ async function generatePwdBarangayReport(barangayName, btnEl) {
         const pwds = json.data || [];
         
         if (pwds.length === 0) {
-            alert('No PWD data available for this barangay.');
+            alert(`No PWD data available for this ${analyticsGroupBy}.`);
             if (btnEl) {
                 btnEl.disabled = false;
                 btnEl.innerHTML = originalText;
@@ -821,7 +825,7 @@ async function generatePwdBarangayReport(barangayName, btnEl) {
         }
 
         // Build report table HTML for this barangay
-        const tableHtml = buildPwdBarangayReportTableHtml(barangayName, pwds);
+        const tableHtml = buildPwdBarangayReportTableHtml(scopeName, pwds);
         
         // Open new window for report
         const newWin = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
@@ -835,7 +839,7 @@ async function generatePwdBarangayReport(barangayName, btnEl) {
 <html>
 <head>
     <meta charset="utf-8">
-    <title>PWD Disability Report - ${barangayName}</title>
+    <title>PWD Disability Report - ${scopeName}</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
     <style>
@@ -958,7 +962,7 @@ async function generatePwdBarangayReport(barangayName, btnEl) {
     <div class="title-section">
         <h5>PERSONS WITH DISABILITY AFFAIRS OFFICE</h5>
         <h5>MONTHLY ACCOMPLISHMENT REPORT</h5>
-        <h5><strong>${barangayName}</strong></h5>
+        <h5><strong>${scopeName}</strong></h5>
          <small class="text-center">
             As of - <p><strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> </p>
         </small>
@@ -1109,7 +1113,7 @@ function buildPwdBarangayReportTableHtml(barangayName, pwds) {
             <div class="row">
                 <div class="col-md-6">
                     <ul class="list-unstyled">
-                        <li><strong>Barangay:</strong> ${esc(barangayName)}</li>
+                        <li><strong>${analyticsGroupLabel}:</strong> ${esc(barangayName)}</li>
                         <li><strong>Unique PWDs:</strong> ${uniqueIds.size}</li>
                         <li><strong>Total Disability Records:</strong> ${totalCount}</li>
                         <li><strong>Overall Age Range:</strong> ${overallAgeRange}</li>

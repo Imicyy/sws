@@ -194,10 +194,10 @@
 									
 											<div class="table-container">
 												<div class="table-header">
-													<h2 class="table-title">Barangay Senior Citizen Table</h2>
+													<h2 class="table-title">Purok Senior Citizen Table</h2>
 													<div style="display: flex; gap: 10px; align-items: center;">
 														<div class="search-container">
-															<input type="text" class="search-input" id="searchInput" placeholder="🔍 Search barangays...">
+															<input type="text" class="search-input" id="searchInput" placeholder="🔍 Search puroks...">
 														</div>
 														<button id="generateReportBtn" class="btn btn-info" type="button" style="white-space: nowrap;">
 															
@@ -209,7 +209,7 @@
 												<table class="data-table" id="dataTable">
 													<thead>
 														<tr>
-															<th>Barangay Name</th>
+															<th>Purok Name</th>
 															<th>Senior Citizen Count</th>
 															<th>Action</th>
 														</tr>
@@ -240,7 +240,7 @@
 											<div class="modal-content">
 												<div class="modal-header">
 													<span class="close">&times;</span>
-													<h2 id="modalTitle">Barangay</h2>
+													<h2 id="modalTitle">Purok</h2>
 												</div>
 												
 												<div class="chart-controls">
@@ -426,6 +426,7 @@
 		<script type="text/javascript" src="/assets/js/script.js"></script>
 		<script>
 			window.analyticsAverageScope = 'purok';
+			window.analyticsGroupBy = 'purok';
 		</script>
 		<script type="text/javascript" src="/assets/js/analytics.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>

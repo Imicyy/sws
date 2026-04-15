@@ -111,7 +111,9 @@ router.get('/api/pwds', requireAuth, controller.getAllPwds);
 
 router.get('/api/senior-citizens-for-report', requireAuth, controller.getSeniorCitizensForReport);
 router.get('/api/senior-citizens/barangay/:barangay', requireAuth, controller.getSeniorCitizensByBarangay);
+router.get('/api/senior-citizens/purok/:purok', requireAuth, controller.getSeniorCitizensByPurok);
 router.get('/api/pwds/barangay/:barangay', requireAuth, controller.getPwdsByBarangay);
+router.get('/api/pwds/purok/:purok', requireAuth, controller.getPwdsByPurok);
 
 
 // Barangay and Purok APIs

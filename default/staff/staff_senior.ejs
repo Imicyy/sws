@@ -293,20 +293,23 @@
                                                                         <li class="mb-1">
                                                                             <span><%= item.name %></span>
                                                                             <% if (item.phone) { %>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    class="btn btn-sm btn-success ml-2 js-birthday-sms"
-                                                                                    data-phone="<%= item.phone %>"
-                                                                                    data-name="<%= item.name %>"
-                                                                                    data-first-name="<%= item.firstName %>"
-                                                                                    data-middle-name="<%= item.middleName %>"
-                                                                                    data-last-name="<%= item.lastName %>"
-                                                                                    data-barangay="<%= item.barangay %>"
-                                                                                    data-purok="<%= item.purok %>"
-                                                                                    data-record-id="<%= item.recordId %>"
-                                                                                >
-                                                                                    Send SMS
-                                                                                </button>
+                                                                                <label class="ml-2 mb-0 d-inline-flex align-items-center">
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        class="row-checkbox"
+                                                                                        value="<%= item.recordId %>"
+                                                                                        data-phone="<%= item.phone %>"
+                                                                                        data-name="<%= item.name %>"
+                                                                                        data-first-name="<%= item.firstName %>"
+                                                                                        data-middle-name="<%= item.middleName %>"
+                                                                                        data-last-name="<%= item.lastName %>"
+                                                                                        data-barangay="<%= item.barangay %>"
+                                                                                        data-purok="<%= item.purok %>"
+                                                                                        data-record-id="<%= item.recordId %>"
+                                                                                        aria-label="Select birthday celebrant"
+                                                                                    >
+                                                                                    <span class="ml-1">Select</span>
+                                                                                </label>
                                                                             <% } else { %>
                                                                                 <span class="text-muted ml-2">No phone</span>
                                                                             <% } %>
@@ -328,20 +331,23 @@
                                                                         <li class="mb-1">
                                                                             <span><%= item.name %> <span class="text-muted">(Day <%= item.day %>)</span></span>
                                                                             <% if (item.phone) { %>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    class="btn btn-sm btn-success ml-2 js-birthday-sms"
-                                                                                    data-phone="<%= item.phone %>"
-                                                                                    data-name="<%= item.name %>"
-                                                                                    data-first-name="<%= item.firstName %>"
-                                                                                    data-middle-name="<%= item.middleName %>"
-                                                                                    data-last-name="<%= item.lastName %>"
-                                                                                    data-barangay="<%= item.barangay %>"
-                                                                                    data-purok="<%= item.purok %>"
-                                                                                    data-record-id="<%= item.recordId %>"
-                                                                                >
-                                                                                    Send SMS
-                                                                                </button>
+                                                                                <label class="ml-2 mb-0 d-inline-flex align-items-center">
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        class="row-checkbox"
+                                                                                        value="<%= item.recordId %>"
+                                                                                        data-phone="<%= item.phone %>"
+                                                                                        data-name="<%= item.name %>"
+                                                                                        data-first-name="<%= item.firstName %>"
+                                                                                        data-middle-name="<%= item.middleName %>"
+                                                                                        data-last-name="<%= item.lastName %>"
+                                                                                        data-barangay="<%= item.barangay %>"
+                                                                                        data-purok="<%= item.purok %>"
+                                                                                        data-record-id="<%= item.recordId %>"
+                                                                                        aria-label="Select birthday celebrant"
+                                                                                    >
+                                                                                    <span class="ml-1">Select</span>
+                                                                                </label>
                                                                             <% } else { %>
                                                                                 <span class="text-muted ml-2">No phone</span>
                                                                             <% } %>
@@ -2257,22 +2263,6 @@
                     recipientsListEl.appendChild(item);
                 }
 
-                document.querySelectorAll('.js-birthday-sms').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        recipientsListEl.innerHTML = '';
-                        appendRecipient({
-                            phone: btn.getAttribute('data-phone') || '',
-                            name: btn.getAttribute('data-name') || '',
-                            firstName: btn.getAttribute('data-first-name') || '',
-                            middleName: btn.getAttribute('data-middle-name') || '',
-                            lastName: btn.getAttribute('data-last-name') || '',
-                            barangay: btn.getAttribute('data-barangay') || '',
-                            purok: btn.getAttribute('data-purok') || '',
-                            recordId: btn.getAttribute('data-record-id') || ''
-                        });
-                        showSmsModal();
-                    });
-                });
             }
 
             if (openSmsBtn && recipientsListEl) {
