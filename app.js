@@ -33,7 +33,6 @@ app.use(session({
 }));
 
 
-
 // Test MySQL (mysql2) connection on startup without crashing the app
 (async () => {
     try {
@@ -82,3 +81,12 @@ server.listen(PORT, '0.0.0.0',() => {
     console.log(`Server is running`);
 });
 
+//to do
+// edit logs on OSCA and PWD, Analytics, MAPS, Barangay
+
+
+//add pagination in edit logs
+
+// fix PDAO map admin statistics male female bug
+
+//revert changes

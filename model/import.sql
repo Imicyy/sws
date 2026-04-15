@@ -3,7 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
+<<<<<<<< HEAD:model/import.sql
 -- Generation Time: Apr 07, 2026 at 06:25 PM
+========
+-- Generation Time: Apr 14, 2026 at 11:34 AM
+>>>>>>>> 7f8135fcb728de8b0be595567558480bf815a734:model/ebmag2.5.sql
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -79,13 +83,15 @@ INSERT INTO `barangays` (`id`, `barangay`) VALUES
 CREATE TABLE `login_logs` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` enum('success','failed') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `login_logs`
 --
 
+<<<<<<<< HEAD:model/import.sql
 INSERT INTO `login_logs` (`id`, `user_id`, `created_at`) VALUES
 (1, 5, '2026-04-04 16:43:24'),
 (2, 7, '2026-04-04 16:47:10'),
@@ -107,6 +113,45 @@ INSERT INTO `login_logs` (`id`, `user_id`, `created_at`) VALUES
 (18, 17, '2026-04-06 07:25:58'),
 (19, 5, '2026-04-06 07:29:42'),
 (20, 7, '2026-04-06 07:31:05');
+========
+INSERT INTO `login_logs` (`id`, `user_id`, `created_at`, `status`) VALUES
+(1, 5, '2026-04-04 16:43:24', 'success'),
+(2, 7, '2026-04-04 16:47:10', 'success'),
+(3, 7, '2026-04-04 16:49:26', 'success'),
+(4, 7, '2026-04-04 16:52:10', 'success'),
+(5, 5, '2026-04-04 17:02:25', 'success'),
+(6, 5, '2026-04-04 17:05:12', 'success'),
+(7, 5, '2026-04-04 17:11:35', 'success'),
+(8, 7, '2026-04-05 15:27:53', 'success'),
+(9, 5, '2026-04-05 15:50:12', 'success'),
+(10, 7, '2026-04-05 15:50:35', 'success'),
+(11, 17, '2026-04-05 15:54:55', 'success'),
+(12, 17, '2026-04-05 15:59:31', 'success'),
+(13, 17, '2026-04-05 16:00:00', 'success'),
+(14, 5, '2026-04-05 16:01:24', 'success'),
+(15, 17, '2026-04-05 16:11:44', 'success'),
+(16, 5, '2026-04-05 16:12:21', 'success'),
+(17, 7, '2026-04-05 16:12:33', 'success'),
+(18, 17, '2026-04-06 07:25:58', 'success'),
+(19, 5, '2026-04-06 07:29:42', 'success'),
+(20, 7, '2026-04-06 07:31:05', 'success'),
+(21, 5, '2026-04-14 05:35:22', 'failed'),
+(22, 5, '2026-04-14 05:35:26', 'success'),
+(23, 7, '2026-04-14 05:35:46', 'success'),
+(24, 7, '2026-04-14 05:37:39', 'success'),
+(25, 22, '2026-04-14 05:57:59', 'failed'),
+(26, 22, '2026-04-14 05:58:08', 'failed'),
+(27, 22, '2026-04-14 05:59:10', 'success'),
+(28, 6, '2026-04-14 06:38:16', 'success'),
+(29, 6, '2026-04-14 06:41:00', 'success'),
+(30, 6, '2026-04-14 06:44:17', 'success'),
+(31, 23, '2026-04-14 06:45:45', 'success'),
+(32, 23, '2026-04-14 06:54:09', 'success'),
+(33, 17, '2026-04-14 06:57:11', 'success'),
+(34, 6, '2026-04-14 07:01:06', 'failed'),
+(35, 6, '2026-04-14 07:01:11', 'success'),
+(36, 6, '2026-04-14 07:03:00', 'success');
+>>>>>>>> 7f8135fcb728de8b0be595567558480bf815a734:model/ebmag2.5.sql
 
 -- --------------------------------------------------------
 
@@ -362,7 +407,8 @@ CREATE TABLE `senior_citizens` (
 --
 
 INSERT INTO `senior_citizens` (`id`, `reference_code`, `last_name`, `first_name`, `middle_name`, `extension`, `barangay`, `purok`, `date_of_birth`, `age`, `marital_status`, `gender`, `osca_id_number`, `gsis_sss`, `philhealth`, `sc_association_org_id_no`, `tin`, `other_govt_id`, `service_business_employment`, `current_pension`, `capability_to_travel`, `spouse_name`, `father_last_name`, `father_first_name`, `father_middle_name`, `father_extension`, `mother_last_name`, `mother_first_name`, `mother_middle_name`, `community_service_other_text`, `status`, `archive_reason`, `edited_by`, `edited_at`, `created_at`, `updated_at`, `place_of_birth`) VALUES
-(11, NULL, 'SAPALO', 'JAMINS', 'PAUL', NULL, 'Consing', 'Consing Example', '1960-07-07', 65, 'Single', 'Male', NULL, NULL, NULL, NULL, NULL, NULL, 'AA', '10000', 'No', NULL, 'SAPALO', 'JAMIN', 'PAUL', NULL, 'SAPALO', 'JAMIN', 'PAUL', NULL, 'Active', NULL, 'staff_001@gmail.com', '2026-04-05 01:12:54', '2026-04-04 17:12:39', '2026-04-04 17:12:55', 'BACOLOD');
+(11, NULL, 'SAPALO', 'JAMINS', 'PAUL', NULL, 'Consing', 'Consing Example', '1960-07-07', 65, 'Single', 'Male', NULL, NULL, NULL, NULL, NULL, NULL, 'AA', '10000', 'No', NULL, 'SAPALO', 'JAMIN', 'PAUL', NULL, 'SAPALO', 'JAMIN', 'PAUL', NULL, 'Active', NULL, 'staff_001@gmail.com', '2026-04-05 01:12:54', '2026-04-04 17:12:39', '2026-04-04 17:12:55', 'BACOLOD'),
+(12, NULL, 'TEST', 'TEST', 'TEST', NULL, 'Alicante', 'Alicante Example', '1960-12-12', 65, 'Married', 'Male', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '10000', 'Yes', 'TEST', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, '2026-04-14 06:58:46', '2026-04-14 06:58:46', 'BACOLOD');
 
 -- --------------------------------------------------------
 
@@ -381,7 +427,8 @@ CREATE TABLE `senior_community_services` (
 --
 
 INSERT INTO `senior_community_services` (`id`, `senior_id`, `service`) VALUES
-(9, 11, 'Community / Organization Leader');
+(9, 11, 'Community / Organization Leader'),
+(10, 12, 'Religious');
 
 -- --------------------------------------------------------
 
@@ -404,7 +451,8 @@ CREATE TABLE `senior_contacts` (
 --
 
 INSERT INTO `senior_contacts` (`id`, `senior_id`, `type`, `name`, `relationship`, `phone`, `email`) VALUES
-(17, 11, 'primary', 'JAMIN PAUL SAPALO', 'ME', '09954417332', 'Sapalojaminpaul@gmail.com');
+(17, 11, 'primary', 'JAMIN PAUL SAPALO', 'ME', '09954417332', 'Sapalojaminpaul@gmail.com'),
+(18, 12, 'primary', 'TEST', 'SPOUSE', '09999999999', 'exmaple@example.com');
 
 -- --------------------------------------------------------
 
@@ -446,7 +494,8 @@ CREATE TABLE `senior_education` (
 --
 
 INSERT INTO `senior_education` (`id`, `senior_id`, `educational_attainment`) VALUES
-(8, 11, 'College Graduate');
+(8, 11, 'College Graduate'),
+(9, 12, 'College Graduate');
 
 -- --------------------------------------------------------
 
@@ -465,7 +514,8 @@ CREATE TABLE `senior_skills` (
 --
 
 INSERT INTO `senior_skills` (`id`, `senior_id`, `skill`) VALUES
-(9, 11, 'Fishing');
+(9, 11, 'Fishing'),
+(10, 12, 'Chef/Cook');
 
 -- --------------------------------------------------------
 
@@ -514,13 +564,18 @@ CREATE TABLE `users` (
   `status` enum('Active','Suspended','Inactive') DEFAULT 'Active',
   `barangay_id` int(11) DEFAULT NULL,
   `staff_classification` enum('PDAO','OSCA') DEFAULT NULL,
+<<<<<<<< HEAD:model/import.sql
   `is_verified` enum('Yes','No') DEFAULT 'No',
+========
+  `is_verified` tinyint(1) NOT NULL DEFAULT 0
+>>>>>>>> 7f8135fcb728de8b0be595567558480bf815a734:model/ebmag2.5.sql
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
+<<<<<<<< HEAD:model/import.sql
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `status`, `barangay_id`, `staff_classification`) VALUES
 (1, 'Charles Ivan C. Monserate', 'ivancharles389@gmail.com', '$2b$10$gjcaBz4HskYRXoS.dIZw1em0HL6spJzR4XA9l1poOEg/1Lbcueib6', 'Staff', 'Active', NULL, NULL),
 (2, 'Monserate, Charles Ivan C.', 'admin@gmail.com', '$2b$10$ATcty0512XM8u8yU52FDeue.VtaLCG5qeKJqga5NPmMd7Ni8uqhMi', 'Admin', 'Active', NULL, NULL),
@@ -536,6 +591,18 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `status`, `baran
 (15, 'Test Admin 1761706590739', 'testadmin1761706590739@gmail.com', '$2b$10$tHt7VtL.YJeE.UV4ixiAqOV.N43Opqmk0tl7/4aPzvYPv1GmyqYGO', 'Admin', 'Active', NULL, NULL),
 (16, 'Alysa Mae Dizon', 'chuchuu.chm@gmail.com', '$2b$10$WrPDeTXx7A.PEn.A32LvPeQpJVUaTAZAArZh1dwnmnjXt3LrUQ2bC', 'Staff', 'Inactive', NULL, NULL),
 (17, 'Ali Cante', 'Alicante_001@gmail.com', '$2b$10$Wn7fNSnwnoDWQufgTiJ3aO6G9XRSsVkz9B8d56tIgXDCOHSdJtlwK', 'Barangay', 'Active', 2, NULL);
+========
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `status`, `barangay_id`, `staff_classification`, `is_verified`) VALUES
+(1, 'Charles Ivan C. Monserate', 'ivancharles389@gmail.com', '$2b$10$gjcaBz4HskYRXoS.dIZw1em0HL6spJzR4XA9l1poOEg/1Lbcueib6', 'Staff', 'Active', NULL, NULL, 0),
+(2, 'Monserate, Charles Ivan C.', 'admin@gmail.com', '$2b$10$ATcty0512XM8u8yU52FDeue.VtaLCG5qeKJqga5NPmMd7Ni8uqhMi', 'Admin', 'Active', NULL, NULL, 0),
+(5, 'IC', 'staff_001@gmail.com', '$2b$10$LXSyuvM/3JvjVxQihdEuxOUHA99QdJ37iMTGi6/xXg/G1YdK/KKza', 'Staff', 'Active', NULL, 'OSCA', 1),
+(6, 'Jen', 'Admin_001@gmail.com', '$2b$10$PUm3UfFoBZKXmEr4HkxKR.PXhKMLNFgPYszoaGmXXqjIwss6IcqyC', 'Admin', 'Active', NULL, 'OSCA', 1),
+(7, 'Thea', 'Superadmin_001@gmail.com', '$2b$10$1RPYTaeTw2BXSNgq5kBLOOkan2JM6objE6OZCQ1e4oA6O3e30HIbK', 'Super Admin', 'Active', NULL, NULL, 1),
+(17, 'Ali Cante', 'Alicante_001@gmail.com', '$2b$10$Wn7fNSnwnoDWQufgTiJ3aO6G9XRSsVkz9B8d56tIgXDCOHSdJtlwK', 'Barangay', 'Active', 2, NULL, 1),
+(19, 'Staff PDAO', 'staff_002@gmail.com', '$2b$10$jGa3G1QnRwLmDeWLtEL.KuemsoLILCCDRO8pyu9e.p0RVLgSZze6O', 'Staff', 'Active', NULL, 'PDAO', 1),
+(22, 'test', 'Sapalojaminpaul@gmail.com', '$2b$10$WXB0sB91IGknupJfqn5DQ.SPJAKyoKi4IPqBlwaVbBsIR7/v0bBdO', 'Super Admin', 'Active', NULL, NULL, 1),
+(23, 'Admin 2', 'Admin_002@gmail.com', '$2b$10$GzuEWLVcWPg9ZxnHyBLWSO8EPSo5OkjUoz4PmCzUTO4TO42niJPNq', 'Admin', 'Active', NULL, 'PDAO', 1);
+>>>>>>>> 7f8135fcb728de8b0be595567558480bf815a734:model/ebmag2.5.sql
 
 -- --------------------------------------------------------
 
@@ -774,7 +841,11 @@ ALTER TABLE `barangays`
 -- AUTO_INCREMENT for table `login_logs`
 --
 ALTER TABLE `login_logs`
+<<<<<<<< HEAD:model/import.sql
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+========
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+>>>>>>>> 7f8135fcb728de8b0be595567558480bf815a734:model/ebmag2.5.sql
 
 --
 -- AUTO_INCREMENT for table `puroks`
@@ -822,19 +893,19 @@ ALTER TABLE `senior_children`
 -- AUTO_INCREMENT for table `senior_citizens`
 --
 ALTER TABLE `senior_citizens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `senior_community_services`
 --
 ALTER TABLE `senior_community_services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `senior_contacts`
 --
 ALTER TABLE `senior_contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `senior_edit_logs`
@@ -846,13 +917,13 @@ ALTER TABLE `senior_edit_logs`
 -- AUTO_INCREMENT for table `senior_education`
 --
 ALTER TABLE `senior_education`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `senior_skills`
 --
 ALTER TABLE `senior_skills`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `sms_history`
@@ -864,7 +935,7 @@ ALTER TABLE `sms_history`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `youth`
