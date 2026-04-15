@@ -421,6 +421,8 @@ h3 {
     cursor: pointer;
     z-index: 2;
     padding: 0;
+  }
+  
   /* Optional hover/focus color */
   .password-toggle:hover,
   .password-toggle:focus {

@@ -16,6 +16,8 @@ services:
     build:
       context: .
     volumes:
+      - .:/usr/src/app             # <--- ADD THIS: Maps your local code to the container
+      - /usr/src/app/node_modules
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .env
@@ -40,7 +42,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE} 
     volumes:
-      - ./model/ebmag2.3.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./model/ebmag2.4.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "3306:3306"
 # The commented out section below is an example of how to define a PostgreSQL
