@@ -25,7 +25,10 @@ const ALL_BARANGAYS_GEOJSON_PATH = path.join(
 let barangayCentroidsCache = null;
 
 function getRedirectPathByRole(user) {
-  if (user.role === "Admin") return "/index";
+  if (user.role === "Admin") {
+    if (user.staff_classification === "OSCA") return "/Analytics";
+    return "/index";
+  }
   if (user.role === "Staff") {
     if (user.staff_classification === "OSCA") return "/Senior-form";
     return "/Pwd-form";
@@ -40,58 +43,23 @@ function generateVerificationCode() {
 }
 
 async function sendLoginVerificationEmail(toEmail, code) {
-  console.log(`--- Starting Email Process ---`);
-  console.log(`Attempting to send code to: ${toEmail}`);
-  console.log(`Using SMTP Host: ${process.env.SMTP_HOST} on Port: ${process.env.SMTP_PORT}`);
-
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT), 
-    secure: process.env.SMTP_SECURE === "true", 
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS 
-    },
-    tls: {
-      rejectUnauthorized: false 
+      pass: process.env.SMTP_PASS
     }
   });
 
-  try {
-    // 1. Verify the connection configuration
-    await transporter.verify();
-    console.log("SMTP Configuration is correct. Connection established.");
-
-    // 2. Attempt to send the mail
-    const info = await transporter.sendMail({
-      from: `"Social Welfare Office" <${process.env.SMTP_USER}>`,
-      to: toEmail,
-      subject: "Your login verification code",
-      text: `Your verification code is ${code}.`,
-      html: `<p>Your verification code is <strong>${code}</strong>.</p>`
-    });
-
-    console.log("Email sent successfully!");
-    console.log("Message ID:", info.messageId);
-    console.log(`--- Email Process Complete ---`);
-
-  } catch (error) {
-    console.error("--- SMTP ERROR ---");
-    console.error("Error Code:", error.code);
-    console.error("Error Message:", error.message);
-    
-    if (error.code === 'EAUTH') {
-      console.error("DEBUG TIP: Authentication failed. This usually means your SMTP_PASS (App Password) is incorrect or your SMTP_USER email is wrong.");
-    } else if (error.code === 'ETIMEDOUT') {
-      console.error("DEBUG TIP: Connection timed out. Check if your firewall or ISP blocks port " + process.env.SMTP_PORT);
-    }
-    
-    console.error("Full Error Stack:", error);
-    console.error("--- End of Error Report ---");
-    
-    // Throw the error so your login route can handle the failure
-    throw error; 
-  }
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: toEmail,
+    subject: "Your login verification code",
+    text: `Your verification code is ${code}. This code will expire in 10 minutes.`,
+    html: `<p>Your verification code is <strong>${code}</strong>.</p><p>This code will expire in 10 minutes.</p>`
+  });
 }
 
 function computePolygonCentroid(feature) {
@@ -173,9 +141,9 @@ exports.createUser = async (req, res) => {
             });
         }
 
-        // Validate staff classification for Staff role
+        // Validate staff classification for Staff and Admin roles
         let staffClassificationVal = null;
-        if (role === "Staff") {
+        if (role === "Staff" || role === "Admin") {
             if (!staff_classification) {
                 return res.status(400).json({
                     success: false,
@@ -223,7 +191,7 @@ exports.createUser = async (req, res) => {
         // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, saltrounds);
 
-        // Insert new user into MySQL (barangay_id NULL for non-Barangay roles, staff_classification only for Staff)
+        // Insert new user into MySQL (barangay_id NULL for non-Barangay roles, staff_classification for Staff/Admin)
         const [result] = await query(
             "INSERT INTO users (name, email, password, role, status, barangay_id, staff_classification) VALUES (?, ?, ?, ?, 'Active', ?, ?)",
             [name, email, hashedPassword, role, barangayIdVal, staffClassificationVal]
@@ -256,6 +224,18 @@ exports.createUser = async (req, res) => {
 exports.login = async (req, res) => {
     try {
       const { email, password } = req.body;
+
+      async function logLoginAttempt(userId, status) {
+        if (!userId) return;
+        try {
+          await query(
+            "INSERT INTO login_logs (user_id, status) VALUES (?, ?)",
+            [userId, status]
+          );
+        } catch (logErr) {
+          console.warn("login attempt log failed:", logErr.message);
+        }
+      }
   
       // Validate input
       if (!email || !password) {
@@ -280,23 +260,23 @@ exports.login = async (req, res) => {
       const user = rows[0];
 
       if (user.status !== "Active") {
+      await logLoginAttempt(user.id, "failed");
       return res.status(403).json({
         success: false,
         error: "Account is not active. Please contact the administrator.",
       });
     }
   
-      if (user) {
-        console.log("---------------- DATABASE DEBUG ----------------");
-        console.log("User found in DB:", user.username);
-        console.log("Password string from DB:", user.password); 
-        console.log("------------------------------------------------");
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ success: false, error: "Invalid credentials" });
-        }
+      // Verify password
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        await logLoginAttempt(user.id, "failed");
+        return res.status(401).json({
+          success: false,
+          error: "Invalid credentials",
+        });
       }
+
       if (Number(user.is_verified) === 0) {
         const verificationCode = generateVerificationCode();
         const expiresAt = Date.now() + 10 * 60 * 1000;
@@ -328,11 +308,8 @@ exports.login = async (req, res) => {
         });
       }
 
-      //Logs login
-      // await query(
-      //   "INSERT INTO login_logs (user_id) VALUES (?)",
-      //   [user.id]
-      // );
+      // Log successful login.
+      await logLoginAttempt(user.id, "success");
   
       // Store user data in session (excluding password)
       req.session.user = {
@@ -389,6 +366,10 @@ exports.verifyLoginCode = async (req, res) => {
     }
 
     await query("UPDATE users SET is_verified = 1 WHERE id = ?", [pending.userId]);
+    await query(
+      "INSERT INTO login_logs (user_id, status) VALUES (?, ?)",
+      [pending.userId, "success"]
+    );
 
     req.session.user = {
       _id: pending.userId,
@@ -3742,7 +3723,9 @@ exports.addPurok = async (req, res) => {
 
 exports.renderAdminAlert = async (req, res) => {
   try {
-    res.render('admin/admin_alert');
+    res.render('admin/admin_alert', {
+      user: req.session?.user || null
+    });
   } catch (error) {
     
   }
@@ -3880,7 +3863,7 @@ exports.renderSuperAdminLogs = async (req, res) => {
     let loginLogs = [];
     try {
       const [rows] = await query(
-        `SELECT l.id, l.user_id, l.created_at,
+        `SELECT l.id, l.user_id, l.status AS login_result, l.created_at,
                 u.name AS user_name, u.email AS user_email, u.role AS user_role, u.status AS user_status
          FROM login_logs l
          LEFT JOIN users u ON u.id = l.user_id

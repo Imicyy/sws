@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Vulnerable Sector Information System - Superadmin </title>
+		<title>Social Welfare System  - Superadmin </title>
 		<!-- HTML5 Shim and Respond.js IE10 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 		<!--[if lt IE 10]>
@@ -16,7 +16,7 @@
 		<meta name="keywords" content="Admin , Responsive, Landing, Bootstrap, App, Template, Mobile, iOS, Android, apple, creative app">
 		<meta name="author" content="#">
 		<!-- Favicon icon -->
-		<link rel="icon" href="/assets/images/silay.png" type="image/x-icon">
+		<link rel="icon" href="/assets/images/SilayLogo.jpg" type="image/x-icon">
 		<!-- Google font-->
 		<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,800" rel="stylesheet">
 		<!-- Required Fremwork -->
@@ -185,6 +185,27 @@
 																							</li>
 																	
 																						</ul>
+																						<div class="row mt-3 mb-2">
+																							<div class="col-md-5">
+																								<input type="text" id="userSearchInput" class="form-control form-control-sm" placeholder="Search name, email, role, or status...">
+																							</div>
+																							<div class="col-md-3">
+																								<select id="roleFilter" class="form-control form-control-sm">
+																									<option value="">All Roles</option>
+																									<option value="Admin">Admin</option>
+																									<option value="Staff">Staff</option>
+																									<option value="Super Admin">Super Admin</option>
+																									<option value="Barangay">Barangay</option>
+																								</select>
+																							</div>
+																							<div class="col-md-2">
+																								<select id="pageSize" class="form-control form-control-sm">
+																									<option value="5">5 / page</option>
+																									<option value="10" selected>10 / page</option>
+																									<option value="20">20 / page</option>
+																								</select>
+																							</div>
+																						</div>
 
 																						<table id="user-table">
 	<thead>
@@ -222,12 +243,16 @@
 				</tr>
 			<% }); %>
 		<% } else { %>
-			<tr>
+			<tr id="no-users-row">
 				<td colspan="6">No users found</td>
 			</tr>
 		<% } %>
 	</tbody>
 </table>
+<div class="d-flex justify-content-between align-items-center mt-3" id="paginationContainer">
+	<small id="paginationInfo">Showing 0-0 of 0 users</small>
+	<div id="paginationControls" class="btn-group btn-group-sm" role="group" aria-label="User pagination"></div>
+</div>
 
 
 																				</div>
@@ -337,20 +362,104 @@
 		<script>
 		  // Tab switching and status confirm handlers
 		  $(function(){
-		    // Show only rows matching the active tab on load
-		    function showStatus(status){
-		      $('.user-row').hide();
-		      $('.status-' + status).show();
-		    }
-		    showStatus('Active');
+		    let activeStatus = 'Active';
+		    let currentPage = 1;
+		    const noUsersRow = $('#no-users-row');
+		    const allUserRows = $('.user-row');
 
 		    $('#userTabs .nav-link').on('click', function(e){
 		      e.preventDefault();
 		      $('#userTabs .nav-link').removeClass('active');
 		      $(this).addClass('active');
-		      var status = $(this).data('status');
-		      showStatus(status);
+		      activeStatus = $(this).data('status');
+		      currentPage = 1;
+		      applyFiltersAndPagination();
 		    });
+
+		    $('#userSearchInput').on('input', function() {
+		      currentPage = 1;
+		      applyFiltersAndPagination();
+		    });
+
+		    $('#roleFilter').on('change', function() {
+		      currentPage = 1;
+		      applyFiltersAndPagination();
+		    });
+
+		    $('#pageSize').on('change', function() {
+		      currentPage = 1;
+		      applyFiltersAndPagination();
+		    });
+
+		    function applyFiltersAndPagination() {
+		      const searchTerm = ($('#userSearchInput').val() || '').toLowerCase().trim();
+		      const selectedRole = $('#roleFilter').val();
+		      const perPage = parseInt($('#pageSize').val(), 10) || 10;
+
+		      allUserRows.hide();
+		      const filtered = allUserRows.filter(function() {
+		        const $row = $(this);
+		        const isStatusMatch = $row.hasClass('status-' + activeStatus);
+		        if (!isStatusMatch) return false;
+
+		        const roleText = ($row.children('td').eq(2).text() || '').trim();
+		        const rowText = ($row.text() || '').toLowerCase();
+		        const isRoleMatch = !selectedRole || roleText === selectedRole;
+		        const isSearchMatch = !searchTerm || rowText.includes(searchTerm);
+
+		        return isRoleMatch && isSearchMatch;
+		      });
+
+		      const total = filtered.length;
+		      const totalPages = Math.max(1, Math.ceil(total / perPage));
+		      if (currentPage > totalPages) currentPage = totalPages;
+
+		      const start = total === 0 ? 0 : ((currentPage - 1) * perPage) + 1;
+		      const end = Math.min(currentPage * perPage, total);
+
+		      if (total > 0) {
+		        filtered.slice(start - 1, end).show();
+		      }
+
+		      $('#paginationInfo').text('Showing ' + start + '-' + end + ' of ' + total + ' users');
+		      renderPaginationControls(totalPages);
+
+		      if (noUsersRow.length) {
+		        noUsersRow.toggle(total === 0);
+		      }
+		    }
+
+		    function renderPaginationControls(totalPages) {
+		      const $controls = $('#paginationControls');
+		      $controls.empty();
+
+		      const prevDisabled = currentPage === 1 ? 'disabled' : '';
+		      $controls.append('<button type="button" class="btn btn-light ' + prevDisabled + '" data-page="prev">Prev</button>');
+
+		      const startPage = Math.max(1, currentPage - 2);
+		      const endPage = Math.min(totalPages, startPage + 4);
+		      for (let i = startPage; i <= endPage; i++) {
+		        const activeClass = i === currentPage ? 'btn-primary' : 'btn-light';
+		        $controls.append('<button type="button" class="btn ' + activeClass + '" data-page="' + i + '">' + i + '</button>');
+		      }
+
+		      const nextDisabled = currentPage === totalPages ? 'disabled' : '';
+		      $controls.append('<button type="button" class="btn btn-light ' + nextDisabled + '" data-page="next">Next</button>');
+		    }
+
+		    $(document).on('click', '#paginationControls button', function() {
+		      const pageAction = $(this).data('page');
+		      if (pageAction === 'prev' && currentPage > 1) {
+		        currentPage--;
+		      } else if (pageAction === 'next') {
+		        currentPage++;
+		      } else if (!isNaN(Number(pageAction))) {
+		        currentPage = Number(pageAction);
+		      }
+		      applyFiltersAndPagination();
+		    });
+
+		    applyFiltersAndPagination();
 
 		    // Handle activate/deactivate clicks
 		    $(document).on('click', '.status-btn', function(e){

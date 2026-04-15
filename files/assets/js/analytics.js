@@ -18,6 +18,47 @@ let pensionPercentage = 0;
 let noPensionPercentage = 0;
 let highestPopulation = { name: '', count: 0 };
 let lowestPopulation = { name: '', count: Infinity };
+let averageDivisor = 0;
+
+function normalizeName(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+function getAssignedBarangayName() {
+    if (window.assignedBarangayName) {
+        return window.assignedBarangayName;
+    }
+
+    const assignedLabel = document.querySelector('.container .text-muted');
+    if (!assignedLabel) return '';
+    const text = (assignedLabel.textContent || '').trim();
+    return text.replace(/^barangay:\s*/i, '').trim();
+}
+
+async function resolveAverageDivisor(defaultDivisor) {
+    if (window.analyticsAverageScope !== 'purok') {
+        return defaultDivisor;
+    }
+
+    const assignedName = normalizeName(getAssignedBarangayName());
+    if (!assignedName) {
+        return defaultDivisor;
+    }
+
+    try {
+        const res = await fetch('/api/barangays', { credentials: 'same-origin' });
+        if (!res.ok) return defaultDivisor;
+        const json = await res.json();
+        if (!json.success || !Array.isArray(json.barangayList)) return defaultDivisor;
+
+        const match = json.barangayList.find(item => normalizeName(item.barangay) === assignedName);
+        const purokCount = match && Array.isArray(match.puroks) ? match.puroks.length : 0;
+        return purokCount > 0 ? purokCount : defaultDivisor;
+    } catch (err) {
+        console.warn('Unable to resolve purok divisor for average:', err);
+        return defaultDivisor;
+    }
+}
 
 // Update stats display
 function updateStatsDisplay() {
@@ -26,13 +67,14 @@ function updateStatsDisplay() {
 }
 
 // Initialize data
-function initializeData() {
+async function initializeData() {
     const entries = Object.entries(barangayData);
     totalOSCA = entries.reduce((sum, [_, data]) => sum + data.oscaCount, 0);
     totalWithPension = entries.reduce((sum, [_, data]) => sum + (data.withPension || 0), 0);
     totalWithoutPension = totalOSCA - totalWithPension;
     
-    averageOSCA = entries.length ? Math.round(totalOSCA / entries.length) : 0;
+    averageDivisor = await resolveAverageDivisor(entries.length);
+    averageOSCA = averageDivisor ? Math.round(totalOSCA / averageDivisor) : 0;
     pensionPercentage = totalOSCA ? ((totalWithPension / totalOSCA) * 100).toFixed(1) : '0.0';
     noPensionPercentage = totalOSCA ? ((totalWithoutPension / totalOSCA) * 100).toFixed(1) : '0.0';
     
@@ -84,14 +126,14 @@ async function loadOscaData() {
             };
         });
 
-        initializeData();
+        await initializeData();
         renderTable();
         renderPagination();
     } catch (err) {
         console.error(err);
         // Fallback: keep empty state
         barangayData = {};
-        initializeData();
+        await initializeData();
         renderTable();
         renderPagination();
     }
@@ -344,6 +386,10 @@ function showChart(barangayId) {
     }
 
     // Update chart info with simple clean style
+    const averageLabel = window.analyticsAverageScope === 'purok'
+        ? 'Average per Purok in Jurisdiction'
+        : 'Average per Barangay';
+
     chartInfo.innerHTML = `
         <h3>${barangay.name} Statistics</h3>
         <p><strong>Total Registered:</strong> ${selectedCount.toLocaleString()}</p>
@@ -354,7 +400,7 @@ function showChart(barangayId) {
         <h3 style="margin-top: 20px;">Municipality Statistics</h3>
         <p><strong>Highest Population:</strong> ${highestPopulation.name} (${highestPopulation.count.toLocaleString()})</p>
         <p><strong>Lowest Population:</strong> ${lowestPopulation.name} (${lowestPopulation.count.toLocaleString()})</p>
-        <p><strong>Average per Barangay:</strong> ${averageOSCA.toLocaleString()}</p>
+        <p><strong>${averageLabel}:</strong> ${averageOSCA.toLocaleString()}</p>
         <p><strong>Total Without Benefits:</strong> ${totalWithoutPension.toLocaleString()} (${noPensionPercentage}%)</p>
         
         <h3 style="margin-top: 20px;">Insight</h3>

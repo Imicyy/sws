@@ -6,7 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<!-- Favicon -->
-		<link rel="icon" href="/assets/images/silay.png" type="image/x-icon">
+		<link rel="icon" href="/assets/images/SilayLogo.jpg" type="image/x-icon">
 		<!-- Google Fonts -->
 		<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,800" rel="stylesheet">
 		<!-- CSS Frameworks -->
@@ -225,7 +225,125 @@
 												if (md < 0 || (md === 0 && as.getDate() < bd.getDate())) a--;
 												return a < 0 ? 'N/A' : a;
 											}
+
+											var now = new Date();
+											var currentMonth = now.getMonth();
+											var currentDate = now.getDate();
+											var birthdayTodayList = [];
+											var birthdayMonthList = [];
+
+											(pwds || []).forEach(function(pwd) {
+												if (!pwd || !pwd.birthday) return;
+												var bd = new Date(pwd.birthday);
+												if (isNaN(bd.getTime())) return;
+
+												var fullName = [pwd.first_name || '', pwd.middle_name || '', pwd.last_name || ''].join(' ').replace(/\s+/g, ' ').trim();
+												if (!fullName) fullName = 'Unnamed record';
+												var phone = (pwd.contacts && pwd.contacts.length && pwd.contacts[0].phone) ? pwd.contacts[0].phone : '';
+												var celebrant = {
+													name: fullName,
+													day: bd.getDate(),
+													phone: phone,
+													firstName: pwd.first_name || '',
+													middleName: pwd.middle_name || '',
+													lastName: pwd.last_name || '',
+													barangay: pwd.barangay || '',
+													purok: pwd.purok || '',
+													recordId: pwd._id || pwd.id || ''
+												};
+
+												if (bd.getMonth() === currentMonth) {
+													birthdayMonthList.push(celebrant);
+													if (bd.getDate() === currentDate) {
+														birthdayTodayList.push(celebrant);
+													}
+												}
+											});
+
+											birthdayMonthList.sort(function(a, b) {
+												if (a.day !== b.day) return a.day - b.day;
+												return a.name.localeCompare(b.name);
+											});
 											%>
+											<div class="card mb-3">
+												<div class="card-body py-3">
+													<h6 class="mb-3">
+														<i class="feather icon-gift mr-1"></i> Birthday Celebrants
+													</h6>
+													<div class="row">
+														<div class="col-md-6 mb-3 mb-md-0">
+															<div class="d-flex align-items-center justify-content-between">
+																<strong>Today</strong>
+																<span class="badge badge-primary"><%= birthdayTodayList.length %></span>
+															</div>
+															<ul class="mb-0 mt-2 pl-3">
+																<% if (birthdayTodayList.length) { %>
+																	<% birthdayTodayList.forEach(function(item) { %>
+																		<li class="mb-1">
+																			<span><%= item.name %></span>
+																			<% if (item.phone) { %>
+																				<button
+																					type="button"
+																					class="btn btn-sm btn-success ml-2 js-birthday-sms"
+																					data-phone="<%= item.phone %>"
+																					data-name="<%= item.name %>"
+																					data-first-name="<%= item.firstName %>"
+																					data-middle-name="<%= item.middleName %>"
+																					data-last-name="<%= item.lastName %>"
+																					data-barangay="<%= item.barangay %>"
+																					data-purok="<%= item.purok %>"
+																					data-record-id="<%= item.recordId %>"
+																				>
+																					Send SMS
+																				</button>
+																			<% } else { %>
+																				<span class="text-muted ml-2">No phone</span>
+																			<% } %>
+																		</li>
+																	<% }) %>
+																<% } else { %>
+																	<li class="text-muted">No celebrants today.</li>
+																<% } %>
+															</ul>
+														</div>
+														<div class="col-md-6">
+															<div class="d-flex align-items-center justify-content-between">
+																<strong>This Month</strong>
+																<span class="badge badge-info"><%= birthdayMonthList.length %></span>
+															</div>
+															<ul class="mb-0 mt-2 pl-3" style="max-height: 180px; overflow-y: auto;">
+																<% if (birthdayMonthList.length) { %>
+																	<% birthdayMonthList.forEach(function(item) { %>
+																		<li class="mb-1">
+																			<span><%= item.name %> <span class="text-muted">(Day <%= item.day %>)</span></span>
+																			<% if (item.phone) { %>
+																				<button
+																					type="button"
+																					class="btn btn-sm btn-success ml-2 js-birthday-sms"
+																					data-phone="<%= item.phone %>"
+																					data-name="<%= item.name %>"
+																					data-first-name="<%= item.firstName %>"
+																					data-middle-name="<%= item.middleName %>"
+																					data-last-name="<%= item.lastName %>"
+																					data-barangay="<%= item.barangay %>"
+																					data-purok="<%= item.purok %>"
+																					data-record-id="<%= item.recordId %>"
+																				>
+																					Send SMS
+																				</button>
+																			<% } else { %>
+																				<span class="text-muted ml-2">No phone</span>
+																			<% } %>
+																		</li>
+																	<% }) %>
+																<% } else { %>
+																	<li class="text-muted">No birthday celebrants this month.</li>
+																<% } %>
+															</ul>
+														</div>
+													</div>
+												</div>
+											</div>
 											 <table id="example" class="display" style="width:100%">
 	<thead>
 		<tr>
@@ -2346,6 +2464,60 @@
 					}
 
 					// Open SMS modal for selected rows
+					if (recipientsListEl) {
+						function showSmsModal() {
+							const modalEl = document.getElementById('assistanceModal');
+							if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+								const modal = new bootstrap.Modal(modalEl);
+								modal.show();
+							} else if (typeof $ !== 'undefined' && $.fn.modal) {
+								$('#assistanceModal').modal('show');
+							} else if (modalEl) {
+								modalEl.style.display = 'block';
+								modalEl.classList.add('show');
+								document.body.classList.add('modal-open');
+								const backdrop = document.createElement('div');
+								backdrop.className = 'modal-backdrop fade show';
+								document.body.appendChild(backdrop);
+							}
+						}
+
+						function appendRecipient(recipient) {
+							if (!recipient.phone) return;
+							const item = document.createElement('div');
+							item.className = 'recipient-item';
+							item.dataset.phone = recipient.phone;
+							item.dataset.name = recipient.name || '';
+							item.dataset.firstName = recipient.firstName || '';
+							item.dataset.middleName = recipient.middleName || '';
+							item.dataset.lastName = recipient.lastName || '';
+							item.dataset.barangay = recipient.barangay || '';
+							item.dataset.purok = recipient.purok || '';
+							item.dataset.recordId = recipient.recordId || '';
+							item.style.padding = '4px 6px';
+							item.style.borderBottom = '1px solid #f1f1f1';
+							item.innerHTML = `<strong>${recipient.name || ''}</strong> <span class="text-muted">${recipient.phone}</span>`;
+							recipientsListEl.appendChild(item);
+						}
+
+						document.querySelectorAll('.js-birthday-sms').forEach(function(btn) {
+							btn.addEventListener('click', function() {
+								recipientsListEl.innerHTML = '';
+								appendRecipient({
+									phone: btn.getAttribute('data-phone') || '',
+									name: btn.getAttribute('data-name') || '',
+									firstName: btn.getAttribute('data-first-name') || '',
+									middleName: btn.getAttribute('data-middle-name') || '',
+									lastName: btn.getAttribute('data-last-name') || '',
+									barangay: btn.getAttribute('data-barangay') || '',
+									purok: btn.getAttribute('data-purok') || '',
+									recordId: btn.getAttribute('data-record-id') || ''
+								});
+								showSmsModal();
+							});
+						});
+					}
+
 					if (openSmsBtn && recipientsListEl) {
 						function refreshOpenSmsState() {
 							const anyChecked = Array.from(document.querySelectorAll('.row-checkbox')).some(cb => cb.checked);
@@ -2367,38 +2539,20 @@
 
 								// Only add if phone number exists
 								if (phone) {
-									const item = document.createElement('div');
-									item.className = 'recipient-item';
-									item.dataset.phone = phone;
-									item.dataset.name = name;
-									item.dataset.firstName = cb.dataset.firstName || cb.getAttribute('data-first-name') || '';
-									item.dataset.middleName = cb.dataset.middleName || cb.getAttribute('data-middle-name') || '';
-									item.dataset.lastName = cb.dataset.lastName || cb.getAttribute('data-last-name') || '';
-									item.dataset.barangay = cb.dataset.barangay || cb.getAttribute('data-barangay') || '';
-									item.dataset.purok = cb.dataset.purok || cb.getAttribute('data-purok') || '';
-									item.dataset.recordId = cb.dataset.recordId || cb.getAttribute('data-record-id') || cb.value;
-									item.style.padding = '4px 6px';
-									item.style.borderBottom = '1px solid #f1f1f1';
-									item.innerHTML = `<strong>${name}</strong> <span class="text-muted">${phone}</span>`;
-									recipientsListEl.appendChild(item);
+									appendRecipient({
+										phone: phone,
+										name: name,
+										firstName: cb.dataset.firstName || cb.getAttribute('data-first-name') || '',
+										middleName: cb.dataset.middleName || cb.getAttribute('data-middle-name') || '',
+										lastName: cb.dataset.lastName || cb.getAttribute('data-last-name') || '',
+										barangay: cb.dataset.barangay || cb.getAttribute('data-barangay') || '',
+										purok: cb.dataset.purok || cb.getAttribute('data-purok') || '',
+										recordId: cb.dataset.recordId || cb.getAttribute('data-record-id') || cb.value
+									});
 								}
 							});
 
-							// Show modal
-							const modalEl = document.getElementById('assistanceModal');
-							if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-								const modal = new bootstrap.Modal(modalEl);
-								modal.show();
-							} else if (typeof $ !== 'undefined' && $.fn.modal) {
-								$('#assistanceModal').modal('show');
-							} else {
-								modalEl.style.display = 'block';
-								modalEl.classList.add('show');
-								document.body.classList.add('modal-open');
-								const backdrop = document.createElement('div');
-								backdrop.className = 'modal-backdrop fade show';
-								document.body.appendChild(backdrop);
-							}
+							showSmsModal();
 						});
 
 						// Watch row checkboxes to enable/disable openSmsBtn

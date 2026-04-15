@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (staffRow && staffSelect) {
-            if (role === 'Staff') {
+            if (role === 'Staff' || role === 'Admin') {
                 staffRow.style.display = '';
                 staffSelect.required = true;
             } else {
@@ -83,7 +83,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         return;
     }
 
-    if (data.role === 'Staff' && (!data.staff_classification || String(data.staff_classification).trim() === '')) {
+    if ((data.role === 'Staff' || data.role === 'Admin') && (!data.staff_classification || String(data.staff_classification).trim() === '')) {
         Swal.fire({
             icon: 'error',
             title: 'Staff type required',
@@ -96,7 +96,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     if (data.role !== 'Barangay') {
         delete data.barangay_id;
     }
-    if (data.role !== 'Staff') {
+    if (data.role !== 'Staff' && data.role !== 'Admin') {
         delete data.staff_classification;
     }
     

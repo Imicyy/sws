@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Vulnerable Sector Information System - Superadmin </title>
+		<title>Social Welfare System  - Superadmin </title>
 		<!-- HTML5 Shim and Respond.js IE10 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 		<!--[if lt IE 10]>
@@ -16,7 +16,7 @@
 		<meta name="keywords" content="Admin , Responsive, Landing, Bootstrap, App, Template, Mobile, iOS, Android, apple, creative app">
 		<meta name="author" content="#">
 		<!-- Favicon icon -->
-		<link rel="icon" href="/assets/images/silay.png" type="image/x-icon">
+		<link rel="icon" href="/assets/images/SilayLogo.jpg" type="image/x-icon">
 		<!-- Google font-->
 		<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,800" rel="stylesheet">
 		<!-- Required Fremwork -->
@@ -30,6 +30,19 @@
 		<link rel="stylesheet" type="text/css" href="/assets/css/custom-sidebar.css">
 		<link rel="stylesheet" type="text/css" href="/assets/css/user.css">
 		<link rel="stylesheet" type="text/css" href="/assets/css/jquery.mCustomScrollbar.css">
+		<style>
+			/* Match select sizing fix used on staff page to prevent clipped option text */
+			select.form-control {
+				height: auto;
+				min-height: calc(1.5em + 1rem + 2px);
+				line-height: 1.5;
+				padding-top: 0.5rem;
+				padding-bottom: 0.5rem;
+				padding-left: 0.75rem;
+				padding-right: 2rem;
+				box-sizing: border-box;
+			}
+		</style>
 	</head>
 	<!-- Menu sidebar static layout -->
 	<body>
@@ -141,16 +154,20 @@
 											<span class="pcoded-mtext">Dashboard</span>
 										</a>
 										<ul class="pcoded-submenu">
-												<li class="">
+											<% if (!user || user.staff_classification === 'PDAO') { %>
+											<li class="">
 												<a href="/Index">
 													<span class="">PDAO TABLE</span>
 												</a>
 											</li>
+											<% } %>
+											<% if (!user || user.staff_classification === 'OSCA') { %>
 											<li class="">
 												<a href="/Analytics">
 													<span class="">OSCA TABLE</span>
 												</a>
 											</li>
+											<% } %>
 											<li class="active">
 												<a href="/admin-alert">
 													<span class="">ALERT</span>
