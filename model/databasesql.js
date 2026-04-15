@@ -5,10 +5,10 @@ const mysql = require("mysql2/promise");
 // Configure these in your .env:
 // MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB
 const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST || "127.0.0.1",
-  user: process.env.MYSQL_USER || "root",
-  password: process.env.MYSQL_PASSWORD || "",
-  database: process.env.MYSQL_DB || "ebmag",
+  host: process.env.DB_HOST || "db",
+  user: process.env.DB_USER || "root",
+  password: process.env.MYSQL_ROOT_PASSWORD,
+  database: process.env.MYSQL_DATABASE || "ebmag",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

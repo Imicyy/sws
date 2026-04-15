@@ -16,16 +16,16 @@ services:
     build:
       context: .
     volumes:
-      - .:/usr/src/app             # <--- ADD THIS: Maps your local code to the container
+      - .:/usr/src/app
       - /usr/src/app/node_modules
-      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .env
     environment:
       NODE_ENV: production
+      # We map the YAML variables directly to the keys in your .env
       DB_HOST: ${DB_HOST}
       DB_USER: ${DB_USER}
-      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD} 
       DB_NAME: ${MYSQL_DATABASE}
     ports:
       - "3000:3000"
@@ -38,11 +38,11 @@ services:
     env_file:
       - .env
     environment:
-      # Ensure these keys match what is inside your .env file
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE} 
     volumes:
-      - ./model/ebmag2.4.sql:/docker-entrypoint-initdb.d/init.sql
+      # Using your new 2.5 script
+      - ./model/ebmag2.5.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "3306:3306"
 # The commented out section below is an example of how to define a PostgreSQL
