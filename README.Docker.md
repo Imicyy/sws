@@ -3,7 +3,14 @@
 When you're ready, start your application by running:
 `docker compose up --build`.
 
-Your application will be available at http://localhost:3000.
+Your PHP application will be available at http://localhost:8080.
+
+Notes:
+- Compose now uses `Dockerfile.php` for the web app container (`php:8.2-apache`).
+- Apache `mod_rewrite` is enabled, and `.htaccess` routing is supported.
+- The canonical web root is `php/`, so the app entrypoint is `php/index.php` in the container.
+- MySQL is exposed on `localhost:3307` and initialized with `model/ebmag2.5.sql`.
+- phpMyAdmin is available at `http://localhost:8081` and connects to the `db` service.
 
 ### Deploying your application to the cloud
 
