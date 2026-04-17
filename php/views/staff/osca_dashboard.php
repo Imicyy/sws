@@ -19,6 +19,9 @@
     .main { flex: 1 1 auto; min-width: 0; padding: 20px; }
     .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
     .top .welcome { color: #6b7280; font-size: 14px; }
+    .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .top-action-btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 8px; background: #0f766e; color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; border: none; }
+    .top-action-btn:hover { background: #115e59; color: #fff; text-decoration: none; }
     .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
     .card-metric { border-radius: 12px; padding: 16px; color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.12); }
     .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; }
@@ -67,31 +70,17 @@
       <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">OSCA Department</span></div>
       <div class="nav-title">Navigation</div>
       <a class="nav-link active" href="/osca-dashboard">Dashboard</a>
-      <a class="nav-link" href="/add_senior">Register New Senior</a>
       <a class="nav-link" href="/logout">Logout</a>
     </aside>
 
     <main class="main">
       <div class="top">
         <h1 class="h4 mb-0">OSCA Dashboard</h1>
-        <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
+        <div class="top-actions">
+          <a class="top-action-btn" href="/add_senior">+ Add Senior Citizen</a>
+          <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
+        </div>
       </div>
-
-      <section class="cards">
-        <div class="card-metric bg-green">
-          <div class="label">Senior Citizens Registered</div>
-          <div class="value"><?= (int) ($totalSeniors ?? 0) ?></div>
-        </div>
-        <div class="card-metric bg-teal">
-          <div class="label">Current Records Shown</div>
-          <div class="value" id="entryCount"><?= count($seniors ?? []) ?></div>
-        </div>
-      </section>
-
-      <section class="panel quick">
-        <h2 class="h6 mb-3">Quick Entry Actions</h2>
-        <a href="/add_senior">Register New Senior Citizen</a>
-      </section>
 
       <section class="panel">
         <h2 class="h6 mb-3">Senior Citizens</h2>

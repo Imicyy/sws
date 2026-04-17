@@ -6,25 +6,377 @@
   <title>Senior Citizen FORM</title>
   <link rel="stylesheet" type="text/css" href="/files/assets/css/fill.css">
   <style>
-    .page-shell { max-width: 1360px; margin: 0 auto; padding: 24px 16px 40px; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; }
-    .topbar .meta { color: #5b6472; font-size: 13px; }
-    .navigation { display: flex; gap: 12px; justify-content: space-between; margin-top: 24px; }
-    .navigation button { min-width: 140px; }
-    .helper { margin: 0 0 12px; color: #6b7280; font-size: 14px; }
+    body {
+      margin: 0;
+      font-family: Open Sans, Segoe UI, Arial, sans-serif;
+      background: #f3f6fb;
+      color: #1f2937;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    .page-shell {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 18px 20px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-title {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.1;
+      color: #111827;
+    }
+
+    .helper {
+      margin: 8px 0 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .step-counter {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 10px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: #065f46;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .meta {
+      color: #6b7280;
+      font-size: 13px;
+      text-align: right;
+      max-width: 300px;
+    }
+
+    .topbar-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #0f766e;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      white-space: nowrap;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .topbar-btn:hover {
+      background: #115e59;
+      color: #ffffff;
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .form-panel {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      padding: 20px;
+    }
+
+    .form-panel .progress-bar {
+      margin-bottom: 24px;
+      padding: 0 10px;
+    }
+
+    .form-panel .progress-bar::before {
+      background: #d1d5db;
+      top: 50%;
+    }
+
+    .form-panel .step {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .form-panel .step.active {
+      color: #0f766e;
+      font-weight: 700;
+    }
+
+    .form-panel .step::before {
+      background-color: #d1fae5;
+      border-color: #a7f3d0;
+    }
+
+    .form-panel .step.active::before {
+      background-color: #0f766e;
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.16);
+    }
+
+    .form-panel fieldset {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 26px;
+      margin-bottom: 18px;
+      background: #ffffff;
+    }
+
+    .form-panel fieldset.active {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .form-panel legend {
+      padding: 0 10px;
+      color: #0f766e;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .form-panel label {
+      color: #374151;
+      margin-left: 0;
+      font-weight: 600;
+    }
+
+    .form-panel .form-row {
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .form-panel .form-group {
+      min-width: 220px;
+      margin-bottom: 0;
+    }
+
+    .form-panel .form-group.full-width {
+      flex: 0 0 100%;
+    }
+
+    .form-panel .form-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-panel input,
+    .form-panel select,
+    .form-panel .other-input {
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      box-shadow: none;
+    }
+
+    .form-panel input:focus,
+    .form-panel select:focus,
+    .form-panel .other-input:focus {
+      border-color: #0f766e;
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+    }
+
+    .form-panel input::placeholder {
+      color: #9ca3af;
+      text-transform: none;
+    }
+
+    .form-panel .form-group:hover {
+      transform: none;
+    }
+
+    .form-panel .skills-section {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 0;
+    }
+
+    .form-panel .section-title {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .form-panel .section-subtitle {
+      margin: 0 0 14px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .form-panel .skill-item label {
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .form-panel .skill-item input[type="checkbox"] {
+      accent-color: #0f766e;
+    }
+
+    .form-panel .add-child-btn {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      border-radius: 12px;
+      padding: 10px 18px;
+    }
+
+    .form-panel .add-child-btn:hover {
+      background: #d1fae5;
+    }
+
+    .form-panel .delete-child {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+    }
+
+    .form-panel .delete-child:hover {
+      background: #fecaca;
+    }
+
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 28px;
+      padding: 0 2px;
+    }
+
+    .navigation button {
+      min-width: 140px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      border: 1px solid transparent;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    #prevBtn {
+      background: #f3f4f6;
+      color: #374151;
+      border-color: #d1d5db;
+    }
+
+    #nextBtn {
+      background: #0f766e;
+      color: #ffffff;
+    }
+
+    #prevBtn:hover {
+      background: #e5e7eb;
+    }
+
+    #nextBtn:hover {
+      background: #115e59;
+    }
+
+    @media (max-width: 960px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .meta {
+        text-align: left;
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .form-panel {
+        padding: 16px;
+      }
+
+      .form-panel fieldset {
+        padding: 18px;
+      }
+
+      .form-row {
+        flex-direction: column;
+      }
+
+      .form-group {
+        width: 100%;
+        margin-bottom: 15px;
+      }
+
+      .form-panel .form-row {
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .form-panel .form-group {
+        min-width: 100%;
+      }
+
+      .navigation {
+        flex-direction: column;
+      }
+
+      .navigation button {
+        width: 100%;
+      }
+
+      .skills-grid {
+        flex-direction: column;
+      }
+
+      .skills-column {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="page-shell">
     <div class="topbar">
-      <div>
-        <h1 id="formTitle">Senior Citizen FORM</h1>
-        <p class="helper">This page now carries the full senior intake content instead of a placeholder form.</p>
+      <div class="topbar-left">
+        <a class="topbar-btn" href="/osca-dashboard">← Back to Dashboard</a>
+        <div>
+          <h1 class="topbar-title" id="formTitle">Senior Citizen FORM</h1>
+          <p class="helper">Complete the intake form below. The layout follows the same color palette and spacing as the dashboard.</p>
+          <div class="step-counter" id="stepCounter">Step 1 of 6: Personal Information</div>
+        </div>
       </div>
       <div class="meta">Barangay and purok options are loaded from the PHP controller.</div>
     </div>
 
-    <form id="housingForm" action="/add-data" method="post">
+    <form id="housingForm" class="form-panel" action="/add-data" method="post">
       <div class="progress-bar">
         <div class="step active"><span>Personal Information</span></div>
         <div class="step"><span>Contact Information</span></div>
@@ -251,5 +603,43 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script type="text/javascript" src="/files/assets/js/fill.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const stepCounter = document.getElementById('stepCounter');
+      const stepLabels = [
+        'Personal Information',
+        'Contact Information',
+        'Family Composition',
+        "ID'S",
+        'Education / HR Profile',
+        'Community Service'
+      ];
+
+      if (typeof window.showTab === 'function') {
+        const originalShowTab = window.showTab;
+        window.showTab = function (n) {
+          originalShowTab(n);
+          if (stepCounter && stepLabels[n]) {
+            stepCounter.textContent = 'Step ' + (n + 1) + ' of ' + stepLabels.length + ': ' + stepLabels[n];
+          }
+        };
+      }
+
+      if (typeof window.nextPrev === 'function') {
+        const originalNextPrev = window.nextPrev;
+        window.nextPrev = function (n) {
+          const result = originalNextPrev(n);
+          if (result !== false) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          return result;
+        };
+      }
+
+      if (stepCounter) {
+        stepCounter.textContent = 'Step 1 of ' + stepLabels.length + ': ' + stepLabels[0];
+      }
+    });
+  </script>
 </body>
 </html>
