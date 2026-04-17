@@ -369,14 +369,8 @@ async function submitForm() {
 
     if (!response.ok) throw data;
 
-    Swal.fire({
-      title: 'Success!',
-      text: data.alert?.text || 'Senior citizen record created successfully',
-      icon: 'success'
-    }).then(() => {
-      form.reset();
-      window.location.href = '/add_senior'; // Redirect if needed
-    });
+    form.reset();
+    window.location.href = '/osca-dashboard?refresh=' + Date.now();
   } catch (error) {
     console.error('Error:', error);
     // Check if server returned an alert object (for duplicate or validation errors)

@@ -169,6 +169,24 @@ class Controller
         $serviceRows = $this->queryAll('SELECT service FROM senior_community_services WHERE senior_id = ?', [$id]);
         $contactRows = $this->queryAll('SELECT type, name, relationship, phone, email FROM senior_contacts WHERE senior_id = ?', [$id]);
 
+        $skillValues = array_values(array_filter(array_map(static fn(array $r): ?string => $r['skill'] ?? null, $skillRows)));
+        $skillOtherText = null;
+        $normalizedSkills = [];
+        foreach ($skillValues as $skillValue) {
+            $skillText = trim((string) $skillValue);
+            if (stripos($skillText, 'Other:') === 0) {
+                $candidate = trim(substr($skillText, 6));
+                if ($candidate !== '') {
+                    $skillOtherText = $candidate;
+                }
+                if (!in_array('Other', $normalizedSkills, true)) {
+                    $normalizedSkills[] = 'Other';
+                }
+                continue;
+            }
+            $normalizedSkills[] = $skillText;
+        }
+
         return [
             '_id' => (int) $row['id'],
             'reference_code' => $row['reference_code'] ?? null,
@@ -216,8 +234,8 @@ class Controller
             ],
             'education_hr_profile' => [
                 'educational_attainment' => array_values(array_filter(array_map(static fn(array $r): ?string => $r['educational_attainment'] ?? null, $educationRows))),
-                'skills' => array_values(array_filter(array_map(static fn(array $r): ?string => $r['skill'] ?? null, $skillRows))),
-                'skill_other_text' => null,
+                'skills' => array_values(array_filter($normalizedSkills)),
+                'skill_other_text' => $skillOtherText,
             ],
             'community_service' => array_values(array_filter(array_map(static fn(array $r): ?string => $r['service'] ?? null, $serviceRows))),
             'community_service_other_text' => $row['community_service_other_text'] ?? null,
@@ -225,6 +243,125 @@ class Controller
             'archive_reason' => $row['archive_reason'] ?? null,
             'created_at' => $row['created_at'] ?? null,
         ];
+    }
+
+    private function normalizeLogValue(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        if (is_array($value) || is_object($value)) {
+            $json = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            return $json === false ? null : $json;
+        }
+
+        $text = trim((string) $value);
+        return $text === '' ? null : $text;
+    }
+
+    private function valuesDiffer(mixed $oldValue, mixed $newValue): bool
+    {
+        return $this->normalizeLogValue($oldValue) !== $this->normalizeLogValue($newValue);
+    }
+
+    private function canonicalizeSeniorContacts(array $contacts): array
+    {
+        $normalized = [];
+        foreach ($contacts as $contact) {
+            if (!is_array($contact)) {
+                continue;
+            }
+
+            $name = trim((string) ($contact['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'type' => trim((string) ($contact['type'] ?? 'primary')),
+                'name' => $name,
+                'relationship' => trim((string) ($contact['relationship'] ?? '')),
+                'phone' => trim((string) ($contact['phone'] ?? '')),
+                'email' => trim((string) ($contact['email'] ?? '')),
+            ];
+        }
+
+        usort($normalized, static function (array $a, array $b): int {
+            return strcmp(json_encode($a, JSON_UNESCAPED_UNICODE) ?: '', json_encode($b, JSON_UNESCAPED_UNICODE) ?: '');
+        });
+
+        return $normalized;
+    }
+
+    private function canonicalizeSeniorChildren(array $children): array
+    {
+        $normalized = [];
+        foreach ($children as $child) {
+            if (!is_array($child)) {
+                continue;
+            }
+
+            $fullName = trim((string) ($child['full_name'] ?? ''));
+            if ($fullName === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'full_name' => $fullName,
+                'occupation' => trim((string) ($child['occupation'] ?? '')),
+                'income' => trim((string) ($child['income'] ?? '')),
+                'age' => trim((string) ($child['age'] ?? '')),
+                'working_status' => trim((string) ($child['working_status'] ?? '')),
+            ];
+        }
+
+        usort($normalized, static function (array $a, array $b): int {
+            return strcmp(json_encode($a, JSON_UNESCAPED_UNICODE) ?: '', json_encode($b, JSON_UNESCAPED_UNICODE) ?: '');
+        });
+
+        return $normalized;
+    }
+
+    private function canonicalizeStringList(array $items): array
+    {
+        $normalized = [];
+        foreach ($items as $item) {
+            $value = trim((string) $item);
+            if ($value !== '') {
+                $normalized[] = $value;
+            }
+        }
+
+        sort($normalized);
+        return array_values(array_unique($normalized));
+    }
+
+    private function addSeniorEditLog(int $seniorId, string $field, mixed $oldValue, mixed $newValue, string $editedBy, string $editedAt): void
+    {
+        if (!$this->valuesDiffer($oldValue, $newValue)) {
+            return;
+        }
+
+        try {
+            $this->execute(
+                'INSERT INTO senior_edit_logs (senior_id, field, old_value, new_value, edited_by, edited_at) VALUES (?, ?, ?, ?, ?, ?)',
+                [
+                    $seniorId,
+                    $field,
+                    $this->normalizeLogValue($oldValue),
+                    $this->normalizeLogValue($newValue),
+                    $editedBy,
+                    $editedAt,
+                ]
+            );
+        } catch (Throwable $e) {
+            error_log('[SeniorEditLog] Failed to write log: ' . $e->getMessage());
+        }
     }
 
     private function outputPdfFromTemplateWithText(string $templatePath, string $filename, callable $drawPage1): void
@@ -1161,13 +1298,48 @@ class Controller
                 $this->jsonResponse(['success' => false, 'error' => 'Resident ID is required'], 400);
             }
 
-            $existing = $this->queryOne('SELECT id FROM senior_citizens WHERE id = ? LIMIT 1', [$id]);
-            if ($existing === null) {
+            $existing = $this->queryOne('SELECT * FROM senior_citizens WHERE id = ? LIMIT 1', [$id]);
+            if (!is_array($existing)) {
                 $this->jsonResponse(['success' => false, 'error' => 'Senior citizen not found'], 404);
             }
 
+            $beforeContacts = $this->queryAll('SELECT type, name, relationship, phone, email FROM senior_contacts WHERE senior_id = ?', [$id]);
+            $beforeChildren = $this->queryAll('SELECT full_name, occupation, income, age, working_status FROM senior_children WHERE senior_id = ?', [$id]);
+            $beforeEducationRows = $this->queryAll('SELECT educational_attainment FROM senior_education WHERE senior_id = ?', [$id]);
+            $beforeSkillRows = $this->queryAll('SELECT skill FROM senior_skills WHERE senior_id = ?', [$id]);
+            $beforeCommunityRows = $this->queryAll('SELECT service FROM senior_community_services WHERE senior_id = ?', [$id]);
+
             $map = [
-                'first_name','middle_name','last_name','barangay','purok','gender','age','marital_status','community_service_other_text'
+                'first_name',
+                'middle_name',
+                'last_name',
+                'extension',
+                'barangay',
+                'purok',
+                'age',
+                'place_of_birth',
+                'marital_status',
+                'gender',
+                'osca_id_number',
+                'gsis_sss',
+                'philhealth',
+                'sc_association_org_id_no',
+                'tin',
+                'other_govt_id',
+                'service_business_employment',
+                'current_pension',
+                'capability_to_travel',
+                'spouse_name',
+                'father_last_name',
+                'father_first_name',
+                'father_middle_name',
+                'father_extension',
+                'mother_last_name',
+                'mother_first_name',
+                'mother_middle_name',
+                'community_service_other_text',
+                'status',
+                'archive_reason',
             ];
 
             $fields = [];
@@ -1185,13 +1357,178 @@ class Controller
             }
 
             $editor = $_SESSION['user']['email'] ?? ($body['edited_by'] ?? 'Unknown');
+            $editedAt = date('Y-m-d H:i:s');
             $fields[] = 'edited_by = ?';
             $fields[] = 'edited_at = ?';
             $params[] = $editor;
-            $params[] = date('Y-m-d H:i:s');
+            $params[] = $editedAt;
 
             $params[] = $id;
             $this->execute('UPDATE senior_citizens SET ' . implode(', ', $fields) . ' WHERE id = ?', $params);
+
+            $this->execute('DELETE FROM senior_contacts WHERE senior_id = ?', [$id]);
+            $this->execute('DELETE FROM senior_children WHERE senior_id = ?', [$id]);
+            $this->execute('DELETE FROM senior_education WHERE senior_id = ?', [$id]);
+            $this->execute('DELETE FROM senior_skills WHERE senior_id = ?', [$id]);
+            $this->execute('DELETE FROM senior_community_services WHERE senior_id = ?', [$id]);
+
+            $contacts = $body['contacts'] ?? $body['identifying_information']['contacts'] ?? [];
+            if (is_array($contacts)) {
+                foreach ($contacts as $contact) {
+                    if (!is_array($contact) || empty($contact['name'])) {
+                        continue;
+                    }
+                    $this->execute(
+                        'INSERT INTO senior_contacts (senior_id, type, name, relationship, phone, email) VALUES (?, ?, ?, ?, ?, ?)',
+                        [$id, $contact['type'] ?? 'primary', $contact['name'], $contact['relationship'] ?? null, $contact['phone'] ?? null, $contact['email'] ?? null]
+                    );
+                }
+            }
+
+            $children = $body['children'] ?? $body['family_composition']['children'] ?? [];
+            if (is_array($children)) {
+                foreach ($children as $child) {
+                    if (!is_array($child) || empty($child['full_name'])) {
+                        continue;
+                    }
+                    $this->execute(
+                        'INSERT INTO senior_children (senior_id, full_name, occupation, income, age, working_status) VALUES (?, ?, ?, ?, ?, ?)',
+                        [$id, $child['full_name'], $child['occupation'] ?? null, $child['income'] ?? null, $child['age'] ?? null, $child['working_status'] ?? null]
+                    );
+                }
+            }
+
+            $educationalAttainment = $body['educational_attainment'] ?? $body['education_hr_profile']['educational_attainment'] ?? [];
+            if (is_array($educationalAttainment)) {
+                foreach ($educationalAttainment as $educationItem) {
+                    if ($educationItem === null || $educationItem === '') {
+                        continue;
+                    }
+                    $this->execute(
+                        'INSERT INTO senior_education (senior_id, educational_attainment) VALUES (?, ?)',
+                        [$id, $educationItem]
+                    );
+                }
+            }
+
+            $skills = $body['skills'] ?? $body['education_hr_profile']['skills'] ?? [];
+            $skillOtherText = trim((string) ($body['skill_other_text'] ?? $body['education_hr_profile']['skill_other_text'] ?? ''));
+            if (is_array($skills)) {
+                foreach ($skills as $skill) {
+                    if ($skill === null || $skill === '') {
+                        continue;
+                    }
+
+                    if ((string) $skill === 'Other' && $skillOtherText !== '') {
+                        $this->execute(
+                            'INSERT INTO senior_skills (senior_id, skill) VALUES (?, ?)',
+                            [$id, 'Other: ' . $skillOtherText]
+                        );
+                        continue;
+                    }
+
+                    $this->execute(
+                        'INSERT INTO senior_skills (senior_id, skill) VALUES (?, ?)',
+                        [$id, $skill]
+                    );
+                }
+            }
+
+            $communityServices = $body['community_service'] ?? [];
+            if (is_array($communityServices)) {
+                foreach ($communityServices as $service) {
+                    if ($service === null || $service === '') {
+                        continue;
+                    }
+                    $this->execute(
+                        'INSERT INTO senior_community_services (senior_id, service) VALUES (?, ?)',
+                        [$id, $service]
+                    );
+                }
+            }
+
+            $scalarFieldsForLogs = [
+                'first_name',
+                'middle_name',
+                'last_name',
+                'extension',
+                'barangay',
+                'purok',
+                'age',
+                'place_of_birth',
+                'marital_status',
+                'gender',
+                'osca_id_number',
+                'gsis_sss',
+                'philhealth',
+                'sc_association_org_id_no',
+                'tin',
+                'other_govt_id',
+                'service_business_employment',
+                'current_pension',
+                'capability_to_travel',
+                'spouse_name',
+                'father_last_name',
+                'father_first_name',
+                'father_middle_name',
+                'father_extension',
+                'mother_last_name',
+                'mother_first_name',
+                'mother_middle_name',
+                'community_service_other_text',
+                'status',
+                'archive_reason',
+            ];
+
+            foreach ($scalarFieldsForLogs as $field) {
+                $beforeValue = $existing[$field] ?? null;
+                $afterValue = array_key_exists($field, $body)
+                    ? ($body[$field] === '' ? null : $body[$field])
+                    : $beforeValue;
+                $this->addSeniorEditLog($id, $field, $beforeValue, $afterValue, (string) $editor, $editedAt);
+            }
+
+            $beforeDob = $existing['date_of_birth'] ?? null;
+            $afterDob = array_key_exists('birthday', $body)
+                ? $this->parseDate((string) $body['birthday'])
+                : $beforeDob;
+            $this->addSeniorEditLog($id, 'date_of_birth', $beforeDob, $afterDob, (string) $editor, $editedAt);
+
+            $beforeEducation = $this->canonicalizeStringList(array_map(static fn(array $row): string => (string) ($row['educational_attainment'] ?? ''), $beforeEducationRows));
+            $beforeSkills = $this->canonicalizeStringList(array_map(static fn(array $row): string => (string) ($row['skill'] ?? ''), $beforeSkillRows));
+            $beforeCommunity = $this->canonicalizeStringList(array_map(static fn(array $row): string => (string) ($row['service'] ?? ''), $beforeCommunityRows));
+
+            $afterEducation = $this->canonicalizeStringList(is_array($educationalAttainment) ? $educationalAttainment : []);
+            $beforeSkillOtherText = null;
+            foreach ($beforeSkills as $skillItem) {
+                if (stripos((string) $skillItem, 'Other:') === 0) {
+                    $beforeSkillOtherText = trim(substr((string) $skillItem, 6));
+                    break;
+                }
+            }
+            $afterSkills = $this->canonicalizeStringList(is_array($skills) ? $skills : []);
+            $afterCommunity = $this->canonicalizeStringList(is_array($communityServices) ? $communityServices : []);
+
+            $this->addSeniorEditLog(
+                $id,
+                'contacts',
+                $this->canonicalizeSeniorContacts($beforeContacts),
+                $this->canonicalizeSeniorContacts(is_array($contacts) ? $contacts : []),
+                (string) $editor,
+                $editedAt
+            );
+            $this->addSeniorEditLog(
+                $id,
+                'children',
+                $this->canonicalizeSeniorChildren($beforeChildren),
+                $this->canonicalizeSeniorChildren(is_array($children) ? $children : []),
+                (string) $editor,
+                $editedAt
+            );
+            $this->addSeniorEditLog($id, 'educational_attainment', $beforeEducation, $afterEducation, (string) $editor, $editedAt);
+            $this->addSeniorEditLog($id, 'skills', $beforeSkills, $afterSkills, (string) $editor, $editedAt);
+            $this->addSeniorEditLog($id, 'skill_other_text', $beforeSkillOtherText, $skillOtherText, (string) $editor, $editedAt);
+            $this->addSeniorEditLog($id, 'community_service', $beforeCommunity, $afterCommunity, (string) $editor, $editedAt);
 
             $this->jsonResponse([
                 'success' => true,
@@ -1200,6 +1537,28 @@ class Controller
             ]);
         } catch (Throwable $e) {
             $this->jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getSeniorEditLogs(): void
+    {
+        try {
+            $seniorId = isset($_GET['senior_id']) ? (int) $_GET['senior_id'] : 0;
+            if ($seniorId <= 0) {
+                $this->jsonResponse(['success' => false, 'message' => 'Senior ID is required'], 400);
+            }
+
+            $logs = $this->queryAll(
+                'SELECT id, senior_id, field, old_value, new_value, edited_by, edited_at
+                 FROM senior_edit_logs
+                 WHERE senior_id = ?
+                 ORDER BY edited_at DESC, id DESC',
+                [$seniorId]
+            );
+
+            $this->jsonResponse(['success' => true, 'data' => $logs]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to load senior edit logs'], 500);
         }
     }
 
@@ -2176,10 +2535,31 @@ class Controller
                 $where = '';
             }
 
-            $seniors = $this->queryAll(
+            $basicRows = $this->queryAll(
                 'SELECT id, last_name, first_name, middle_name, extension, barangay, purok, age, gender, status, created_at
                  FROM senior_citizens ' . $where . ' ORDER BY created_at DESC'
             );
+
+            $seniors = array_values(array_filter(array_map(function (array $row): ?array {
+                $full = $this->getSeniorByIdWithRelations((int) $row['id']);
+                if ($full === null) {
+                    return null;
+                }
+
+                $full['id'] = (int) $row['id'];
+                $full['first_name'] = $row['first_name'] ?? null;
+                $full['middle_name'] = $row['middle_name'] ?? null;
+                $full['last_name'] = $row['last_name'] ?? null;
+                $full['extension'] = $row['extension'] ?? null;
+                $full['barangay'] = $row['barangay'] ?? null;
+                $full['purok'] = $row['purok'] ?? null;
+                $full['age'] = isset($row['age']) ? (int) $row['age'] : null;
+                $full['gender'] = $row['gender'] ?? null;
+                $full['status'] = $row['status'] ?? null;
+                $full['created_at'] = $row['created_at'] ?? null;
+                return $full;
+            }, $basicRows)));
+
             $totalSeniors = count($seniors);
         } catch (Throwable $e) {
             $seniors = [];

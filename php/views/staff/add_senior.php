@@ -46,6 +46,9 @@
       align-items: center;
       gap: 14px;
       flex-wrap: wrap;
+      width: 100%;
+      justify-content: center;
+      position: relative;
     }
 
     .topbar-title {
@@ -53,26 +56,7 @@
       font-size: 28px;
       line-height: 1.1;
       color: #111827;
-    }
-
-    .helper {
-      margin: 8px 0 0;
-      color: #6b7280;
-      font-size: 14px;
-    }
-
-    .step-counter {
-      display: inline-flex;
-      align-items: center;
-      margin-top: 10px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #ecfdf5;
-      color: #065f46;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
+      text-align: center;
     }
 
     .meta {
@@ -96,6 +80,8 @@
       border: none;
       white-space: nowrap;
       transition: background-color 0.2s ease, transform 0.2s ease;
+      position: absolute;
+      left: 0;
     }
 
     .topbar-btn:hover {
@@ -114,18 +100,39 @@
     }
 
     .form-panel .progress-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
       margin-bottom: 24px;
       padding: 0 10px;
+      position: relative;
+      counter-reset: form-step;
+      flex-wrap: nowrap;
+      overflow-x: auto;
     }
 
     .form-panel .progress-bar::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      left: 34px;
+      right: 34px;
+      height: 2px;
       background: #d1d5db;
-      top: 50%;
+      z-index: 0;
     }
 
     .form-panel .step {
       color: #6b7280;
-      font-size: 14px;
+      font-size: 12px;
+      cursor: default;
+      text-align: center;
+      min-width: 126px;
+      position: relative;
+      z-index: 1;
+      white-space: nowrap;
+      font-weight: 600;
     }
 
     .form-panel .step.active {
@@ -134,8 +141,19 @@
     }
 
     .form-panel .step::before {
-      background-color: #d1fae5;
-      border-color: #a7f3d0;
+      counter-increment: form-step;
+      content: counter(form-step);
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      margin: 0 auto 8px;
+      border-radius: 50%;
+      background-color: #94a3b8;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
     }
 
     .form-panel .step.active::before {
@@ -149,9 +167,12 @@
       padding: 26px;
       margin-bottom: 18px;
       background: #ffffff;
+      min-height: 420px;
+      display: none;
     }
 
-    .form-panel fieldset.active {
+    .form-panel fieldset.active,
+    .form-panel fieldset.active-step {
       display: block;
       animation: fadeIn 0.25s ease;
     }
@@ -268,7 +289,7 @@
 
     .navigation {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 16px;
       margin-top: 28px;
       padding: 0 2px;
@@ -292,6 +313,12 @@
       border-color: #d1d5db;
     }
 
+    #prevBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     #nextBtn {
       background: #0f766e;
       color: #ffffff;
@@ -311,6 +338,18 @@
         align-items: flex-start;
       }
 
+      .topbar-left {
+        justify-content: flex-start;
+      }
+
+      .topbar-btn {
+        position: static;
+      }
+
+      .topbar-title {
+        text-align: left;
+      }
+
       .meta {
         text-align: left;
         max-width: none;
@@ -324,6 +363,7 @@
 
       .form-panel fieldset {
         padding: 18px;
+        min-height: 0;
       }
 
       .form-row {
@@ -359,6 +399,14 @@
       .skills-column {
         width: 100%;
       }
+
+      .form-panel .progress-bar {
+        justify-content: flex-start;
+      }
+
+      .form-panel .step {
+        min-width: 110px;
+      }
     }
   </style>
 </head>
@@ -369,11 +417,8 @@
         <a class="topbar-btn" href="/osca-dashboard">← Back to Dashboard</a>
         <div>
           <h1 class="topbar-title" id="formTitle">Senior Citizen FORM</h1>
-          <p class="helper">Complete the intake form below. The layout follows the same color palette and spacing as the dashboard.</p>
-          <div class="step-counter" id="stepCounter">Step 1 of 6: Personal Information</div>
         </div>
       </div>
-      <div class="meta">Barangay and purok options are loaded from the PHP controller.</div>
     </div>
 
     <form id="housingForm" class="form-panel" action="/add-data" method="post">
@@ -381,7 +426,7 @@
         <div class="step active"><span>Personal Information</span></div>
         <div class="step"><span>Contact Information</span></div>
         <div class="step"><span>Family Composition</span></div>
-        <div class="step"><span>ID'S</span></div>
+        <div class="step"><span>IDs</span></div>
         <div class="step"><span>Education / HR Profile</span></div>
         <div class="step"><span>Community Service</span></div>
       </div>
@@ -390,7 +435,7 @@
         <legend>Personal Information</legend>
         <div class="form-row">
           <div class="form-group"><label for="first_name">First Name</label><input type="text" id="first_name" name="first_name" required placeholder="First Name"></div>
-          <div class="form-group"><label for="middle_name">Middle Name</label><input type="text" id="middle_name" name="middle_name" placeholder="Middle Name"></div>
+          <div class="form-group"><label for="middle_name">Middle Name</label><input type="text" id="middle_name" name="middle_name" required placeholder="Middle Name"></div>
           <div class="form-group"><label for="last_name">Last Name</label><input type="text" id="last_name" name="last_name" required placeholder="Last Name"></div>
         </div>
         <div class="form-row">
@@ -412,8 +457,8 @@
           <div class="form-group"><label for="religion">Religion</label><input type="text" id="religion" name="religion" required placeholder="Religion"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label for="pension">Current Pension (specify)</label><input type="number" id="pension" name="pension" placeholder="100,000"></div>
-          <div class="form-group"><label for="service">Service/Business/Employment(specify)</label><input type="text" id="service" name="service" placeholder="Service"></div>
+          <div class="form-group"><label for="pension">Current Pension (specify)</label><input type="number" id="pension" name="pension" required placeholder="100,000"></div>
+          <div class="form-group"><label for="service">Service/Business/Employment(specify)</label><input type="text" id="service" name="service" required placeholder="Service"></div>
           <div class="form-group"><label for="capability_to_travel">Capability to Travel</label><select id="capability_to_travel" name="capability_to_travel" required><option value="">-- Select One --</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
         </div>
         <div class="form-row"><div class="form-group"><label for="place_of_birth">Place of Birth</label><input type="text" id="place_of_birth" name="place_of_birth" required placeholder="Place of Birth"></div></div>
@@ -428,16 +473,16 @@
         <div id="contactsContainer">
           <div class="contact-entry" data-contact-id="1">
             <div class="form-row">
-              <div class="form-group"><label>Contact Type</label><select class="contact-type" name="contacts[1][type]"><option value="primary">Primary</option><option value="secondary">Secondary</option><option value="emergency">Emergency</option></select></div>
-              <div class="form-group"><label>Full Name</label><input type="text" name="contacts[1][name]"></div>
+              <div class="form-group"><label>Contact Type</label><select class="contact-type" name="contacts[1][type]" required><option value="primary">Primary</option><option value="secondary">Secondary</option><option value="emergency">Emergency</option></select></div>
+              <div class="form-group"><label>Full Name</label><input type="text" name="contacts[1][name]" required></div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Relationship</label><input type="text" name="contacts[1][relationship]"></div>
-              <div class="form-group"><label>Phone Number</label><input type="tel" name="contacts[1][phone]" maxlength="11" pattern="\d{11}" title="Please enter exactly 11 digits"></div>
+              <div class="form-group"><label>Relationship</label><input type="text" name="contacts[1][relationship]" required></div>
+              <div class="form-group"><label>Phone Number</label><input type="tel" name="contacts[1][phone]" maxlength="11" pattern="\d{11}" title="Please enter exactly 11 digits" required></div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Email Address</label><input type="email" name="contacts[1][email]"></div>
-              <div class="form-group"><button type="button" class="delete-child" disabled>Remove</button></div>
+              <div class="form-group"><label>Email Address</label><input type="email" name="contacts[1][email]" required></div>
+              <div class="form-group"><button type="button" class="delete-child">Remove</button></div>
             </div>
           </div>
         </div>
@@ -465,8 +510,8 @@
                 <div class="form-group"><label>Full Name</label><input type="text" name="childFullName[]" placeholder="Full Name"></div>
                 <div class="form-group"><label>Occupation</label><input type="text" name="childOccupation[]" placeholder="Occupation"></div>
                 <div class="form-group"><label>Age</label><input type="number" name="childAge[]" placeholder="Age"></div>
-                <div class="form-group"><label>Working/Not Working</label><select name="childWorkingStatus[]"><option value="not_working">Select</option><option value="not_working">Not Working</option><option value="working">Working</option></select></div>
-                <div class="form-group"><label>Income</label><input type="number" name="childIncome[]" placeholder="Income"></div>
+                <div class="form-group"><label>Working/Not Working</label><select class="child-working-status" name="childWorkingStatus[]"><option value="not_working">Select</option><option value="not_working">Not Working</option><option value="working">Working</option></select></div>
+                <div class="form-group income-field" style="display:none;"><label>Income</label><input type="number" name="childIncome[]" placeholder="Income"></div>
                 <button type="button" class="delete-child" style="display:none;">Delete</button>
               </div>
             </div>
@@ -475,19 +520,16 @@
         </div>
       </fieldset>
 
-      <fieldset id="requiredDocuments" class="hidden">
-        <legend>ID'S</legend>
+      <fieldset id="identificationDocuments">
+        <legend>Identification Documents</legend>
         <div class="form-row">
-          <div class="form-group"><label for="osca_id">OSCA ID No</label><input type="number" id="osca_id" name="osca_id"></div>
-          <div class="form-group"><label for="gsis_sss_no">GSIS/SSS No</label><input type="number" id="gsis_sss_no" name="gsis_sss_no"></div>
+          <div class="form-group"><label for="osca_id">OSCA/Senior Citizen ID No.</label><input type="text" id="osca_id" name="osca_id" class="numeric-only" data-max-digits="10" maxlength="10" pattern="\d{10}" title="Please enter exactly 10 digits" placeholder="e.g. 1234567890" inputmode="numeric"></div>
+          <div class="form-group"><label for="gsis_id">GSIS</label><input type="text" id="gsis_id" name="gsis_id" class="numeric-only" data-max-digits="11" maxlength="11" pattern="\d{11}" title="Please enter exactly 11 digits" placeholder="e.g. 12345678901" inputmode="numeric"></div>
+          <div class="form-group"><label for="sss_id">SSS</label><input type="text" id="sss_id" name="sss_id" class="numeric-only" data-max-digits="10" maxlength="10" pattern="\d{10}" title="Please enter exactly 10 digits" placeholder="e.g. 1234567890" inputmode="numeric"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label for="tin_no">TIN No</label><input type="number" id="tin_no" name="tin_no"></div>
-          <div class="form-group"><label for="philhealth_no">Philhealth No</label><input type="number" id="philhealth_no" name="philhealth_no"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label for="sc_association_id">SC Association / Org ID No</label><input type="number" id="sc_association_id" name="sc_association_id"></div>
-          <div class="form-group"><label for="other_govt_id">Other Gov't ID</label><input type="number" id="other_govt_id" name="other_govt_id"></div>
+          <div class="form-group"><label for="philhealth_id">Philhealth</label><input type="text" id="philhealth_id" name="philhealth_id" class="numeric-only" data-max-digits="12" maxlength="12" pattern="\d{12}" title="Please enter exactly 12 digits" placeholder="e.g. 123456789012" inputmode="numeric"></div>
+          <div class="form-group full-width"><label for="other_id">Other's Please Specify</label><input type="text" id="other_id" name="other_id" placeholder="Other's Please Specify"></div>
         </div>
       </fieldset>
 
@@ -555,7 +597,7 @@
         </div>
       </fieldset>
 
-      <div class="navigation"><button type="button" id="prevBtn" onclick="nextPrev(-1)">BACK</button><button type="button" id="nextBtn" onclick="nextPrev(1)">NEXT</button></div>
+      <div class="navigation"><button type="button" id="prevBtn">BACK</button><button type="button" id="nextBtn">NEXT</button></div>
     </form>
   </div>
 
@@ -582,15 +624,45 @@
       if (!birthday || !age || !birthday.value) return;
       const dob = new Date(birthday.value);
       if (Number.isNaN(dob.getTime())) return;
-      const diff = Date.now() - dob.getTime();
-      age.value = new Date(diff).getUTCFullYear() - 1970;
+
+      const today = new Date();
+      let years = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      const birthdayNotReached = monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate());
+      if (birthdayNotReached) {
+        years -= 1;
+      }
+
+      age.value = years >= 0 ? years : '';
+
+      if (years >= 0 && years < 60) {
+        if (typeof window.Swal !== 'undefined' && typeof window.Swal.fire === 'function') {
+          window.Swal.fire({
+            icon: 'warning',
+            title: 'Age Requirement',
+            text: 'You must be 60 years old to fill this form',
+            confirmButtonColor: '#0f766e'
+          });
+        } else {
+          alert('You must be 60+ to fill this form');
+        }
+      }
     }
 
     function toggleSpouseInput() {
       const civilStatus = document.getElementById('civil_status');
       const spouseGroup = document.getElementById('spouseGroup');
+      const spouseInput = document.getElementById('spouse_name');
       if (!civilStatus || !spouseGroup) return;
-      spouseGroup.style.display = civilStatus.value === 'Married' ? 'block' : 'none';
+      const isMarried = civilStatus.value === 'Married';
+      spouseGroup.style.display = isMarried ? 'block' : 'none';
+      if (spouseInput) {
+        spouseInput.required = isMarried;
+        if (!isMarried) {
+          spouseInput.value = '';
+          spouseInput.style.borderColor = '';
+        }
+      }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -605,40 +677,495 @@
   <script type="text/javascript" src="/files/assets/js/fill.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('housingForm');
+      const fieldsets = Array.from(document.querySelectorAll('#housingForm fieldset'));
+      const stepElements = Array.from(document.querySelectorAll('.progress-bar .step'));
+      const prevBtnNav = document.getElementById('prevBtn');
+      const nextBtnNav = document.getElementById('nextBtn');
       const stepCounter = document.getElementById('stepCounter');
       const stepLabels = [
         'Personal Information',
         'Contact Information',
         'Family Composition',
-        "ID'S",
+        'IDs',
         'Education / HR Profile',
         'Community Service'
       ];
 
-      if (typeof window.showTab === 'function') {
-        const originalShowTab = window.showTab;
-        window.showTab = function (n) {
-          originalShowTab(n);
-          if (stepCounter && stepLabels[n]) {
-            stepCounter.textContent = 'Step ' + (n + 1) + ' of ' + stepLabels.length + ': ' + stepLabels[n];
-          }
-        };
+      let wizardIndex = 0;
+      let isConfirmedSubmitInProgress = false;
+
+      function showAgeWarningModal() {
+        if (typeof window.Swal !== 'undefined' && typeof window.Swal.fire === 'function') {
+          window.Swal.fire({
+            icon: 'warning',
+            title: 'Age Requirement',
+            text: 'You must be 60+ to fill this form',
+            confirmButtonColor: '#0f766e'
+          });
+          return;
+        }
+
+        alert('You must be 60+ to fill this form');
       }
 
-      if (typeof window.nextPrev === 'function') {
-        const originalNextPrev = window.nextPrev;
-        window.nextPrev = function (n) {
-          const result = originalNextPrev(n);
-          if (result !== false) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+      function isSeniorAgeValid(showModal) {
+        const ageInput = document.getElementById('age');
+        if (!ageInput) return true;
+
+        const parsedAge = Number(ageInput.value);
+        const validAge = Number.isFinite(parsedAge) && parsedAge >= 60;
+
+        ageInput.setCustomValidity(validAge ? '' : 'You must be 60+ to fill this form');
+
+        if (!validAge && showModal) {
+          showAgeWarningModal();
+          if (typeof ageInput.reportValidity === 'function') {
+            ageInput.reportValidity();
           }
-          return result;
-        };
+        }
+
+        return validAge;
       }
 
-      if (stepCounter) {
-        stepCounter.textContent = 'Step 1 of ' + stepLabels.length + ': ' + stepLabels[0];
+      async function submitSeniorForm() {
+        const submitButton = document.getElementById('nextBtn');
+        const formData = new FormData(form);
+
+        const requestData = {
+          identifying_information: {
+            name: {
+              first_name: formData.get('first_name'),
+              middle_name: formData.get('middle_name'),
+              last_name: formData.get('last_name')
+            },
+            address: {
+              barangay: formData.get('barangay'),
+              purok: formData.get('purok')
+            },
+            date_of_birth: formData.get('birthday'),
+            age: parseInt(formData.get('age'), 10),
+            place_of_birth: formData.get('place_of_birth'),
+            marital_status: formData.get('civil_status'),
+            gender: formData.get('gender'),
+            osca_id_number: formData.get('osca_id'),
+            gsis_sss: formData.get('gsis_id') || formData.get('sss_id') || formData.get('gsis_sss_no'),
+            philhealth: formData.get('philhealth_id') || formData.get('philhealth_no'),
+            tin: formData.get('tin_no'),
+            other_govt_id: formData.get('other_id') || formData.get('other_govt_id'),
+            service_business_employment: formData.get('service'),
+            current_pension: formData.get('pension'),
+            capability_to_travel: formData.get('capability_to_travel') === 'Yes' ? 'Yes' : 'No',
+            religion: formData.get('religion'),
+            contacts: []
+          },
+          family_composition: {
+            spouse: {
+              name: formData.get('spouse_name') || undefined
+            },
+            father: {
+              last_name: formData.get('fatherLastName'),
+              first_name: formData.get('fatherFirstName'),
+              middle_name: formData.get('fatherMiddleName'),
+              extension: formData.get('fatherExtension') || undefined
+            },
+            mother: {
+              last_name: formData.get('motherLastName'),
+              first_name: formData.get('motherFirstName'),
+              middle_name: formData.get('motherMiddleName')
+            },
+            children: Array.from(document.querySelectorAll('.child-entry')).map(function (child) {
+              return {
+                full_name: child.querySelector('input[name="childFullName[]"]').value,
+                occupation: child.querySelector('input[name="childOccupation[]"]').value,
+                age: parseInt(child.querySelector('input[name="childAge[]"]').value, 10) || undefined,
+                working_status: child.querySelector('select[name="childWorkingStatus[]"]').value,
+                income: child.querySelector('input[name="childIncome[]"]').value || undefined
+              };
+            }).filter(function (child) {
+              return child.full_name;
+            })
+          },
+          education_hr_profile: {
+            educational_attainment: formData.get('educational_attainment'),
+            skills: Array.from(document.querySelectorAll('#educationalAttainment input[name="skills[]"]:checked')).map(function (el) {
+              return el.value;
+            }),
+            skill_other_text: document.getElementById('skill-other-text')?.value || undefined
+          },
+          community_service: Array.from(document.querySelectorAll('#service input[name="community_service[]"]:checked')).map(function (el) {
+            return el.value;
+          }),
+          community_service_other_text: document.getElementById('community-service-other-text')?.value || undefined
+        };
+
+        requestData.identifying_information.contacts = Array.from(document.querySelectorAll('.contact-entry')).map(function (contact) {
+          return {
+            type: contact.querySelector('.contact-type').value,
+            name: contact.querySelector('input[name$="[name]"]').value,
+            relationship: contact.querySelector('input[name$="[relationship]"]').value,
+            phone: contact.querySelector('input[name$="[phone]"]').value,
+            email: contact.querySelector('input[name$="[email]"]').value || undefined
+          };
+        });
+
+        if (typeof window.Swal !== 'undefined' && typeof window.Swal.fire === 'function') {
+          window.Swal.fire({
+            title: 'Processing...',
+            text: 'Please wait while we save your information',
+            allowOutsideClick: false,
+            didOpen: function () {
+              window.Swal.showLoading();
+            }
+          });
+        }
+
+        if (submitButton) {
+          submitButton.disabled = true;
+        }
+
+        try {
+          const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw data;
+          }
+
+          form.reset();
+          window.location.href = '/osca-dashboard?refresh=' + Date.now();
+        } catch (error) {
+          console.error('Error:', error);
+          if (typeof window.Swal !== 'undefined' && typeof window.Swal.fire === 'function') {
+            if (error && error.alert) {
+              window.Swal.fire(error.alert);
+            } else {
+              window.Swal.fire({
+                title: 'Error',
+                text: error?.message || 'An error occurred while saving the data',
+                icon: 'error'
+              });
+            }
+          } else {
+            alert(error?.message || 'An error occurred while saving the data');
+          }
+          throw error;
+        } finally {
+          if (submitButton) {
+            submitButton.disabled = false;
+          }
+        }
       }
+
+      window.submitForm = submitSeniorForm;
+
+      function confirmBeforeSubmit() {
+        if (typeof window.Swal !== 'undefined' && typeof window.Swal.fire === 'function') {
+          return window.Swal.fire({
+            title: 'Submit Senior Citizen Form?',
+            text: 'Please confirm all information before submitting.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Submit',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#0f766e'
+          }).then(function (result) {
+            return !!result.isConfirmed;
+          });
+        }
+
+        return Promise.resolve(window.confirm('Submit Senior Citizen Form?'));
+      }
+
+      function runConfirmedSubmit() {
+        if (isConfirmedSubmitInProgress) return;
+        isConfirmedSubmitInProgress = true;
+
+        const submitResult = submitSeniorForm();
+        if (submitResult && typeof submitResult.finally === 'function') {
+          submitResult.finally(function () {
+            isConfirmedSubmitInProgress = false;
+          });
+        } else {
+          isConfirmedSubmitInProgress = false;
+        }
+      }
+
+      function renderStep(index) {
+        if (!fieldsets.length) return;
+        wizardIndex = Math.max(0, Math.min(index, fieldsets.length - 1));
+
+        fieldsets.forEach(function (fieldset, i) {
+          const isActive = i === wizardIndex;
+          fieldset.classList.toggle('active-step', isActive);
+          fieldset.style.display = isActive ? 'block' : 'none';
+          fieldset.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        });
+
+        stepElements.forEach(function (stepEl, i) {
+          stepEl.classList.toggle('active', i === wizardIndex);
+        });
+
+        if (prevBtnNav) {
+          prevBtnNav.style.display = 'inline-flex';
+          prevBtnNav.disabled = wizardIndex === 0;
+        }
+
+        if (nextBtnNav) {
+          nextBtnNav.textContent = wizardIndex === fieldsets.length - 1 ? 'SUBMIT' : 'NEXT';
+        }
+
+        if (stepCounter && stepLabels[wizardIndex]) {
+          stepCounter.textContent = 'Step ' + (wizardIndex + 1) + ' of ' + stepLabels.length + ': ' + stepLabels[wizardIndex];
+        }
+      }
+
+      function moveStep(delta) {
+        if (delta > 0) {
+          const currentFieldset = fieldsets[wizardIndex];
+          const requiredFields = currentFieldset ? Array.from(currentFieldset.querySelectorAll('[required]')) : [];
+
+          const hasInvalidRequired = requiredFields.some(function (field) {
+            const isValid = typeof field.checkValidity === 'function' ? field.checkValidity() : String(field.value || '').trim() !== '';
+            if (!isValid && typeof field.reportValidity === 'function') {
+              field.reportValidity();
+            }
+            return !isValid;
+          });
+
+          if (hasInvalidRequired) {
+            return;
+          }
+
+          if (wizardIndex === 0 && !isSeniorAgeValid(true)) {
+            return;
+          }
+
+          if (typeof window.validateCurrentStep === 'function' && !window.validateCurrentStep(wizardIndex)) {
+            return;
+          }
+        }
+
+        const nextIndex = wizardIndex + delta;
+        if (nextIndex >= fieldsets.length) {
+          if (!isSeniorAgeValid(true)) {
+            return;
+          }
+
+          confirmBeforeSubmit().then(function (confirmed) {
+            if (!confirmed) return;
+
+            runConfirmedSubmit();
+          });
+          return;
+        }
+
+        renderStep(nextIndex);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      window.showTab = function (n) {
+        renderStep(n);
+      };
+
+      window.nextPrev = function (n) {
+        moveStep(n);
+      };
+
+      if (prevBtnNav) {
+        prevBtnNav.addEventListener('click', function () {
+          moveStep(-1);
+        });
+      }
+
+      if (nextBtnNav) {
+        nextBtnNav.addEventListener('click', function () {
+          moveStep(1);
+        });
+      }
+
+      if (form) {
+        form.addEventListener('submit', function (event) {
+          if (isConfirmedSubmitInProgress) {
+            return;
+          }
+
+          event.preventDefault();
+
+          if (!isSeniorAgeValid(true)) {
+            return;
+          }
+
+          confirmBeforeSubmit().then(function (confirmed) {
+            if (!confirmed) return;
+            runConfirmedSubmit();
+          });
+        });
+      }
+
+      // Contact Management
+      let contactCounter = 1;
+
+      function updateDeleteButtonVisibility() {
+        const contactEntries = document.querySelectorAll('.contact-entry');
+        const deleteButtons = document.querySelectorAll('.contact-entry .delete-child');
+        deleteButtons.forEach(function (btn) {
+          btn.disabled = contactEntries.length <= 1;
+          btn.style.display = contactEntries.length <= 1 ? 'none' : 'block';
+        });
+      }
+
+      // Child Management
+      let childCounter = 0;
+
+      function toggleIncomeField(selectElement) {
+        const isWorking = selectElement.value === 'working';
+        const incomeField = selectElement.closest('.form-row').querySelector('.income-field');
+        if (incomeField) {
+          incomeField.style.display = isWorking ? 'block' : 'none';
+          const incomeInput = incomeField.querySelector('input');
+          if (incomeInput) {
+            incomeInput.required = isWorking;
+          }
+        }
+      }
+
+      function updateDeleteChildButtonVisibility() {
+        const childEntries = document.querySelectorAll('.child-entry');
+        const deleteButtons = document.querySelectorAll('.child-entry .delete-child');
+        deleteButtons.forEach(function (btn) {
+          btn.style.display = childEntries.length <= 1 ? 'none' : 'block';
+        });
+      }
+
+      function addChildEntry() {
+        childCounter++;
+        const childrenContainer = document.getElementById('childrenContainer');
+        const newChild = document.createElement('div');
+        newChild.className = 'child-entry';
+        newChild.innerHTML = `
+          <div class="form-row">
+            <div class="form-group"><label>Full Name</label><input type="text" name="childFullName[]" placeholder="Full Name"></div>
+            <div class="form-group"><label>Occupation</label><input type="text" name="childOccupation[]" placeholder="Occupation"></div>
+            <div class="form-group"><label>Age</label><input type="number" name="childAge[]" placeholder="Age"></div>
+            <div class="form-group"><label>Working/Not Working</label><select class="child-working-status" name="childWorkingStatus[]"><option value="not_working">Select</option><option value="not_working">Not Working</option><option value="working">Working</option></select></div>
+            <div class="form-group income-field" style="display:none;"><label>Income</label><input type="number" name="childIncome[]" placeholder="Income"></div>
+            <button type="button" class="delete-child">Delete</button>
+          </div>
+        `;
+        childrenContainer.appendChild(newChild);
+
+        // Attach working status change handler
+        const workingStatusSelect = newChild.querySelector('.child-working-status');
+        workingStatusSelect.addEventListener('change', function () {
+          toggleIncomeField(this);
+        });
+
+        // Attach delete handler
+        const deleteBtn = newChild.querySelector('.delete-child');
+        deleteBtn.addEventListener('click', function () {
+          newChild.remove();
+          updateDeleteChildButtonVisibility();
+        });
+
+        updateDeleteChildButtonVisibility();
+      }
+
+      function addContactEntry() {
+        contactCounter++;
+        const contactsContainer = document.getElementById('contactsContainer');
+        const newContact = document.createElement('div');
+        newContact.className = 'contact-entry';
+        newContact.setAttribute('data-contact-id', contactCounter);
+        newContact.innerHTML = `
+          <div class="form-row">
+            <div class="form-group"><label>Contact Type</label><select class="contact-type" name="contacts[${contactCounter}][type]" required><option value="primary">Primary</option><option value="secondary">Secondary</option><option value="emergency">Emergency</option></select></div>
+            <div class="form-group"><label>Full Name</label><input type="text" name="contacts[${contactCounter}][name]" required></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Relationship</label><input type="text" name="contacts[${contactCounter}][relationship]" required></div>
+            <div class="form-group"><label>Phone Number</label><input type="tel" name="contacts[${contactCounter}][phone]" maxlength="11" pattern="\\d{11}" title="Please enter exactly 11 digits" required></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Email Address</label><input type="email" name="contacts[${contactCounter}][email]" required></div>
+            <div class="form-group"><button type="button" class="delete-child">Remove</button></div>
+          </div>
+        `;
+        contactsContainer.appendChild(newContact);
+
+        // Attach delete handler to the new entry
+        const deleteBtn = newContact.querySelector('.delete-child');
+        deleteBtn.addEventListener('click', function () {
+          newContact.remove();
+          updateDeleteButtonVisibility();
+        });
+
+        updateDeleteButtonVisibility();
+      }
+
+      // Add Contact button handler
+      const addContactBtn = document.getElementById('addContact');
+      if (addContactBtn) {
+        addContactBtn.addEventListener('click', function () {
+          addContactEntry();
+        });
+      }
+
+      // Attach delete handlers to initial contact entries
+      document.querySelectorAll('.contact-entry .delete-child').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          btn.closest('.contact-entry').remove();
+          updateDeleteButtonVisibility();
+        });
+      });
+
+      updateDeleteButtonVisibility();
+
+      // Add Child button handler
+      const addChildBtn = document.getElementById('addChild');
+      if (addChildBtn) {
+        addChildBtn.addEventListener('click', function () {
+          addChildEntry();
+        });
+      }
+
+      // Attach working status change handlers to initial child entries
+      document.querySelectorAll('.child-working-status').forEach(function (select) {
+        select.addEventListener('change', function () {
+          toggleIncomeField(this);
+        });
+      });
+
+      // Attach delete handlers to initial child entries
+      document.querySelectorAll('.child-entry .delete-child').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          btn.closest('.child-entry').remove();
+          updateDeleteChildButtonVisibility();
+        });
+      });
+
+      updateDeleteChildButtonVisibility();
+
+      // Enforce digits-only input for ID fields while typing and pasting.
+      document.querySelectorAll('.numeric-only').forEach(function (input) {
+        input.addEventListener('input', function () {
+          const maxDigits = parseInt(input.getAttribute('data-max-digits') || '0', 10);
+          let digitsOnly = input.value.replace(/\D/g, '');
+          if (maxDigits > 0) {
+            digitsOnly = digitsOnly.slice(0, maxDigits);
+          }
+          input.value = digitsOnly;
+        });
+      });
+
+      renderStep(0);
     });
   </script>
 </body>

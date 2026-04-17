@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Social Welfare System - OSCA Dashboard</title>
+  <title>Social Welfare System - Office of Senior Citizen Affairs Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <style>
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
@@ -16,12 +16,30 @@
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
     .nav-link.active { background: #0f766e; color: #fff; }
     .nav-link:hover { background: #edf2f7; }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #0f766e;
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18);
+    }
+    .header-action:hover { background: #115e59; color: #fff; text-decoration: none; }
     .main { flex: 1 1 auto; min-width: 0; padding: 20px; }
-    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
+    .top { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 16px; gap: 12px; position: relative; }
+    .top h1 { position: absolute; left: 50%; transform: translateX(-50%); margin: 0; text-align: center; }
     .top .welcome { color: #6b7280; font-size: 14px; }
-    .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .top-action-btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 8px; background: #0f766e; color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; border: none; }
-    .top-action-btn:hover { background: #115e59; color: #fff; text-decoration: none; }
     .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
     .card-metric { border-radius: 12px; padding: 16px; color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.12); }
     .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; }
@@ -45,17 +63,41 @@
     .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
     .status-active { background: #d1fae5; color: #065f46; }
     .status-archived { background: #f3f4f6; color: #374151; }
-    .actions { display: flex; gap: 8px; }
-    .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 4px; border: 1px solid #d1d5db; background: none; cursor: pointer; }
-    .btn-view { color: #0f766e; }
-    .btn-edit { color: #2563eb; }
-    .btn-archive { color: #dc2626; }
-    .btn-sm:hover { background: #f3f4f6; }
+    .action-container { display: flex; gap: 8px; align-items: center; }
+    .action {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #374151;
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    }
+    .action:hover { background: #f3f4f6; transform: translateY(-1px); }
+    .action svg { width: 16px; height: 16px; }
+    .action.view-btn { color: #0f766e; }
+    .action.action-edit { color: #2563eb; }
+    .action.action-archive { color: #dc2626; }
+    .action-container .action:focus { outline: 2px solid rgba(15, 118, 110, 0.25); outline-offset: 2px; }
     .action-bar { margin-top: 16px; display: flex; gap: 12px; }
     .action-bar button { padding: 10px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
     .btn-sms { background: #059669; color: white; }
     .btn-sms:disabled { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
     .btn-history { background: #0f766e; color: white; }
+    .detail-section { margin-bottom: 14px; }
+    .detail-section h6 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #0f766e; text-transform: uppercase; }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 16px; }
+    .detail-item { font-size: 13px; line-height: 1.45; }
+    .detail-label { font-weight: 700; color: #374151; }
+    .detail-value { color: #111827; }
+    .edit-log-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .edit-log-table th, .edit-log-table td { border: 1px solid #e5e7eb; padding: 8px; vertical-align: top; }
+    .edit-log-table th { background: #f3f4f6; color: #374151; }
+    .edit-log-muted { color: #6b7280; font-size: 12px; }
     @media (max-width: 980px) {
       .layout { flex-direction: column; }
       .sidebar { flex: none; width: 100%; }
@@ -75,9 +117,12 @@
 
     <main class="main">
       <div class="top">
-        <h1 class="h4 mb-0">OSCA Dashboard</h1>
+        <h1 class="h4 mb-0">Office of Senior Citizen Affairs Dashboard</h1>
         <div class="top-actions">
-          <a class="top-action-btn" href="/add_senior">+ Add Senior Citizen</a>
+          <a class="header-action" href="/add_senior" id="addSeniorBtn" target="_blank">
+            <i class="feather icon-user-plus"></i>
+            <span>Add Senior</span>
+          </a>
           <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
         </div>
       </div>
@@ -139,10 +184,23 @@
                   <td><?= htmlspecialchars($purok, ENT_QUOTES, 'UTF-8') ?></td>
                   <td><span class="status-badge <?= $statusClass ?>"><?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?></span></td>
                   <td>
-                    <div class="actions">
-                      <button class="btn-sm btn-view" title="View">View</button>
-                      <button class="btn-sm btn-edit" title="Edit">Edit</button>
-                      <button class="btn-sm btn-archive" title="Archive">Archive</button>
+                    <div class="action-container">
+                      <button type="button" class="action view-btn" aria-label="View" data-senior='<?= htmlspecialchars(json_encode($senior, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                      <button type="button" class="action action-edit edit-btn" aria-label="Edit" data-senior-id="<?= (int) ($senior['id'] ?? 0) ?>" data-senior='<?= htmlspecialchars(json_encode($senior, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button type="button" class="action action-archive archive-btn" aria-label="Archive" data-senior-id="<?= (int) ($senior['id'] ?? 0) ?>" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars(($status === 'Archived') ? 'Unarchive' : 'Archive', ENT_QUOTES, 'UTF-8') ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -157,6 +215,562 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <div class="modal fade" id="viewSeniorModal" tabindex="-1" role="dialog" aria-labelledby="viewSeniorModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 900px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewSeniorModalTitle">View Senior Citizen Information</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto; padding: 20px;">
+          <div id="viewSeniorMeta" class="mb-3" style="display: flex; flex-wrap: wrap; gap: 12px; color: #374151; font-size: 13px;">
+           
+          </div>
+
+          <div class="mb-3" style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; background: #ffffff;">
+            <div style="font-size: 13px; font-weight: 700; color: #0f766e; margin-bottom: 8px;">Edit Logs</div>
+            <div id="viewEditLogsContainer" class="edit-log-muted">No edit logs yet.</div>
+          </div>
+
+          <div id="viewSeniorForm">
+            <input type="hidden" id="viewResidentId">
+
+            <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 24px; padding: 0 10px; position: relative;">
+              <div style="position: absolute; top: 18px; left: 34px; right: 34px; height: 2px; background: #d1d5db; z-index: 0;"></div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="view-step active">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #0f766e; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">1</div>
+                <span>Personal</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="view-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">2</div>
+                <span>Contact</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="view-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">3</div>
+                <span>Family</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="view-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">4</div>
+                <span>IDs</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="view-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">5</div>
+                <span>Education</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="view-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">6</div>
+                <span>Community</span>
+              </div>
+            </div>
+
+            <fieldset class="view-fieldset active" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Personal Information</legend>
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label>First Name</label>
+                  <input type="text" class="form-control" id="viewFirstName" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label>Middle Name</label>
+                  <input type="text" class="form-control" id="viewMiddleName" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label>Last Name</label>
+                  <input type="text" class="form-control" id="viewLastName" readonly>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label>Extension</label>
+                  <input type="text" class="form-control" id="viewExtension" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label>Birthday</label>
+                  <input type="date" class="form-control" id="viewBirthday" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label>Age</label>
+                  <input type="text" class="form-control" id="viewAgeField" readonly>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label>Barangay</label>
+                  <input type="text" class="form-control" id="viewBarangayField" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label>Purok</label>
+                  <input type="text" class="form-control" id="viewPurokField" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                  <label>Gender</label>
+                  <input type="text" class="form-control" id="viewGenderField" readonly>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label>Place of Birth</label>
+                  <input type="text" class="form-control" id="viewPlaceOfBirth" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                  <label>Marital Status</label>
+                  <input type="text" class="form-control" id="viewCivilStatus" readonly>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label>Spouse Name</label>
+                  <input type="text" class="form-control" id="viewSpouseName" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                  <label>Other Government ID</label>
+                  <input type="text" class="form-control" id="viewOtherGovtId" readonly>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="view-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Contact Information</legend>
+              <div id="viewContactsContainer"></div>
+            </fieldset>
+
+            <fieldset class="view-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Family Composition</legend>
+              <div class="form-row">
+                <div class="form-group col-md-3">
+                  <label>Father Last Name</label>
+                  <input type="text" class="form-control" id="viewFatherLastName" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Father First Name</label>
+                  <input type="text" class="form-control" id="viewFatherFirstName" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Father Middle Name</label>
+                  <input type="text" class="form-control" id="viewFatherMiddleName" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Extension (Jr/Sr)</label>
+                  <input type="text" class="form-control" id="viewFatherExtension" readonly>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-3">
+                  <label>Mother Last Name</label>
+                  <input type="text" class="form-control" id="viewMotherLastName" readonly>
+                </div>
+                <div class="form-group col-md-3">
+                  <label>Mother First Name</label>
+                  <input type="text" class="form-control" id="viewMotherFirstName" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                  <label>Mother Middle Name</label>
+                  <input type="text" class="form-control" id="viewMotherMiddleName" readonly>
+                </div>
+              </div>
+              <div class="form-group mb-0">
+                <label>Children</label>
+                <div id="viewChildrenContainer"></div>
+              </div>
+            </fieldset>
+
+            <fieldset class="view-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Identification Documents</legend>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label>OSCA/Senior Citizen ID</label>
+                  <input type="text" class="form-control" id="viewOscaId" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                  <label>GSIS</label>
+                  <input type="text" class="form-control" id="viewGsisId" readonly>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label>SSS</label>
+                  <input type="text" class="form-control" id="viewSssId" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                  <label>Philhealth</label>
+                  <input type="text" class="form-control" id="viewPhilhealthId" readonly>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="view-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Education & HR Profile</legend>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label>Educational Attainment</label>
+                  <input type="text" class="form-control" id="viewEducationalAttainment" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                  <label>Service / Business / Employment</label>
+                  <input type="text" class="form-control" id="viewServiceBusinessEmployment" readonly>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label>Current Pension</label>
+                  <input type="text" class="form-control" id="viewCurrentPension" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                  <label>Capability to Travel</label>
+                  <input type="text" class="form-control" id="viewCapabilityToTravel" readonly>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Skills / Specialization</label>
+                <textarea class="form-control" id="viewSkills" rows="3" readonly></textarea>
+              </div>
+              <div class="form-group">
+                <label>Other Skill</label>
+                <input type="text" class="form-control" id="viewSkillOtherText" readonly>
+              </div>
+            </fieldset>
+
+            <fieldset class="view-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Community Service</legend>
+              <div class="form-group">
+                <label>Community Service Involvement</label>
+                <textarea class="form-control" id="viewCommunityService" rows="4" readonly></textarea>
+              </div>
+              <div class="form-group mb-0">
+                <label>Other Community Service</label>
+                <input type="text" class="form-control" id="viewCommunityServiceOtherText" readonly>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid #e5e7eb;">
+          <button type="button" class="btn btn-secondary" id="viewPrevBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; display: none;">Back</button>
+          <button type="button" class="btn btn-primary" id="viewNextBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; background: #0f766e; color: #ffffff; border: none;">Next</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editSeniorModal" tabindex="-1" role="dialog" aria-labelledby="editSeniorModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 900px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editSeniorModalTitle">Edit Senior Citizen Information</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto; padding: 20px;">
+          <form id="editSeniorForm" novalidate>
+            <input type="hidden" id="editResidentId" name="residentId">
+            
+            <!-- Progress Bar -->
+            <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 24px; padding: 0 10px; position: relative;">
+              <div style="position: absolute; top: 18px; left: 34px; right: 34px; height: 2px; background: #d1d5db; z-index: 0;"></div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step active">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #0f766e; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">1</div>
+                <span>Personal</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">2</div>
+                <span>Contact</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">3</div>
+                <span>Family</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">4</div>
+                <span>IDs</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">5</div>
+                <span>Education</span>
+              </div>
+              <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">6</div>
+                <span>Community</span>
+              </div>
+            </div>
+
+            <!-- Personal Information -->
+            <fieldset class="edit-fieldset active" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Personal Information</legend>
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="editFirstName" style="color: #374151; font-weight: 600;">First Name</label>
+                  <input type="text" class="form-control" id="editFirstName" name="first_name" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="editMiddleName" style="color: #374151; font-weight: 600;">Middle Name</label>
+                  <input type="text" class="form-control" id="editMiddleName" name="middle_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="editLastName" style="color: #374151; font-weight: 600;">Last Name</label>
+                  <input type="text" class="form-control" id="editLastName" name="last_name" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="editExtension" style="color: #374151; font-weight: 600;">Extension</label>
+                  <input type="text" class="form-control" id="editExtension" name="extension" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="editBirthday" style="color: #374151; font-weight: 600;">Birthday</label>
+                  <input type="date" class="form-control" id="editBirthday" name="birthday" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="editAge" style="color: #374151; font-weight: 600;">Age</label>
+                  <input type="number" class="form-control" id="editAge" name="age" readonly style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="editBarangay" style="color: #374151; font-weight: 600;">Barangay</label>
+                  <select class="form-control" id="editBarangay" name="barangay" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                    <option value="">Select Barangay</option>
+                    <?php foreach (($barangays ?? []) as $brgy => $puroks): ?>
+                      <option value="<?= htmlspecialchars((string) $brgy, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars((string) $brgy, ENT_QUOTES, 'UTF-8') ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="editPurok" style="color: #374151; font-weight: 600;">Purok</label>
+                  <select class="form-control" id="editPurok" name="purok" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                    <option value="">Select Purok</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="editGender" style="color: #374151; font-weight: 600;">Gender</label>
+                  <select class="form-control" id="editGender" name="gender" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="editPlaceOfBirth" style="color: #374151; font-weight: 600;">Place of Birth</label>
+                  <input type="text" class="form-control" id="editPlaceOfBirth" name="place_of_birth" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="editCivilStatus" style="color: #374151; font-weight: 600;">Marital Status</label>
+                  <select class="form-control" id="editCivilStatus" name="marital_status" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                    <option value="">Select Status</option>
+                    <option value="Single">Single</option>
+                    <option value="Married">Married</option>
+                    <option value="Widowed">Widowed</option>
+                    <option value="Divorced">Divorced</option>
+                    <option value="Separated">Separated</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row" id="editSpouseGroup" style="display: none;">
+                <div class="form-group col-md-6">
+                  <label for="editSpouseName" style="color: #374151; font-weight: 600;">Spouse Name</label>
+                  <input type="text" class="form-control" id="editSpouseName" name="spouse_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-4">
+                  <label for="editServiceBusinessEmployment" style="color: #374151; font-weight: 600;">Service / Business / Employment</label>
+                  <input type="text" class="form-control" id="editServiceBusinessEmploymentStep5" name="service_business_employment_step5" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="editCurrentPension" style="color: #374151; font-weight: 600;">Current Pension</label>
+                  <input type="text" class="form-control" id="editCurrentPensionStep5" name="current_pension_step5" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="editCapabilityToTravel" style="color: #374151; font-weight: 600;">Capability to Travel</label>
+                  <select class="form-control" id="editCapabilityToTravelStep5" name="capability_to_travel_step5" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                    <option value="">Select Option</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="editOtherGovtId" style="color: #374151; font-weight: 600;">Other Government ID</label>
+                  <input type="text" class="form-control" id="editOtherGovtId" name="other_govt_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Contact Information -->
+            <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Contact Information</legend>
+              <div id="editContactsContainer"></div>
+              <button type="button" class="btn btn-sm btn-secondary" id="editAddContact" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 8px; padding: 8px 14px; margin-top: 10px;">+ Add Contact</button>
+            </fieldset>
+
+            <!-- Family Information -->
+            <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Family Composition</legend>
+              <div class="form-row">
+                <div class="form-group col-md-3">
+                  <label for="editFatherLastName" style="color: #374151; font-weight: 600;">Father Last Name</label>
+                  <input type="text" class="form-control" id="editFatherLastName" name="father_last_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="editFatherFirstName" style="color: #374151; font-weight: 600;">Father First Name</label>
+                  <input type="text" class="form-control" id="editFatherFirstName" name="father_first_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="editFatherMiddleName" style="color: #374151; font-weight: 600;">Father Middle Name</label>
+                  <input type="text" class="form-control" id="editFatherMiddleName" name="father_middle_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="editFatherExtension" style="color: #374151; font-weight: 600;">Extension (Jr/Sr)</label>
+                  <input type="text" class="form-control" id="editFatherExtension" name="father_extension" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-3">
+                  <label for="editMotherLastName" style="color: #374151; font-weight: 600;">Mother Last Name</label>
+                  <input type="text" class="form-control" id="editMotherLastName" name="mother_last_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="editMotherFirstName" style="color: #374151; font-weight: 600;">Mother First Name</label>
+                  <input type="text" class="form-control" id="editMotherFirstName" name="mother_first_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="editMotherMiddleName" style="color: #374151; font-weight: 600;">Mother Middle Name</label>
+                  <input type="text" class="form-control" id="editMotherMiddleName" name="mother_middle_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Identification Documents -->
+            <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Identification Documents</legend>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="editOscaId" style="color: #374151; font-weight: 600;">OSCA/Senior Citizen ID</label>
+                  <input type="text" class="form-control" id="editOscaId" name="osca_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="editGsisId" style="color: #374151; font-weight: 600;">GSIS</label>
+                  <input type="text" class="form-control" id="editGsisId" name="gsis_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="editSssId" style="color: #374151; font-weight: 600;">SSS</label>
+                  <input type="text" class="form-control" id="editSssId" name="sss_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="editPhilhealthId" style="color: #374151; font-weight: 600;">Philhealth</label>
+                  <input type="text" class="form-control" id="editPhilhealthId" name="philhealth_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-12">
+                  <label for="editOtherId" style="color: #374151; font-weight: 600;">Other Government ID</label>
+                  <input type="text" class="form-control" id="editOtherId" name="other_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Education & HR Profile</legend>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="editEducationalAttainment" style="color: #374151; font-weight: 600;">Educational Attainment</label>
+                  <select class="form-control" id="editEducationalAttainment" name="educational_attainment" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                    <option value="">Select Educational Level</option>
+                    <option value="Not Attended School">Not Attended School</option>
+                    <option value="Elementary Level">Elementary Level</option>
+                    <option value="Elementary Graduate">Elementary Graduate</option>
+                    <option value="High School Level">High School Level</option>
+                    <option value="High School Graduate">High School Graduate</option>
+                    <option value="College Level">College Level</option>
+                    <option value="College Graduate">College Graduate</option>
+                    <option value="Vocational">Vocational</option>
+                    <option value="Post Graduate">Post Graduate</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="editServiceBusinessEmployment" style="color: #374151; font-weight: 600;">Service / Business / Employment</label>
+                  <input type="text" class="form-control" id="editServiceBusinessEmployment" name="service_business_employment" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="editCurrentPension" style="color: #374151; font-weight: 600;">Current Pension</label>
+                  <input type="text" class="form-control" id="editCurrentPension" name="current_pension" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="editCapabilityToTravel" style="color: #374151; font-weight: 600;">Capability to Travel</label>
+                  <select class="form-control" id="editCapabilityToTravel" name="capability_to_travel" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                    <option value="">Select Option</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label style="color: #374151; font-weight: 600; display: block; margin-bottom: 8px;">Skills / Specialization</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Medical"> Medical</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Dental"> Dental</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Fishing"> Fishing</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Teaching"> Teaching</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Counseling"> Counseling</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Cooking"> Cooking</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Carpenter"> Carpenter</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Farming"> Farming</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Legal Services"> Legal Services</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Other"> Other</label>
+                </div>
+                <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+                  <label for="editSkillOtherText" style="color: #374151; font-weight: 600;">Other Skill</label>
+                  <input type="text" class="form-control" id="editSkillOtherText" name="skill_other_text" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+              <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Community Service</legend>
+              <div class="form-group">
+                <label style="color: #374151; font-weight: 600; display: block; margin-bottom: 8px;">Community Service Involvement</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Medical"> Medical</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Community / Organization Leader"> Community / Organization Leader</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Neighborhood Support Services"> Neighborhood Support Services</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Counseling / Referral"> Counseling / Referral</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Resource Volunteer"> Resource Volunteer</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Dental"> Dental</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Legal Services"> Legal Services</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Sponsorship"> Sponsorship</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Community Beautification"> Community Beautification</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Friendly Visits"> Friendly Visits</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Religious"> Religious</label>
+                  <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Other"> Other</label>
+                </div>
+                <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+                  <label for="editCommunityServiceOtherText" style="color: #374151; font-weight: 600;">Other Community Service</label>
+                  <input type="text" class="form-control" id="editCommunityServiceOtherText" name="community_service_other_text" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+        <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid #e5e7eb;">
+          <button type="button" class="btn btn-secondary" id="editPrevBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; display: none;">Back</button>
+          <button type="button" class="btn btn-primary" id="editNextBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; background: #0f766e; color: #ffffff; border: none;">Next</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">Cancel</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -186,7 +800,10 @@
         if (show) visibleCount++;
       });
 
-      document.getElementById('entryCount').textContent = visibleCount;
+      const entryCount = document.getElementById('entryCount');
+      if (entryCount) {
+        entryCount.textContent = visibleCount;
+      }
       updateActions();
     }
 
@@ -235,6 +852,992 @@
     document.getElementById('viewHistoryBtn').addEventListener('click', function () {
       alert('SMS history view is not wired yet.');
     });
+
+    // Multi-step form functions
+    let editCurrentStep = 0;
+    let editCurrentSenior = null;
+
+    function editShowStep(n) {
+      const fieldsets = document.querySelectorAll('.edit-fieldset');
+      const steps = document.querySelectorAll('.edit-step');
+      
+      if (n < 0 || n >= fieldsets.length) return;
+      
+      fieldsets.forEach(fieldset => fieldset.style.display = 'none');
+      fieldsets[n].style.display = 'block';
+      
+      steps.forEach((step, index) => {
+        const indicator = step.querySelector('div');
+        if (index <= n) {
+          indicator.style.backgroundColor = '#0f766e';
+          indicator.style.color = '#ffffff';
+          step.style.color = '#0f766e';
+        } else {
+          indicator.style.backgroundColor = '#94a3b8';
+          indicator.style.color = '#ffffff';
+          step.style.color = '#6b7280';
+        }
+      });
+
+      const prevBtn = document.getElementById('editPrevBtn');
+      const nextBtn = document.getElementById('editNextBtn');
+      if (!prevBtn || !nextBtn) return;
+      nextBtn.disabled = false;
+      
+      if (n === 0) {
+        prevBtn.style.display = 'none';
+      } else {
+        prevBtn.style.display = 'inline-block';
+      }
+
+      nextBtn.textContent = (n === fieldsets.length - 1) ? 'Update' : 'Next';
+    }
+
+    function editMoveStep(n) {
+      editCurrentStep += n;
+      editShowStep(editCurrentStep);
+    }
+
+    function editCalculateAge() {
+      const birthdayInput = document.getElementById('editBirthday');
+      const ageInput = document.getElementById('editAge');
+      if (!birthdayInput || !ageInput) return;
+      
+      const birthday = new Date(birthdayInput.value);
+      if (isNaN(birthday)) {
+        ageInput.value = '';
+        return;
+      }
+
+      const today = new Date();
+      let age = today.getFullYear() - birthday.getFullYear();
+      const monthDiff = today.getMonth() - birthday.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthday.getDate())) {
+        age--;
+      }
+      ageInput.value = age;
+    }
+
+    function editToggleSpouseInput() {
+      const maritalStatus = document.getElementById('editCivilStatus').value;
+      const spouseGroup = document.getElementById('editSpouseGroup');
+      if (spouseGroup) {
+        spouseGroup.style.display = (maritalStatus === 'Married') ? 'flex' : 'none';
+      }
+    }
+
+    function getCheckedValues(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(function (input) {
+        return input.value;
+      });
+    }
+
+    function setCheckedValues(name, values) {
+      const normalizedValues = Array.isArray(values) ? values : (values ? [values] : []);
+      document.querySelectorAll(`input[name="${name}"]`).forEach(function (input) {
+        input.checked = normalizedValues.includes(input.value);
+      });
+    }
+
+    function editAddContactForm(contact) {
+      const container = document.getElementById('editContactsContainer');
+      if (!container) return;
+      
+      const wrapper = document.createElement('div');
+      wrapper.className = 'border rounded p-3 mb-3 edit-contact-row';
+      wrapper.innerHTML = `
+        <div class="form-row">
+          <div class="form-group col-md-3">
+            <label style="color: #374151; font-weight: 600;">Type</label>
+            <input type="text" class="form-control edit-contact-type" value="${escapeHtml(contact?.type || 'primary')}" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div class="form-group col-md-3">
+            <label style="color: #374151; font-weight: 600;">Name</label>
+            <input type="text" class="form-control edit-contact-name" value="${escapeHtml(contact?.name || '')}" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div class="form-group col-md-3">
+            <label style="color: #374151; font-weight: 600;">Relationship</label>
+            <input type="text" class="form-control edit-contact-relationship" value="${escapeHtml(contact?.relationship || '')}" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div class="form-group col-md-3">
+            <label style="color: #374151; font-weight: 600;">Phone</label>
+            <input type="text" class="form-control edit-contact-phone" value="${escapeHtml(contact?.phone || '')}" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+        </div>
+        <div class="form-row align-items-end">
+          <div class="form-group col-md-9 mb-0">
+            <label style="color: #374151; font-weight: 600;">Email</label>
+            <input type="email" class="form-control edit-contact-email" value="${escapeHtml(contact?.email || '')}" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+          </div>
+          <div class="form-group col-md-3 mb-0 text-right"></div>
+        </div>`;
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn btn-sm btn-outline-danger';
+      removeButton.textContent = 'Remove';
+      removeButton.addEventListener('click', function () {
+        wrapper.remove();
+      });
+      wrapper.querySelector('.text-right').appendChild(removeButton);
+      container.appendChild(wrapper);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function getInputValue(id) {
+      const element = document.getElementById(id);
+      return element ? String(element.value || '').trim() : '';
+    }
+
+    function getPreferredValue(primaryId, fallbackId) {
+      const primary = getInputValue(primaryId);
+      if (primary !== '') {
+        return primary;
+      }
+      return getInputValue(fallbackId);
+    }
+
+    function updateEditPurokOptions(selectedBarangay, selectedPurok) {
+      const purokSelect = document.getElementById('editPurok');
+      if (!purokSelect) return;
+
+      purokSelect.innerHTML = '<option value="">Select Purok</option>';
+
+      const normalizedBarangay = String(selectedBarangay || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      for (const barangay in barangays) {
+        if (barangay.replace(/\s+/g, ' ').trim().toLowerCase() === normalizedBarangay) {
+          barangays[barangay].forEach(function (purok) {
+            const option = document.createElement('option');
+            option.value = purok;
+            option.textContent = purok;
+            if (selectedPurok && selectedPurok === purok) {
+              option.selected = true;
+            }
+            purokSelect.appendChild(option);
+          });
+          break;
+        }
+      }
+    }
+
+    let viewCurrentStep = 0;
+
+    function viewSetText(id, value, fallback = 'N/A') {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = value ? String(value) : fallback;
+      }
+    }
+
+    function viewSetInput(id, value) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.value = value || '';
+      }
+    }
+
+    function viewSetTextarea(id, value) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.value = value || '';
+      }
+    }
+
+    function viewParseList(value) {
+      if (Array.isArray(value)) {
+        return value.filter(Boolean).map(function (item) {
+          return typeof item === 'string' ? item.trim() : String(item);
+        }).filter(Boolean);
+      }
+
+      if (typeof value === 'string') {
+        return value.split(',').map(function (item) {
+          return item.trim();
+        }).filter(Boolean);
+      }
+
+      return [];
+    }
+
+    function viewRenderContacts(contacts) {
+      const container = document.getElementById('viewContactsContainer');
+      if (!container) return;
+
+      if (!contacts.length) {
+        container.innerHTML = '<div class="text-muted">No contact information recorded.</div>';
+        return;
+      }
+
+      container.innerHTML = contacts.map(function (contact, index) {
+        return `
+          <div class="border rounded p-3 mb-3" style="background: #f9fafb; border-color: #e5e7eb !important;">
+            <div class="font-weight-bold mb-2" style="color: #0f766e;">Contact ${index + 1}</div>
+            <div class="form-row">
+              <div class="form-group col-md-3 mb-2"><label class="mb-1">Type</label><div>${escapeHtml(contact?.type || '') || 'N/A'}</div></div>
+              <div class="form-group col-md-3 mb-2"><label class="mb-1">Name</label><div>${escapeHtml(contact?.name || '') || 'N/A'}</div></div>
+              <div class="form-group col-md-3 mb-2"><label class="mb-1">Relationship</label><div>${escapeHtml(contact?.relationship || '') || 'N/A'}</div></div>
+              <div class="form-group col-md-3 mb-2"><label class="mb-1">Phone</label><div>${escapeHtml(contact?.phone || '') || 'N/A'}</div></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12 mb-0"><label class="mb-1">Email</label><div>${escapeHtml(contact?.email || '') || 'N/A'}</div></div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function viewRenderChildren(children) {
+      const container = document.getElementById('viewChildrenContainer');
+      if (!container) return;
+
+      if (!children.length) {
+        container.innerHTML = '<div class="text-muted">No children recorded.</div>';
+        return;
+      }
+
+      container.innerHTML = children.map(function (child, index) {
+        return `
+          <div class="border rounded p-3 mb-3" style="background: #f9fafb; border-color: #e5e7eb !important;">
+            <div class="font-weight-bold mb-2" style="color: #0f766e;">Child ${index + 1}</div>
+            <div class="form-row">
+              <div class="form-group col-md-4 mb-2"><label class="mb-1">Full Name</label><div>${escapeHtml(child?.full_name || '') || 'N/A'}</div></div>
+              <div class="form-group col-md-3 mb-2"><label class="mb-1">Occupation</label><div>${escapeHtml(child?.occupation || '') || 'N/A'}</div></div>
+              <div class="form-group col-md-2 mb-2"><label class="mb-1">Income</label><div>${escapeHtml(child?.income || '') || 'N/A'}</div></div>
+              <div class="form-group col-md-3 mb-2"><label class="mb-1">Age</label><div>${escapeHtml(child?.age || '') || 'N/A'}</div></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12 mb-0"><label class="mb-1">Working Status</label><div>${escapeHtml(child?.working_status || '') || 'N/A'}</div></div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function viewFormatDateTime(value) {
+      if (!value) return 'N/A';
+      const date = new Date(value.replace(' ', 'T'));
+      if (isNaN(date.getTime())) return escapeHtml(String(value));
+      return date.toLocaleString();
+    }
+
+    function viewRenderEditLogs(logs) {
+      const container = document.getElementById('viewEditLogsContainer');
+      if (!container) return;
+
+      if (!Array.isArray(logs) || logs.length === 0) {
+        container.innerHTML = '<div class="edit-log-muted">No edit logs yet.</div>';
+        return;
+      }
+
+      const rows = logs.map(function (log) {
+        return `
+          <tr>
+            <td>${escapeHtml(log.field || '') || 'N/A'}</td>
+            <td>${escapeHtml(log.old_value || '') || 'N/A'}</td>
+            <td>${escapeHtml(log.new_value || '') || 'N/A'}</td>
+            <td>${escapeHtml(log.edited_by || '') || 'N/A'}</td>
+            <td>${viewFormatDateTime(log.edited_at)}</td>
+          </tr>`;
+      }).join('');
+
+      container.innerHTML = `
+        <div style="overflow-x: auto;">
+          <table class="edit-log-table">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Old Value</th>
+                <th>New Value</th>
+                <th>Edited By</th>
+                <th>Date / Time</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function loadSeniorEditLogs(residentId) {
+      const container = document.getElementById('viewEditLogsContainer');
+      if (!container) return;
+
+      if (!residentId) {
+        container.innerHTML = '<div class="edit-log-muted">Unable to load logs because record ID is missing.</div>';
+        return;
+      }
+
+      container.innerHTML = '<div class="edit-log-muted">Loading edit logs...</div>';
+
+      fetch('/api/senior-edit-logs/' + encodeURIComponent(residentId))
+        .then(function (response) {
+          return response.json().then(function (data) {
+            if (!response.ok || !data.success) {
+              throw new Error(data.message || 'Failed to load edit logs.');
+            }
+            return data;
+          });
+        })
+        .then(function (data) {
+          viewRenderEditLogs(data.data || []);
+        })
+        .catch(function (error) {
+          container.innerHTML = '<div class="edit-log-muted">' + escapeHtml(error.message || 'Failed to load edit logs.') + '</div>';
+        });
+    }
+
+    function viewShowStep(step) {
+      const fieldsets = document.querySelectorAll('#viewSeniorForm .view-fieldset');
+      const steps = document.querySelectorAll('#viewSeniorModal .view-step');
+      if (!fieldsets.length) return;
+
+      viewCurrentStep = Math.max(0, Math.min(step, fieldsets.length - 1));
+
+      fieldsets.forEach(function (fieldset, index) {
+        fieldset.style.display = index === viewCurrentStep ? 'block' : 'none';
+      });
+
+      steps.forEach(function (stepElement, index) {
+        const bubble = stepElement.querySelector('div');
+        if (!bubble) return;
+        if (index === viewCurrentStep) {
+          bubble.style.backgroundColor = '#0f766e';
+          stepElement.style.color = '#0f766e';
+        } else {
+          bubble.style.backgroundColor = '#94a3b8';
+          stepElement.style.color = '#6b7280';
+        }
+      });
+
+      const prevBtn = document.getElementById('viewPrevBtn');
+      const nextBtn = document.getElementById('viewNextBtn');
+      if (prevBtn) {
+        prevBtn.style.display = viewCurrentStep === 0 ? 'none' : 'inline-block';
+      }
+      if (nextBtn) {
+        nextBtn.textContent = viewCurrentStep === fieldsets.length - 1 ? 'Close' : 'Next';
+      }
+    }
+
+    function viewMoveStep(direction) {
+      const fieldsets = document.querySelectorAll('#viewSeniorForm .view-fieldset');
+      if (!fieldsets.length) return;
+
+      if (direction === 1 && viewCurrentStep === fieldsets.length - 1) {
+        $('#viewSeniorModal').modal('hide');
+        return;
+      }
+
+      const nextStep = viewCurrentStep + direction;
+      if (nextStep >= 0 && nextStep < fieldsets.length) {
+        viewShowStep(nextStep);
+      }
+    }
+
+    function openSeniorEditModal(senior, rowResidentId) {
+      editCurrentStep = 0;
+      editCurrentSenior = senior || null;
+      
+      const info = senior?.identifying_information || {};
+      const name = info.name || {};
+      const address = info.address || {};
+      const family = senior?.family_composition || {};
+      const contacts = Array.isArray(info.contacts) ? info.contacts : [];
+
+      const normalizedRowId = Number.isFinite(Number(rowResidentId)) && Number(rowResidentId) > 0
+        ? String(parseInt(rowResidentId, 10))
+        : '';
+      document.getElementById('editResidentId').value = normalizedRowId || getSeniorRecordId(senior);
+      document.getElementById('editFirstName').value = name.first_name || '';
+      document.getElementById('editMiddleName').value = name.middle_name || '';
+      document.getElementById('editLastName').value = name.last_name || '';
+      document.getElementById('editExtension').value = name.extension || '';
+      document.getElementById('editBirthday').value = info.date_of_birth || '';
+      document.getElementById('editAge').value = info.age ?? '';
+      document.getElementById('editBarangay').value = address.barangay || '';
+      updateEditPurokOptions(address.barangay || '', address.purok || '');
+      document.getElementById('editGender').value = info.gender || '';
+      document.getElementById('editCivilStatus').value = info.marital_status || '';
+      document.getElementById('editPlaceOfBirth').value = Array.isArray(info.place_of_birth) ? info.place_of_birth.join(', ') : (info.place_of_birth || '');
+      document.getElementById('editSpouseName').value = family?.spouse?.name || '';
+      document.getElementById('editServiceBusinessEmployment').value = info.service_business_employment || '';
+      document.getElementById('editCurrentPension').value = info.current_pension || '';
+      document.getElementById('editCapabilityToTravel').value = info.capability_to_travel || '';
+      document.getElementById('editOtherGovtId').value = info.other_govt_id || '';
+      document.getElementById('editServiceBusinessEmploymentStep5').value = info.service_business_employment || '';
+      document.getElementById('editCurrentPensionStep5').value = info.current_pension || '';
+      document.getElementById('editCapabilityToTravelStep5').value = info.capability_to_travel || '';
+
+      // Contacts
+      const contactsContainer = document.getElementById('editContactsContainer');
+      if (contactsContainer) {
+        contactsContainer.innerHTML = '';
+        if (contacts.length) {
+          contacts.forEach(function (contact) {
+            editAddContactForm(contact);
+          });
+        } else {
+          editAddContactForm({});
+        }
+      }
+
+      // Family
+      document.getElementById('editFatherLastName').value = family?.father?.last_name || '';
+      document.getElementById('editFatherFirstName').value = family?.father?.first_name || '';
+      document.getElementById('editFatherMiddleName').value = family?.father?.middle_name || '';
+      document.getElementById('editFatherExtension').value = family?.father?.extension || '';
+      document.getElementById('editMotherLastName').value = family?.mother?.last_name || '';
+      document.getElementById('editMotherFirstName').value = family?.mother?.first_name || '';
+      document.getElementById('editMotherMiddleName').value = family?.mother?.middle_name || '';
+
+      // IDs
+      const gsisSssRaw = String(info.gsis_sss || '').trim();
+      const gsisSssParts = gsisSssRaw.split('/').map(function (part) {
+        return part.trim();
+      }).filter(Boolean);
+      document.getElementById('editOscaId').value = info.osca_id_number || '';
+      document.getElementById('editGsisId').value = gsisSssParts[0] || gsisSssRaw || '';
+      document.getElementById('editSssId').value = gsisSssParts[1] || '';
+      document.getElementById('editPhilhealthId').value = info.philhealth || '';
+      document.getElementById('editOtherId').value = info.other_govt_id || '';
+
+      const education = senior?.education_hr_profile || {};
+      const educationalAttainment = Array.isArray(education.educational_attainment)
+        ? (education.educational_attainment[0] || '')
+        : (education.educational_attainment || '');
+      document.getElementById('editEducationalAttainment').value = educationalAttainment;
+      document.getElementById('editServiceBusinessEmployment').value = info.service_business_employment || '';
+      document.getElementById('editCurrentPension').value = info.current_pension || '';
+      document.getElementById('editCapabilityToTravel').value = info.capability_to_travel || '';
+      document.getElementById('editServiceBusinessEmploymentStep5').value = info.service_business_employment || '';
+      document.getElementById('editCurrentPensionStep5').value = info.current_pension || '';
+      document.getElementById('editCapabilityToTravelStep5').value = info.capability_to_travel || '';
+      setCheckedValues('editSkills[]', education.skills || []);
+      document.getElementById('editSkillOtherText').value = education.skill_other_text || '';
+
+      setCheckedValues('editCommunityService[]', senior?.community_service || []);
+      document.getElementById('editCommunityServiceOtherText').value = senior?.community_service_other_text || '';
+
+      editToggleSpouseInput();
+      editShowStep(0);
+      const nextBtn = document.getElementById('editNextBtn');
+      if (nextBtn) {
+        nextBtn.disabled = false;
+        nextBtn.textContent = 'Next';
+      }
+      $('#editSeniorModal').modal('show');
+    }
+
+    // Event listeners for form interactions
+    document.getElementById('editBirthday').addEventListener('change', editCalculateAge);
+    document.getElementById('editCivilStatus').addEventListener('change', editToggleSpouseInput);
+    document.getElementById('editBarangay').addEventListener('change', function() {
+      updateEditPurokOptions(this.value, '');
+    });
+
+    document.getElementById('editAddContact').addEventListener('click', function() {
+      editAddContactForm({});
+    });
+
+    document.getElementById('editPrevBtn').addEventListener('click', function() {
+      editMoveStep(-1);
+    });
+
+    document.getElementById('viewPrevBtn').addEventListener('click', function() {
+      viewMoveStep(-1);
+    });
+
+    document.getElementById('viewNextBtn').addEventListener('click', function() {
+      viewMoveStep(1);
+    });
+
+    // Helper functions for view/edit actions
+    function parseSeniorPayload(button) {
+      try {
+        const payload = JSON.parse(button.getAttribute('data-senior') || '{}');
+        const attrId = parseInt(button.getAttribute('data-senior-id') || '0', 10);
+        if ((!payload.id || Number(payload.id) <= 0) && Number.isFinite(attrId) && attrId > 0) {
+          payload.id = attrId;
+        }
+        return payload;
+      } catch (error) {
+        const attrId = parseInt(button.getAttribute('data-senior-id') || '0', 10);
+        if (Number.isFinite(attrId) && attrId > 0) {
+          return { id: attrId };
+        }
+        return null;
+      }
+    }
+
+    function getSeniorRecordId(senior) {
+      // Prefer SQL numeric id used by the PHP update endpoint.
+      const directId = Number(senior?.id);
+      if (Number.isFinite(directId) && directId > 0) {
+        return String(directId);
+      }
+
+      const fallbackId = senior?._id;
+      if (typeof fallbackId === 'string' && fallbackId.trim() !== '') {
+        return fallbackId.trim();
+      }
+
+      if (typeof fallbackId === 'number' && Number.isFinite(fallbackId)) {
+        return String(fallbackId);
+      }
+
+      return '';
+    }
+
+    function getSeniorFullName(senior) {
+      const name = senior?.identifying_information?.name || {};
+      return [name.first_name, name.middle_name, name.last_name, name.extension]
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim() || 'Unnamed record';
+    }
+
+    function formatValue(value) {
+      if (value === null || value === undefined || value === '') {
+        return 'N/A';
+      }
+
+      if (Array.isArray(value)) {
+        return value.length ? value.map(item => escapeHtml(item)).join(', ') : 'N/A';
+      }
+
+      if (typeof value === 'object') {
+        return escapeHtml(JSON.stringify(value));
+      }
+
+      return escapeHtml(value);
+    }
+
+    function renderDetailItems(items) {
+      return '<div class="detail-grid">' + items.map(function (item) {
+        return '<div class="detail-item"><span class="detail-label">' + escapeHtml(item.label) + ':</span> <span class="detail-value">' + formatValue(item.value) + '</span></div>';
+      }).join('') + '</div>';
+    }
+
+    function renderSeniorDetailsHtml(senior) {
+      const info = senior?.identifying_information || {};
+      const name = info.name || {};
+      const address = info.address || {};
+      const family = senior?.family_composition || {};
+      const education = senior?.education_hr_profile || {};
+      const contacts = Array.isArray(info.contacts) ? info.contacts : [];
+      const children = Array.isArray(family.children) ? family.children : [];
+      const services = Array.isArray(senior?.community_service) ? senior.community_service : [];
+
+      const sections = [];
+      sections.push('<div class="detail-section"><h6>Personal Information</h6>' + renderDetailItems([
+        { label: 'First Name', value: name.first_name },
+        { label: 'Middle Name', value: name.middle_name },
+        { label: 'Last Name', value: name.last_name },
+        { label: 'Extension', value: name.extension },
+        { label: 'Date of Birth', value: info.date_of_birth },
+        { label: 'Age', value: info.age },
+        { label: 'Gender', value: info.gender },
+        { label: 'Marital Status', value: info.marital_status },
+        { label: 'Place of Birth', value: Array.isArray(info.place_of_birth) ? info.place_of_birth.join(', ') : info.place_of_birth },
+        { label: 'Barangay', value: address.barangay },
+        { label: 'Purok', value: address.purok },
+      ]) + '</div>');
+
+      sections.push('<div class="detail-section"><h6>Identification Numbers</h6>' + renderDetailItems([
+        { label: 'OSCA ID', value: info.osca_id_number },
+        { label: 'GSIS / SSS', value: info.gsis_sss },
+        { label: 'PhilHealth', value: info.philhealth },
+        { label: 'SC Association / Org ID', value: info.sc_association_org_id_no },
+        { label: 'TIN', value: info.tin },
+        { label: 'Other Government ID', value: info.other_govt_id },
+      ]) + '</div>');
+
+      sections.push('<div class="detail-section"><h6>Contact Information</h6>' + (contacts.length ? contacts.map(function (contact, index) {
+        return renderDetailItems([
+          { label: 'Contact ' + (index + 1) + ' Type', value: contact.type },
+          { label: 'Name', value: contact.name },
+          { label: 'Relationship', value: contact.relationship },
+          { label: 'Phone', value: contact.phone },
+          { label: 'Email', value: contact.email },
+        ]);
+      }).join('<hr class="my-2">') : '<div class="detail-item">N/A</div>') + '</div>');
+
+      sections.push('<div class="detail-section"><h6>Family Composition</h6>' + renderDetailItems([
+        { label: 'Spouse', value: family?.spouse?.name },
+        { label: 'Father Last Name', value: family?.father?.last_name },
+        { label: 'Father First Name', value: family?.father?.first_name },
+        { label: 'Father Middle Name', value: family?.father?.middle_name },
+        { label: 'Father Extension', value: family?.father?.extension },
+        { label: 'Mother Last Name', value: family?.mother?.last_name },
+        { label: 'Mother First Name', value: family?.mother?.first_name },
+        { label: 'Mother Middle Name', value: family?.mother?.middle_name },
+      ]) + '</div>');
+
+      sections.push('<div class="detail-section"><h6>Children</h6>' + (children.length ? children.map(function (child, index) {
+        return renderDetailItems([
+          { label: 'Child ' + (index + 1), value: child.full_name },
+          { label: 'Occupation', value: child.occupation },
+          { label: 'Income', value: child.income },
+          { label: 'Age', value: child.age },
+          { label: 'Working Status', value: child.working_status },
+        ]);
+      }).join('<hr class="my-2">') : '<div class="detail-item">No children recorded</div>') + '</div>');
+
+      sections.push('<div class="detail-section"><h6>Education / HR Profile</h6>' + renderDetailItems([
+        { label: 'Educational Attainment', value: education.educational_attainment },
+        { label: 'Skills', value: education.skills },
+        { label: 'Skill Other Text', value: education.skill_other_text },
+        { label: 'Service / Business / Employment', value: info.service_business_employment },
+        { label: 'Current Pension', value: info.current_pension },
+        { label: 'Capability to Travel', value: info.capability_to_travel },
+      ]) + '</div>');
+
+      sections.push('<div class="detail-section"><h6>Community Service</h6>' + renderDetailItems([
+        { label: 'Services', value: services.length ? services.join(', ') : null },
+        { label: 'Other Community Service', value: senior?.community_service_other_text },
+      ]) + '</div>');
+
+      return sections.join('');
+    }
+
+    function openSeniorViewModal(senior) {
+      viewCurrentStep = 0;
+
+      const info = senior?.identifying_information || {};
+      const name = info.name || {};
+      const address = info.address || {};
+      const family = senior?.family_composition || {};
+      const education = senior?.education_hr_profile || {};
+      const contacts = Array.isArray(info.contacts) ? info.contacts : [];
+      const skills = viewParseList(education.skills);
+      const communityService = viewParseList(senior?.community_service);
+      const children = Array.isArray(family.children) ? family.children : [];
+
+      viewSetText('viewFullName', getSeniorFullName(senior));
+      viewSetText('viewAge', info.age ?? 'N/A');
+      viewSetText('viewGender', info.gender || 'N/A');
+      viewSetText('viewStatus', senior?.status || 'Active');
+      viewSetText('viewBarangay', address.barangay || 'N/A');
+      viewSetText('viewPurok', address.purok || 'N/A');
+      viewSetText('viewMaritalStatus', info.marital_status || 'N/A');
+
+      const seniorRecordId = getSeniorRecordId(senior);
+      viewSetInput('viewResidentId', seniorRecordId);
+      viewSetInput('viewFirstName', name.first_name || '');
+      viewSetInput('viewMiddleName', name.middle_name || '');
+      viewSetInput('viewLastName', name.last_name || '');
+      viewSetInput('viewExtension', name.extension || '');
+      viewSetInput('viewBirthday', info.date_of_birth || '');
+      viewSetInput('viewAgeField', info.age ?? '');
+      viewSetInput('viewBarangayField', address.barangay || '');
+      viewSetInput('viewPurokField', address.purok || '');
+      viewSetInput('viewGenderField', info.gender || '');
+      viewSetInput('viewPlaceOfBirth', Array.isArray(info.place_of_birth) ? info.place_of_birth.join(', ') : (info.place_of_birth || ''));
+      viewSetInput('viewCivilStatus', info.marital_status || '');
+      viewSetInput('viewSpouseName', family?.spouse?.name || '');
+      viewSetInput('viewOtherGovtId', info.other_govt_id || '');
+      viewSetInput('viewFatherLastName', family?.father?.last_name || '');
+      viewSetInput('viewFatherFirstName', family?.father?.first_name || '');
+      viewSetInput('viewFatherMiddleName', family?.father?.middle_name || '');
+      viewSetInput('viewFatherExtension', family?.father?.extension || '');
+      viewSetInput('viewMotherLastName', family?.mother?.last_name || '');
+      viewSetInput('viewMotherFirstName', family?.mother?.first_name || '');
+      viewSetInput('viewMotherMiddleName', family?.mother?.middle_name || '');
+      viewSetInput('viewOscaId', info.osca_id_number || '');
+      viewSetInput('viewGsisId', info.gsis_id || info.gsis_sss || '');
+      viewSetInput('viewSssId', info.sss_id || info.sss_number || '');
+      viewSetInput('viewPhilhealthId', info.philhealth || '');
+      viewSetInput('viewEducationalAttainment', education.educational_attainment || '');
+      viewSetInput('viewServiceBusinessEmployment', info.service_business_employment || '');
+      viewSetInput('viewCurrentPension', info.current_pension || '');
+      viewSetInput('viewCapabilityToTravel', info.capability_to_travel || '');
+      viewSetTextarea('viewSkills', skills.length ? skills.join(', ') : '');
+      viewSetInput('viewSkillOtherText', education.skill_other_text || '');
+      viewSetTextarea('viewCommunityService', communityService.length ? communityService.join(', ') : '');
+      viewSetInput('viewCommunityServiceOtherText', senior?.community_service_other_text || '');
+
+      viewRenderContacts(contacts);
+      viewRenderChildren(children);
+      loadSeniorEditLogs(seniorRecordId);
+
+      $('#viewSeniorModal').modal('show');
+      viewShowStep(0);
+    }
+
+    // Global event handler for view/edit/archive buttons
+    document.addEventListener('click', function (event) {
+      const viewButton = event.target.closest('.view-btn');
+      if (viewButton) {
+        const senior = parseSeniorPayload(viewButton);
+        if (senior) {
+          openSeniorViewModal(senior);
+        }
+        return;
+      }
+
+      const editButton = event.target.closest('.edit-btn');
+      if (editButton) {
+        const senior = parseSeniorPayload(editButton);
+        const rowResidentId = parseInt(editButton.getAttribute('data-senior-id') || '0', 10);
+        if (senior) {
+          openSeniorEditModal(senior, rowResidentId);
+        }
+        return;
+      }
+
+      const archiveButton = event.target.closest('.archive-btn');
+      if (archiveButton) {
+        const seniorId = archiveButton.getAttribute('data-senior-id');
+        const currentStatus = archiveButton.getAttribute('data-status') || 'Active';
+        const isArchived = currentStatus === 'Archived';
+        const endpoint = isArchived ? '/unarchive-senior' : '/archive-senior';
+        const actionLabel = isArchived ? 'unarchive' : 'archive';
+
+        if (!seniorId) {
+          Swal.fire({ icon: 'error', title: 'Missing ID', text: 'Senior Citizen ID not found.' });
+          return;
+        }
+
+        Swal.fire({
+          title: isArchived ? 'Unarchive Senior Citizen?' : 'Archive Senior Citizen?',
+          input: isArchived ? 'text' : 'textarea',
+          inputLabel: isArchived ? 'Reason for unarchiving (optional)' : 'Reason for archiving (optional)',
+          inputPlaceholder: isArchived ? 'Reason for unarchiving' : 'Reason for archiving',
+          showCancelButton: true,
+          confirmButtonText: isArchived ? 'Unarchive' : 'Archive',
+          cancelButtonText: 'Cancel',
+          confirmButtonColor: '#0f766e'
+        }).then(async function (result) {
+          if (!result.isConfirmed) return;
+
+          try {
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ senior_id: seniorId, reason: result.value || '' })
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+              throw new Error(data.message || `Failed to ${actionLabel} record`);
+            }
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: data.message || `Senior Citizen record ${actionLabel}d successfully`
+            }).then(function () {
+              window.location.reload();
+            });
+          } catch (error) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: error.message || `An error occurred while ${actionLabel}ing the record.`
+            });
+          }
+        });
+      }
+    });
+
+    function validateEditSeniorPayload() {
+      const requiredChecks = [
+        { id: 'editFirstName', label: 'First Name' },
+        { id: 'editLastName', label: 'Last Name' },
+        { id: 'editBirthday', label: 'Birthday' },
+        { id: 'editBarangay', label: 'Barangay' },
+        { id: 'editPurok', label: 'Purok' },
+        { id: 'editGender', label: 'Gender' },
+        { id: 'editCivilStatus', label: 'Marital Status' }
+      ];
+
+      const missing = requiredChecks.filter(function (item) {
+        return getInputValue(item.id) === '';
+      }).map(function (item) {
+        return item.label;
+      });
+
+      if (missing.length) {
+        editCurrentStep = 0;
+        editShowStep(0);
+        Swal.fire({
+          icon: 'warning',
+          title: 'Required fields are missing',
+          text: 'Please complete: ' + missing.join(', ')
+        });
+        return false;
+      }
+
+      return true;
+    }
+
+    function submitEditSeniorUpdate() {
+      const form = document.getElementById('editSeniorForm');
+      if (!form) return;
+      if (!validateEditSeniorPayload()) {
+        return;
+      }
+
+      const residentIdRaw = document.getElementById('editResidentId').value;
+      const residentId = parseInt(residentIdRaw, 10);
+      if (!Number.isFinite(residentId) || residentId <= 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Update failed',
+          text: 'Resident ID is invalid. Please reopen the edit modal and try again.'
+        });
+        return;
+      }
+
+      const contacts = [];
+      document.querySelectorAll('.edit-contact-row').forEach(function(row) {
+        contacts.push({
+          type: row.querySelector('.edit-contact-type')?.value || 'primary',
+          name: row.querySelector('.edit-contact-name')?.value || '',
+          relationship: row.querySelector('.edit-contact-relationship')?.value || '',
+          phone: row.querySelector('.edit-contact-phone')?.value || '',
+          email: row.querySelector('.edit-contact-email')?.value || ''
+        });
+      });
+
+      const gsisId = document.getElementById('editGsisId').value.trim();
+      const sssId = document.getElementById('editSssId').value.trim();
+      const existingGsisSss = String(editCurrentSenior?.identifying_information?.gsis_sss || '').trim();
+      const educationalAttainment = document.getElementById('editEducationalAttainment').value;
+      const serviceBusinessEmployment = getPreferredValue('editServiceBusinessEmploymentStep5', 'editServiceBusinessEmployment');
+      const currentPension = getPreferredValue('editCurrentPensionStep5', 'editCurrentPension');
+      const capabilityToTravel = getPreferredValue('editCapabilityToTravelStep5', 'editCapabilityToTravel');
+      const otherGovtId = getPreferredValue('editOtherId', 'editOtherGovtId');
+
+      const nextBtn = document.getElementById('editNextBtn');
+      if (nextBtn) {
+        nextBtn.disabled = true;
+      }
+
+      let payload;
+      try {
+        payload = {
+          residentId: residentId,
+          first_name: document.getElementById('editFirstName').value.trim(),
+          middle_name: document.getElementById('editMiddleName').value.trim(),
+          last_name: document.getElementById('editLastName').value.trim(),
+          extension: document.getElementById('editExtension').value.trim(),
+          birthday: document.getElementById('editBirthday').value,
+          place_of_birth: document.getElementById('editPlaceOfBirth').value.trim(),
+          barangay: document.getElementById('editBarangay').value,
+          purok: document.getElementById('editPurok').value,
+          gender: document.getElementById('editGender').value,
+          age: document.getElementById('editAge').value,
+          marital_status: document.getElementById('editCivilStatus').value,
+          spouse_name: document.getElementById('editSpouseName').value.trim(),
+          service_business_employment: serviceBusinessEmployment,
+          current_pension: currentPension,
+          capability_to_travel: capabilityToTravel,
+          other_govt_id: otherGovtId,
+          contacts: contacts,
+          father_last_name: document.getElementById('editFatherLastName').value.trim(),
+          father_first_name: document.getElementById('editFatherFirstName').value.trim(),
+          father_middle_name: document.getElementById('editFatherMiddleName').value.trim(),
+          father_extension: document.getElementById('editFatherExtension').value.trim(),
+          mother_last_name: document.getElementById('editMotherLastName').value.trim(),
+          mother_first_name: document.getElementById('editMotherFirstName').value.trim(),
+          mother_middle_name: document.getElementById('editMotherMiddleName').value.trim(),
+          osca_id_number: document.getElementById('editOscaId').value.trim(),
+          gsis_sss: [gsisId, sssId].filter(Boolean).join('/') || existingGsisSss,
+          philhealth: document.getElementById('editPhilhealthId').value.trim(),
+          educational_attainment: educationalAttainment ? [educationalAttainment] : [],
+          skills: getCheckedValues('editSkills[]'),
+          skill_other_text: document.getElementById('editSkillOtherText').value.trim(),
+          community_service: getCheckedValues('editCommunityService[]'),
+          community_service_other_text: document.getElementById('editCommunityServiceOtherText').value.trim(),
+          // Preserve existing children when edit UI does not include child editing fields.
+          children: Array.isArray(editCurrentSenior?.family_composition?.children) ? editCurrentSenior.family_composition.children : []
+        };
+      } catch (error) {
+        if (nextBtn) {
+          nextBtn.disabled = false;
+        }
+        Swal.fire({
+          icon: 'error',
+          title: 'Update failed',
+          text: 'Unable to collect form values. Please reopen the edit modal and try again.'
+        });
+        return;
+      }
+
+      fetch('/update-senior', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(response) {
+        return response.text().then(function(text) {
+          let data = null;
+          try {
+            data = text ? JSON.parse(text) : {};
+          } catch (error) {
+            const preview = (text || '').slice(0, 120);
+            throw new Error('Server returned invalid response. ' + preview);
+          }
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || data.error || 'Failed to update senior citizen.');
+          }
+
+          return data;
+        });
+      })
+      .then(function(data) {
+        $('#editSeniorModal').modal('hide');
+        Swal.fire({
+          icon: 'success',
+          title: 'Updated',
+          text: data.message || 'Senior citizen updated successfully'
+        }).then(function() {
+          window.location.reload();
+        });
+      })
+      .catch(function(error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Update failed',
+          text: error.message || 'Unable to update the record.'
+        });
+      })
+      .finally(function() {
+        if (nextBtn) {
+          nextBtn.disabled = false;
+        }
+      });
+    }
+
+    function handleEditNextClick(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      const fieldsets = document.querySelectorAll('.edit-fieldset');
+      if (editCurrentStep >= fieldsets.length - 1) {
+        submitEditSeniorUpdate();
+      } else {
+        editMoveStep(1);
+      }
+    }
+
+    // Single direct handler for modal footer button reliability.
+    const editNextBtnEl = document.getElementById('editNextBtn');
+    if (editNextBtnEl) {
+      editNextBtnEl.addEventListener('click', handleEditNextClick);
+    }
   </script>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

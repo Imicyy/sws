@@ -97,10 +97,6 @@
                                     <i class="feather icon-maximize full-screen"></i>
                                 </a>
                             </li>
-                            <li>
-                                <a href="/add_senior" class="btn btn-primary rounded" id="addSeniorBtn" target="_blank">
-                                    <i class="feather icon-user-plus"></i>ADD SENIOR </a>
-                            </li>
                         </ul>
                         <ul class="nav-right"></ul>
                         <ul class="nav-right">
@@ -142,6 +138,13 @@
                                             </a>
                                         </li>
                                     </ul>
+                                </li>
+                                <li style="padding: 10px 12px 0;">
+                                    <a href="/add_senior" id="addSeniorBtn" target="_blank"
+                                       style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px 12px; border-radius: 8px; background: #0f766e; color: #fff; text-decoration: none; font-weight: 600; box-shadow: 0 6px 16px rgba(15, 118, 110, 0.18);">
+                                        <i class="feather icon-user-plus"></i>
+                                        <span>Add Senior</span>
+                                    </a>
                                 </li>
                             </ul>
                         </div>
@@ -740,7 +743,7 @@
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 900px;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editModalTitle">Edit Senior Citizen Information</h5>
@@ -749,57 +752,83 @@
                 </button>
             </div>
 
-            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+            <div class="modal-body" style="max-height: 75vh; overflow-y: auto; padding: 20px;">
                 <form id="editResidentForm">
                     <input type="hidden" id="editResidentId" name="residentId">
                     
+                    <!-- Progress Bar -->
+                    <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 24px; padding: 0 10px; position: relative;">
+                        <div style="position: absolute; top: 18px; left: 34px; right: 34px; height: 2px; background: #d1d5db; z-index: 0;"></div>
+                        <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step active">
+                            <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #0f766e; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">1</div>
+                            <span>Personal</span>
+                        </div>
+                        <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                            <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">2</div>
+                            <span>Contact</span>
+                        </div>
+                        <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                            <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">3</div>
+                            <span>Family</span>
+                        </div>
+                        <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                            <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">4</div>
+                            <span>IDs</span>
+                        </div>
+                        <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                            <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">5</div>
+                            <span>Education</span>
+                        </div>
+                        <div style="color: #6b7280; font-size: 12px; cursor: default; text-align: center; min-width: 110px; position: relative; z-index: 1; font-weight: 600;" class="edit-step">
+                            <div style="display: grid; place-items: center; width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 50%; background-color: #94a3b8; color: #ffffff; font-size: 13px; font-weight: 700; border: none;">6</div>
+                            <span>Community</span>
+                        </div>
+                    </div>
+
                     <!-- Personal Information -->
-                    <fieldset class="mb-4">
-                        <legend>PERSONAL INFORMATION</legend>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="editFirstName">First Name</label>
-                                    <input type="text" class="form-control" id="editFirstName" name="first_name" required>
-                        </div>
-                </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="editMiddleName">Middle Name</label>
-                                    <input type="text" class="form-control" id="editMiddleName" name="middle_name">
+                    <fieldset class="edit-fieldset active" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff;">
+                        <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Personal Information</legend>
+                        <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">
+                            <div class="col-md-4" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editFirstName" style="color: #374151; font-weight: 600;">First Name</label>
+                                    <input type="text" class="form-control" id="editFirstName" name="first_name" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="editLastName">Last Name</label>
-                                    <input type="text" class="form-control" id="editLastName" name="last_name" required>
+                            <div class="col-md-4" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editMiddleName" style="color: #374151; font-weight: 600;">Middle Name</label>
+                                    <input type="text" class="form-control" id="editMiddleName" name="middle_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-4" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editLastName" style="color: #374151; font-weight: 600;">Last Name</label>
+                                    <input type="text" class="form-control" id="editLastName" name="last_name" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="editBarangay">Barangay</label>
-                                    <select class="form-control" id="editBarangay" name="barangay" required>
+                        <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">
+                            <div class="col-md-4" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editBarangay" style="color: #374151; font-weight: 600;">Barangay</label>
+                                    <select class="form-control" id="editBarangay" name="barangay" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                         <option value="">Select Barangay</option>
-                                        <% Object.keys(barangays).forEach(barangay => { %>
-                                            <option value="<%= barangay %>"><%= barangay %></option>
-                                        <% }) %>
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="editPurok">Purok</label>
-                                    <select class="form-control" id="editPurok" name="purok" required>
+                            <div class="col-md-4" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editPurok" style="color: #374151; font-weight: 600;">Purok</label>
+                                    <select class="form-control" id="editPurok" name="purok" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                         <option value="">Select Purok</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="editGender">Gender</label>
-                                    <select class="form-control" id="editGender" name="gender" required>
+                            <div class="col-md-4" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editGender" style="color: #374151; font-weight: 600;">Gender</label>
+                                    <select class="form-control" id="editGender" name="gender" required style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                         <option value="">Select Gender</option>
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
@@ -809,23 +838,23 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="editBirthday">Birthday</label>
-                                    <input type="date" class="form-control" id="editBirthday" name="birthday" required>
+                        <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">
+                            <div class="col-md-4" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editBirthday" style="color: #374151; font-weight: 600;">Birthday</label>
+                                    <input type="date" class="form-control" id="editBirthday" name="birthday" required onchange="editCalculateAge()" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="editAge">Age</label>
-                                    <input type="number" class="form-control" id="editAge" name="age" readonly>
+                            <div class="col-md-4" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editAge" style="color: #374151; font-weight: 600;">Age</label>
+                                    <input type="number" class="form-control" id="editAge" name="age" readonly style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="editMaritalStatus">Marital Status</label>
-                                    <select class="form-control" id="editMaritalStatus" name="marital_status" required>
+                            <div class="col-md-4" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editMaritalStatus" style="color: #374151; font-weight: 600;">Marital Status</label>
+                                    <select class="form-control" id="editMaritalStatus" name="marital_status" required onchange="editToggleSpouseInput()" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                         <option value="">Select Status</option>
                                         <option value="Single">Single</option>
                                         <option value="Married">Married</option>
@@ -836,86 +865,220 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="editPlaceOfBirth">Place of Birth</label>
-                                    <input type="text" class="form-control" id="editPlaceOfBirth" name="place_of_birth">
+                        <div class="row" style="display: flex; gap: 18px;">
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editPlaceOfBirth" style="color: #374151; font-weight: 600;">Place of Birth</label>
+                                    <input type="text" class="form-control" id="editPlaceOfBirth" name="place_of_birth" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                 </div>
                             </div>
-                            <div class="col-md-6" id="editSpouseGroup" style="display: none;">
-                                <div class="form-group">
-                                    <label for="editSpouseName">Spouse Name</label>
-                                    <input type="text" class="form-control" id="editSpouseName" name="spouse_name">
+                            <div class="col-md-6" style="flex: 1; min-width: 220px; display: none;" id="editSpouseGroup">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editSpouseName" style="color: #374151; font-weight: 600;">Spouse Name</label>
+                                    <input type="text" class="form-control" id="editSpouseName" name="spouse_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
                                 </div>
                             </div>
-                        </div>
-                    </fieldset>
-
-                    <!-- ID Information -->
-                    <fieldset class="mb-4">
-                        <legend>ID INFORMATION</legend>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="editOscaId">OSCA ID</label>
-                                    <input type="text" class="form-control" id="editOscaId" name="osca_id">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="editGsisSss">GSIS/SSS</label>
-                                    <input type="text" class="form-control" id="editGsisSss" name="gsis_sss">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="editPhilhealth">Philhealth</label>
-                                    <input type="text" class="form-control" id="editPhilhealth" name="philhealth">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="editTin">TIN</label>
-                                    <input type="text" class="form-control" id="editTin" name="tin">
-                                </div>
-                            </div>
-                        </div>
-                    </fieldset>
-                    
-                    <!-- Family Information -->
-                    <fieldset class="mb-4">
-                        <legend>FAMILY INFORMATION</legend>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="editFatherName">Father's Name</label>
-                                    <input type="text" class="form-control" id="editFatherName" name="father_name">
-                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="editMotherName">Mother's Name</label>
-                                    <input type="text" class="form-control" id="editMotherName" name="mother_name">
-                                </div>
-                </div>
                         </div>
                     </fieldset>
 
                     <!-- Contact Information -->
-                    <fieldset class="mb-4">
-                        <legend>CONTACT INFORMATION</legend>
-                        <div id="editContactsContainer">
-                            <!-- Dynamic contact fields will be added here -->
+                    <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+                        <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Contact Information</legend>
+                        <div id="editContactsContainer"></div>
+                        <button type="button" class="btn btn-sm btn-secondary" id="editAddContact" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 8px; padding: 8px 14px; margin-top: 10px;">+ Add Contact</button>
+                    </fieldset>
+
+                    <!-- Family Information -->
+                    <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+                        <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Family Composition</legend>
+                        <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">
+                            <div class="col-md-3" style="flex: 1; min-width: 150px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editFatherLastName" style="color: #374151; font-weight: 600;">Father Last Name</label>
+                                    <input type="text" class="form-control" id="editFatherLastName" name="father_last_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-3" style="flex: 1; min-width: 150px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editFatherFirstName" style="color: #374151; font-weight: 600;">Father First Name</label>
+                                    <input type="text" class="form-control" id="editFatherFirstName" name="father_first_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-3" style="flex: 1; min-width: 150px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editFatherMiddleName" style="color: #374151; font-weight: 600;">Father Middle Name</label>
+                                    <input type="text" class="form-control" id="editFatherMiddleName" name="father_middle_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-3" style="flex: 1; min-width: 150px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editFatherExtension" style="color: #374151; font-weight: 600;">Extension (Jr/Sr)</label>
+                                    <input type="text" class="form-control" id="editFatherExtension" name="father_extension" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-secondary" id="addEditContact">+ Add Contact</button>
+                        <div class="row" style="display: flex; gap: 18px;">
+                            <div class="col-md-3" style="flex: 1; min-width: 150px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editMotherLastName" style="color: #374151; font-weight: 600;">Mother Last Name</label>
+                                    <input type="text" class="form-control" id="editMotherLastName" name="mother_last_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-3" style="flex: 1; min-width: 150px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editMotherFirstName" style="color: #374151; font-weight: 600;">Mother First Name</label>
+                                    <input type="text" class="form-control" id="editMotherFirstName" name="mother_first_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editMotherMiddleName" style="color: #374151; font-weight: 600;">Mother Middle Name</label>
+                                    <input type="text" class="form-control" id="editMotherMiddleName" name="mother_middle_name" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Identification Documents -->
+                    <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+                        <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Identification Documents</legend>
+                        <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editOscaId" style="color: #374151; font-weight: 600;">OSCA/Senior Citizen ID</label>
+                                    <input type="text" class="form-control" id="editOscaId" name="osca_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editGsisId" style="color: #374151; font-weight: 600;">GSIS</label>
+                                    <input type="text" class="form-control" id="editGsisId" name="gsis_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editSssId" style="color: #374151; font-weight: 600;">SSS</label>
+                                    <input type="text" class="form-control" id="editSssId" name="sss_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editPhilhealthId" style="color: #374151; font-weight: 600;">Philhealth</label>
+                                    <input type="text" class="form-control" id="editPhilhealthId" name="philhealth_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="display: flex; gap: 18px;">
+                            <div class="col-md-12" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editOtherId" style="color: #374151; font-weight: 600;">Other Government ID</label>
+                                    <input type="text" class="form-control" id="editOtherId" name="other_id" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Education & HR Profile -->
+                    <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+                        <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Education & HR Profile</legend>
+                        <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="editEducationalAttainment" style="color: #374151; font-weight: 600;">Educational Attainment</label>
+                                    <select class="form-control" id="editEducationalAttainment" name="educational_attainment" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                        <option value="">Select Educational Level</option>
+                                        <option value="Not Attended School">Not Attended School</option>
+                                        <option value="Elementary Level">Elementary Level</option>
+                                        <option value="Elementary Graduate">Elementary Graduate</option>
+                                        <option value="High School Level">High School Level</option>
+                                        <option value="High School Graduate">High School Graduate</option>
+                                        <option value="College Level">College Level</option>
+                                        <option value="College Graduate">College Graduate</option>
+                                        <option value="Vocational">Vocational</option>
+                                        <option value="Post Graduate">Post Graduate</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="color: #374151; font-weight: 600;">Service / Business / Employment</label>
+                                    <input type="text" class="form-control" id="editServiceBusinessEmployment" name="service_business_employment" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="display: flex; gap: 18px; margin-bottom: 18px;">
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="color: #374151; font-weight: 600;">Current Pension</label>
+                                    <input type="text" class="form-control" id="editCurrentPension" name="current_pension" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                </div>
+                            </div>
+                            <div class="col-md-6" style="flex: 1; min-width: 220px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="color: #374151; font-weight: 600;">Capability to Travel</label>
+                                    <select class="form-control" id="editCapabilityToTravel" name="capability_to_travel" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                                        <option value="">Select Option</option>
+                                        <option value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label style="color: #374151; font-weight: 600; display: block; margin-bottom: 8px;">Skills / Specialization</label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Medical"> Medical</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Dental"> Dental</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Fishing"> Fishing</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Teaching"> Teaching</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Counseling"> Counseling</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Cooking"> Cooking</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Carpenter"> Carpenter</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Farming"> Farming</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Legal Services"> Legal Services</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editSkills[]" value="Other"> Other</label>
+                            </div>
+                            <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+                                <label for="editSkillOtherText" style="color: #374151; font-weight: 600;">Other Skill</label>
+                                <input type="text" class="form-control" id="editSkillOtherText" name="skill_other_text" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Community Service -->
+                    <fieldset class="edit-fieldset" style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 18px; background: #ffffff; display: none;">
+                        <legend style="padding: 0 10px; color: #0f766e; font-size: 16px; font-weight: 700;">Community Service</legend>
+                        <div class="form-group">
+                            <label style="color: #374151; font-weight: 600; display: block; margin-bottom: 8px;">Community Service Involvement</label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Medical"> Medical</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Community / Organization Leader"> Community / Organization Leader</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Neighborhood Support Services"> Neighborhood Support Services</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Counseling / Referral"> Counseling / Referral</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Resource Volunteer"> Resource Volunteer</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Dental"> Dental</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Legal Services"> Legal Services</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Sponsorship"> Sponsorship</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Community Beautification"> Community Beautification</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Friendly Visits"> Friendly Visits</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Religious"> Religious</label>
+                                <label style="display: flex; gap: 8px; align-items: center; margin: 0;"><input type="checkbox" name="editCommunityService[]" value="Other"> Other</label>
+                            </div>
+                            <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+                                <label for="editCommunityServiceOtherText" style="color: #374151; font-weight: 600;">Other Community Service</label>
+                                <input type="text" class="form-control" id="editCommunityServiceOtherText" name="community_service_other_text" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 8px;">
+                            </div>
+                        </div>
                     </fieldset>
                 </form>
-                    </div>
+            </div>
                     
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="updateBtn">Update Information</button>
+            <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid #e5e7eb;">
+                <button type="button" class="btn btn-secondary" id="editPrevBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; display: none;">Back</button>
+                <button type="button" class="btn btn-primary" id="editNextBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; background: #0f766e; color: #ffffff; border: none;">Next</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">Cancel</button>
             </div>
         </div>
     </div>
@@ -1556,13 +1719,11 @@
                         
                         // Populate Address Information
                         const address = seniorData.identifying_information?.address || {};
+                        populateEditBarangays(address.barangay || '');
                         document.getElementById('editBarangay').value = address.barangay || '';
-                        
-                        // Trigger barangay change to populate purok options
-                        const barangaySelect = document.getElementById('editBarangay');
-                        if (address.barangay) {
-                            updateEditPurokOptions(address.barangay, address.purok);
-                        }
+
+                        // Populate puroks for the selected barangay immediately
+                        updateEditPurokOptions(address.barangay || '', address.purok || '');
                         
                         // Populate other personal information
                         document.getElementById('editGender').value = seniorData.identifying_information?.gender || '';
@@ -1603,25 +1764,55 @@
                         } else {
                             spouseGroup.style.display = 'none';
                         }
-                        
-                        // Populate ID Information
+
+                        // Populate Contact Information
+                        const contactsContainer = document.getElementById('editContactsContainer');
+                        if (contactsContainer) {
+                            contactsContainer.innerHTML = '';
+                            const contacts = seniorData.identifying_information?.contacts || [];
+                            if (contacts.length > 0) {
+                                contacts.forEach((contact, idx) => {
+                                    editAddContactForm(idx, contact);
+                                });
+                            } else {
+                                editAddContactForm(0, {});
+                            }
+                        }
+
+                        // Populate Family Information
+                        const family = seniorData.family_composition || {};
+                        document.getElementById('editFatherLastName').value = family.father?.last_name || '';
+                        document.getElementById('editFatherFirstName').value = family.father?.first_name || '';
+                        document.getElementById('editFatherMiddleName').value = family.father?.middle_name || '';
+                        document.getElementById('editFatherExtension').value = family.father?.extension || '';
+                        document.getElementById('editMotherLastName').value = family.mother?.last_name || '';
+                        document.getElementById('editMotherFirstName').value = family.mother?.first_name || '';
+                        document.getElementById('editMotherMiddleName').value = family.mother?.middle_name || '';
+
+                        // Populate Identification Documents
                         const ids = seniorData.identifying_information || {};
                         document.getElementById('editOscaId').value = ids.osca_id_number || '';
-                        document.getElementById('editGsisSss').value = ids.gsis_sss || '';
-                        document.getElementById('editPhilhealth').value = ids.philhealth || '';
-                        document.getElementById('editTin').value = ids.tin || '';
-                        
-                        // Populate Family Information
-                        const father = seniorData.family_composition?.father || {};
-                        const mother = seniorData.family_composition?.mother || {};
-                        const fatherName = `${father.first_name || ''} ${father.middle_name || ''} ${father.last_name || ''} ${father.extension || ''}`.trim();
-                        const motherName = `${mother.first_name || ''} ${mother.middle_name || ''} ${mother.last_name || ''}`.trim();
-                        
-                        document.getElementById('editFatherName').value = fatherName;
-                        document.getElementById('editMotherName').value = motherName;
-                        
-                        // Populate Contact Information
-                        populateEditContacts(seniorData.identifying_information?.contacts || []);
+                        document.getElementById('editGsisId').value = ids.gsis_sss?.split('/')[0] || '';
+                        document.getElementById('editSssId').value = ids.gsis_sss?.split('/')[1] || '';
+                        document.getElementById('editPhilhealthId').value = ids.philhealth || '';
+                        document.getElementById('editOtherId').value = ids.other_govt_id || '';
+
+                        // Populate Education & HR Profile
+                        const education = seniorData.education_hr_profile || {};
+                        const educationalAttainment = Array.isArray(education.educational_attainment)
+                            ? (education.educational_attainment[0] || '')
+                            : (education.educational_attainment || '');
+                        document.getElementById('editEducationalAttainment').value = educationalAttainment;
+                        setCheckedValues('editSkills[]', education.skills || []);
+                        document.getElementById('editSkillOtherText').value = education.skill_other_text || '';
+
+                        // Populate Community Service
+                        setCheckedValues('editCommunityService[]', seniorData.community_service || []);
+                        document.getElementById('editCommunityServiceOtherText').value = seniorData.community_service_other_text || '';
+
+                        // Reset edit form to first step
+                        editCurrentStep = 0;
+                        editShowStep(0);
                         
                         // Show the edit modal
                         console.log('About to show edit modal'); // Debug log
@@ -1662,9 +1853,17 @@
             function updateEditPurokOptions(selectedBarangay, selectedPurok = '') {
                 const purokSelect = document.getElementById('editPurok');
                 purokSelect.innerHTML = '<option value="">Select Purok</option>';
-                
-                if (selectedBarangay && barangaysData[selectedBarangay]) {
-                    barangaysData[selectedBarangay].forEach(purok => {
+
+                const normalizedBarangay = String(selectedBarangay || '').replace(/\s+/g, ' ').trim().toLowerCase();
+                const matchedBarangay = Object.keys(barangaysData || {}).find(function (barangay) {
+                    return String(barangay || '').replace(/\s+/g, ' ').trim().toLowerCase() === normalizedBarangay;
+                });
+                const purokList = matchedBarangay && Array.isArray(barangaysData[matchedBarangay])
+                    ? barangaysData[matchedBarangay]
+                    : [];
+
+                if (matchedBarangay && purokList.length) {
+                    purokList.forEach(purok => {
                         const option = document.createElement('option');
                         option.value = purok;
                         option.textContent = purok;
@@ -1673,89 +1872,200 @@
                         }
                         purokSelect.appendChild(option);
                     });
+
+                    if (selectedPurok) {
+                        purokSelect.value = selectedPurok;
+                    }
                 }
             }
 
-            // Function to populate edit contacts
-            function populateEditContacts(contacts) {
-                const container = document.getElementById('editContactsContainer');
-                container.innerHTML = '';
+            function populateEditBarangays(selectedBarangay = '') {
+                const barangaySelect = document.getElementById('editBarangay');
+                barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+                const normalizedSelectedBarangay = String(selectedBarangay || '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+                Object.keys(barangaysData || {}).forEach(function (barangay) {
+                    const option = document.createElement('option');
+                    option.value = barangay;
+                    option.textContent = barangay;
+                    if (String(barangay || '').replace(/\s+/g, ' ').trim().toLowerCase() === normalizedSelectedBarangay) {
+                        option.selected = true;
+                    }
+                    barangaySelect.appendChild(option);
+                });
+            }
+
+            // Multi-step form navigation for edit modal
+            let editCurrentStep = 0;
+            const editFieldsets = document.querySelectorAll('.edit-fieldset');
+            const editSteps = document.querySelectorAll('.edit-step');
+
+            function editShowStep(n) {
+                if (n >= editFieldsets.length) n = editFieldsets.length - 1;
+                if (n < 0) n = 0;
+                editCurrentStep = n;
+
+                editFieldsets.forEach(fieldset => fieldset.style.display = 'none');
+                editSteps.forEach(step => step.classList.remove('active'));
                 
-                if (contacts.length === 0) {
-                    // Add one empty contact form if no contacts exist
-                    addEditContactForm(0, {});
-                } else {
-                    contacts.forEach((contact, index) => {
-                        addEditContactForm(index, contact);
-                    });
+                if (editFieldsets[editCurrentStep]) {
+                    editFieldsets[editCurrentStep].style.display = 'block';
+                }
+                if (editSteps[editCurrentStep]) {
+                    editSteps[editCurrentStep].classList.add('active');
+                    // Update step indicator color
+                    editSteps[editCurrentStep].querySelector('div').style.backgroundColor = '#0f766e';
+                    editSteps[editCurrentStep].style.color = '#0f766e';
+                    editSteps[editCurrentStep].style.fontWeight = '700';
+                }
+                
+                // Update button visibility
+                const prevBtn = document.getElementById('editPrevBtn');
+                const nextBtn = document.getElementById('editNextBtn');
+                const updateBtn = document.querySelector('button[id*="updateBtn"]');
+                
+                if (prevBtn) prevBtn.style.display = editCurrentStep > 0 ? 'block' : 'none';
+                if (nextBtn) {
+                    if (editCurrentStep === editFieldsets.length - 1) {
+                        nextBtn.textContent = 'Update';
+                        nextBtn.id = 'editNextBtn';
+                    } else {
+                        nextBtn.textContent = 'Next';
+                        nextBtn.id = 'editNextBtn';
+                    }
                 }
             }
 
-            // Function to add contact form in edit modal
-            function addEditContactForm(index, contact = {}) {
+            function editMoveStep(n) {
+                editShowStep(editCurrentStep + n);
+            }
+
+            function editCalculateAge() {
+                const birthday = document.getElementById('editBirthday');
+                const age = document.getElementById('editAge');
+                if (!birthday || !age || !birthday.value) return;
+                const dob = new Date(birthday.value);
+                if (Number.isNaN(dob.getTime())) return;
+
+                const today = new Date();
+                let years = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                const birthdayNotReached = monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate());
+                if (birthdayNotReached) {
+                    years -= 1;
+                }
+
+                age.value = years >= 0 ? years : '';
+            }
+
+            function editToggleSpouseInput() {
+                const civilStatus = document.getElementById('editMaritalStatus');
+                const spouseGroup = document.getElementById('editSpouseGroup');
+                const spouseInput = document.getElementById('editSpouseName');
+                if (!civilStatus || !spouseGroup) return;
+                const isMarried = civilStatus.value === 'Married';
+                spouseGroup.style.display = isMarried ? 'block' : 'none';
+                if (spouseInput) {
+                    spouseInput.required = isMarried;
+                    if (!isMarried) {
+                        spouseInput.value = '';
+                    }
+                }
+            }
+
+            function getCheckedValues(name) {
+                return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(function (input) {
+                    return input.value;
+                });
+            }
+
+            function setCheckedValues(name, values) {
+                const normalizedValues = Array.isArray(values) ? values : (values ? [values] : []);
+                document.querySelectorAll(`input[name="${name}"]`).forEach(function (input) {
+                    input.checked = normalizedValues.includes(input.value);
+                });
+            }
+
+            // Edit contacts functionality
+            let editContactCounter = 1;
+
+            function editAddContactForm(index, contact = {}) {
                 const container = document.getElementById('editContactsContainer');
                 const contactDiv = document.createElement('div');
-                contactDiv.className = 'contact-form-group mb-3 p-3 border rounded';
+                contactDiv.className = 'edit-contact-row';
+                contactDiv.style.cssText = 'margin-bottom: 15px; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;';
                 contactDiv.innerHTML = `
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Contact Type</label>
-                                <select class="form-control" name="contacts[${index}][type]">
-                                    <option value="primary" ${contact.type === 'primary' ? 'selected' : ''}>Primary</option>
-                                    <option value="secondary" ${contact.type === 'secondary' ? 'selected' : ''}>Secondary</option>
-                                    <option value="emergency" ${contact.type === 'emergency' ? 'selected' : ''}>Emergency</option>
-                                </select>
-                            </div>
+                    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                        <div style="flex: 1;">
+                            <label style="color: #374151; font-weight: 600; font-size: 12px;">Contact Type</label>
+                            <select class="form-control edit-contact-type" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
+                                <option value="primary" ${contact.type === 'primary' ? 'selected' : ''}>Primary</option>
+                                <option value="secondary" ${contact.type === 'secondary' ? 'selected' : ''}>Secondary</option>
+                                <option value="emergency" ${contact.type === 'emergency' ? 'selected' : ''}>Emergency</option>
+                            </select>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Full Name</label>
-                                <input type="text" class="form-control" name="contacts[${index}][name]" value="${contact.name || ''}">
-                            </div>
+                        <div style="flex: 1;">
+                            <label style="color: #374151; font-weight: 600; font-size: 12px;">Full Name</label>
+                            <input type="text" class="form-control edit-contact-name" value="${contact.name || ''}" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Relationship</label>
-                                <input type="text" class="form-control" name="contacts[${index}][relationship]" value="${contact.relationship || ''}">
-                            </div>
+                    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                        <div style="flex: 1;">
+                            <label style="color: #374151; font-weight: 600; font-size: 12px;">Relationship</label>
+                            <input type="text" class="form-control edit-contact-relationship" value="${contact.relationship || ''}" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
                         </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Phone Number</label>
-                                <input type="tel" class="form-control" name="contacts[${index}][phone]" value="${contact.phone || ''}" maxlength="11" pattern="\\d{11}" title="Please enter exactly 11 digits" inputmode="numeric">
-                            </div>
+                        <div style="flex: 1;">
+                            <label style="color: #374151; font-weight: 600; font-size: 12px;">Phone Number</label>
+                            <input type="tel" class="form-control edit-contact-phone" value="${contact.phone || ''}" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
                         </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" class="form-control" name="contacts[${index}][email]" value="${contact.email || ''}" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Please enter a valid email address">
-                            </div>
+                        <div style="flex: 1;">
+                            <label style="color: #374151; font-weight: 600; font-size: 12px;">Email</label>
+                            <input type="email" class="form-control edit-contact-email" value="${contact.email || ''}" style="background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px;">
                         </div>
                     </div>
-                    <button type="button" class="btn btn-sm btn-danger remove-contact">Remove Contact</button>
+                    <button type="button" class="btn btn-sm btn-danger edit-contact-delete" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; padding: 4px 10px; font-size: 12px;">Remove</button>
                 `;
                 container.appendChild(contactDiv);
-                
-                // Add remove contact handler
-                contactDiv.querySelector('.remove-contact').addEventListener('click', function() {
+
+                contactDiv.querySelector('.edit-contact-delete').addEventListener('click', function() {
                     contactDiv.remove();
                 });
             }
 
-            // Add contact button handler for edit modal
-            document.getElementById('addEditContact').addEventListener('click', function() {
-                const container = document.getElementById('editContactsContainer');
-                const index = container.children.length;
-                addEditContactForm(index);
+            // Initial setup for edit modal navigation
+            document.addEventListener('DOMContentLoaded', function() {
+                editShowStep(0);
+
+                const editPrevBtn = document.getElementById('editPrevBtn');
+                const editNextBtn = document.getElementById('editNextBtn');
+                const editAddContactBtn = document.getElementById('editAddContact');
+
+                if (editPrevBtn) {
+                    editPrevBtn.addEventListener('click', function() {
+                        editMoveStep(-1);
+                    });
+                }
+
+                if (editNextBtn) {
+                    editNextBtn.addEventListener('click', function() {
+                        if (editCurrentStep === editFieldsets.length - 1) {
+                            return;
+                        } else {
+                            editMoveStep(1);
+                        }
+                    });
+                }
+
+                if (editAddContactBtn) {
+                    editAddContactBtn.addEventListener('click', function() {
+                        editAddContactForm(editContactCounter++);
+                    });
+                }
             });
 
             // Edit barangay change handler
             document.getElementById('editBarangay').addEventListener('change', function() {
-                const selectedBarangay = this.value;
-                updateEditPurokOptions(selectedBarangay);
+                updateEditPurokOptions(this.value, '');
             });
 
             // Edit marital status change handler
@@ -1801,100 +2111,106 @@
                 }
             });
 
-            // Update button handler
-            document.getElementById('updateBtn').addEventListener('click', function() {
-                const form = document.getElementById('editResidentForm');
-                
-                // Validate email fields before submission
-                const emailInputs = form.querySelectorAll('input[name*="contacts"][name*="email"]');
-                let isValid = true;
-                let invalidEmailField = null;
-                
-                emailInputs.forEach(function(emailInput) {
-                    const emailValue = emailInput.value.trim();
-                    if (emailValue) {
-                        // Email validation regex pattern
-                        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                        if (!emailPattern.test(emailValue)) {
-                            isValid = false;
-                            if (!invalidEmailField) {
-                                invalidEmailField = emailInput;
+            // Update button handler for multi-step form
+            document.addEventListener('click', function(e) {
+                if (e.target.id === 'updateBtn' || (e.target.classList.contains('btn-primary') && e.target.textContent.trim() === 'Update')) {
+                    const form = document.getElementById('editResidentForm');
+                    if (!form) return;
+                    
+                    // Validate HTML5 form
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return;
+                    }
+
+                    // Build payload from form fields
+                    const payload = {
+                        residentId: document.getElementById('editResidentId').value,
+                        identifying_information: {
+                            name: {
+                                first_name: document.getElementById('editFirstName').value.trim(),
+                                middle_name: document.getElementById('editMiddleName').value.trim(),
+                                last_name: document.getElementById('editLastName').value.trim()
+                            },
+                            address: {
+                                barangay: document.getElementById('editBarangay').value,
+                                purok: document.getElementById('editPurok').value
+                            },
+                            gender: document.getElementById('editGender').value,
+                            date_of_birth: document.getElementById('editBirthday').value,
+                            age: document.getElementById('editAge').value,
+                            marital_status: document.getElementById('editMaritalStatus').value,
+                            place_of_birth: document.getElementById('editPlaceOfBirth').value.trim(),
+                            osca_id_number: document.getElementById('editOscaId').value.trim(),
+                            gsis_sss: [
+                                document.getElementById('editGsisId').value.trim(),
+                                document.getElementById('editSssId').value.trim()
+                            ].filter(v => v).join('/') || '',
+                            philhealth: document.getElementById('editPhilhealthId').value.trim(),
+                            other_govt_id: document.getElementById('editOtherId').value.trim(),
+                            contacts: Array.from(document.querySelectorAll('.edit-contact-row')).map(row => ({
+                                type: row.querySelector('.edit-contact-type')?.value || 'primary',
+                                name: row.querySelector('.edit-contact-name')?.value.trim() || '',
+                                relationship: row.querySelector('.edit-contact-relationship')?.value.trim() || '',
+                                phone: row.querySelector('.edit-contact-phone')?.value.trim() || '',
+                                email: row.querySelector('.edit-contact-email')?.value.trim() || ''
+                            })).filter(c => c.name)
+                        },
+                        family_composition: {
+                            spouse: {
+                                name: document.getElementById('editSpouseName')?.value.trim() || ''
+                            },
+                            father: {
+                                last_name: document.getElementById('editFatherLastName').value.trim(),
+                                first_name: document.getElementById('editFatherFirstName').value.trim(),
+                                middle_name: document.getElementById('editFatherMiddleName').value.trim(),
+                                extension: document.getElementById('editFatherExtension').value.trim()
+                            },
+                            mother: {
+                                last_name: document.getElementById('editMotherLastName').value.trim(),
+                                first_name: document.getElementById('editMotherFirstName').value.trim(),
+                                middle_name: document.getElementById('editMotherMiddleName').value.trim()
                             }
+                        },
+                        education_hr_profile: {
+                            educational_attainment: document.getElementById('editEducationalAttainment').value ? [document.getElementById('editEducationalAttainment').value] : [],
+                            skills: getCheckedValues('editSkills[]'),
+                            skill_other_text: document.getElementById('editSkillOtherText').value.trim()
+                        },
+                        community_service: getCheckedValues('editCommunityService[]'),
+                        community_service_other_text: document.getElementById('editCommunityServiceOtherText').value.trim()
+                    };
+
+                    console.log('Sending update payload:', payload);
+
+                    // Send update request
+                    fetch('/update-senior', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (typeof $ !== 'undefined' && $.fn.modal) {
+                                $('#editModal').modal('hide');
+                            } else {
+                                const modal = document.getElementById('editModal');
+                                if (modal) modal.style.display = 'none';
+                            }
+                            alert('Senior citizen information updated successfully!');
+                            window.location.reload();
+                        } else {
+                            alert('Error updating information: ' + (data.error || 'Unknown error'));
                         }
-                    }
-                });
-                
-                // If validation fails, show error and focus on invalid field
-                if (!isValid) {
-                    alert('Please enter a valid email address for all contact email fields.');
-                    if (invalidEmailField) {
-                        invalidEmailField.focus();
-                        invalidEmailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                    return; // Stop form submission
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error updating information. Please try again.');
+                    });
                 }
-                
-                // Check HTML5 validation
-                if (!form.checkValidity()) {
-                    form.reportValidity();
-                    return; // Stop form submission
-                }
-                
-                const formData = new FormData(form);
-                
-                // Convert FormData to JSON
-                const jsonData = {
-                    // Add edit tracking information (will be overridden by backend session for security)
-                    edited_by: '<%= (user && user.email) ? user.email : "Unknown" %>',
-                    edited_at: new Date().toISOString()
-                };
-                for (let [key, value] of formData.entries()) {
-                    if (key.includes('contacts[')) {
-                        // Handle contacts array
-                        if (!jsonData.contacts) jsonData.contacts = {};
-                        
-                        const match = key.match(/contacts\[(\d+)\]\[(\w+)\]/);
-                        if (match) {
-                            const index = match[1];
-                            const field = match[2];
-                            if (!jsonData.contacts[index]) jsonData.contacts[index] = {};
-                            jsonData.contacts[index][field] = value;
-                        }
-                    } else {
-                        jsonData[key] = value;
-                    }
-                }
-                
-                // Convert contacts object to array
-                if (jsonData.contacts) {
-                    jsonData.contacts = Object.values(jsonData.contacts);
-                }
-                
-                console.log('Update data:', jsonData);
-                
-                // Send update request
-                fetch('/update-senior', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(jsonData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Senior citizen information updated successfully!');
-                        $('#editModal').modal('hide');
-                        // Reload the page to show updated data
-                        window.location.reload();
-                    } else {
-                        alert('Error updating information: ' + (data.error || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error updating information. Please try again.');
-                });
             });
 
             // Initialize DataTable
