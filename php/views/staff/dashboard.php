@@ -17,6 +17,17 @@
     .main { padding: 20px; }
     .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .top .welcome { color: #6b7280; font-size: 14px; }
+    .top-left { display: flex; align-items: center; gap: 12px; }
+    .add-pwd-btn {
+      display: inline-block;
+      padding: 9px 14px;
+      border-radius: 8px;
+      background: #0f766e;
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .add-pwd-btn:hover { background: #115e59; color: #fff; text-decoration: none; }
     .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
     .card-metric { border-radius: 12px; padding: 16px; color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.12); }
     .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; }
@@ -48,7 +59,10 @@
 
     <main class="main">
       <div class="top">
-        <h1 class="h4 mb-0">Staff Dashboard</h1>
+        <div class="top-left">
+          <a class="add-pwd-btn" href="/add_pwd">Add PWD</a>
+          <h1 class="h4 mb-0">Staff Dashboard</h1>
+        </div>
         <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
       </div>
 
@@ -69,7 +83,7 @@
 
       <section class="panel quick">
         <h2 class="h6">Quick Entry Actions</h2>
-        <a href="/add_pwd">Register New PWD</a>
+        <a href="/add_pwd">Add PWD</a>
         <a href="/add_senior">Register New Senior</a>
         <a href="/Pwd-form">View PWD Form</a>
         <a href="/Senior-form">View Senior Form</a>

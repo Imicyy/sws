@@ -23,32 +23,29 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             const data = await response.json();
 
             if (data.success && data.verificationRequired) {
-                await Swal.fire({
+                const codePrompt = await Swal.fire({
                     icon: 'info',
                     title: 'Verification Required',
-                    text: data.message || 'A verification code has been sent to your email.',
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'Enter Code'
-                });
-
-                const codePrompt = await Swal.fire({
-                    title: 'Enter Verification Code',
+                    html: '<p>A verification code has been sent to your email.</p><p>Enter the Code</p>',
                     input: 'text',
-                    inputLabel: 'Please enter the 6-digit code sent to your email',
-                    inputPlaceholder: 'e.g. 123456',
+                    inputLabel: '6-digit verification code',
+                    inputPlaceholder: 'Enter the code',
                     inputAttributes: {
                         maxlength: 6,
                         autocapitalize: 'off',
-                        autocorrect: 'off'
+                        autocorrect: 'off',
+                        inputmode: 'numeric'
                     },
                     showCancelButton: true,
-                    confirmButtonText: 'Verify',
+                    confirmButtonText: 'Enter Code',
+                    cancelButtonText: 'Cancel',
                     confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#6c757d',
                     preConfirm: (value) => {
                         if (!value || !value.trim()) {
                             Swal.showValidationMessage('Verification code is required');
                         }
-                        return value.trim();
+                        return String(value).trim();
                     }
                 });
 

@@ -464,8 +464,82 @@
 	
 </script>
 			<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-			<script type="text/javascript" src="\assets\js\pwd.js"></script>
-			<script type="text/javascript" src="\assets\js\validation.js"></script>
+			<script type="text/javascript" src="/assets/js/pwd.js?v=20260418"></script>
+			<script type="text/javascript" src="/assets/js/validation.js?v=20260418"></script>
+			<script>
+				document.addEventListener('DOMContentLoaded', function () {
+					const form = document.getElementById('housingForm');
+					if (!form) return;
+
+					let isSubmitting = false;
+
+					form.addEventListener('submit', async function (event) {
+						event.preventDefault();
+						if (isSubmitting) return;
+						isSubmitting = true;
+
+						try {
+							const response = await fetch(form.action, {
+								method: form.method || 'POST',
+								headers: { Accept: 'application/json' },
+								body: new FormData(form)
+							});
+
+							const payload = await response.json();
+
+							if (!response.ok || !payload || payload.success === false) {
+								if (payload && payload.isDuplicate) {
+									if (window.Swal && typeof window.Swal.fire === 'function') {
+										await window.Swal.fire({
+											icon: 'warning',
+											title: 'Duplicate PWD Record',
+											text: payload.message || 'Duplicate PWD record found.',
+											confirmButtonColor: '#0f766e'
+										});
+									} else {
+										alert(payload.message || 'Duplicate PWD record found.');
+									}
+									return;
+								}
+
+								if (window.Swal && typeof window.Swal.fire === 'function') {
+									await window.Swal.fire({
+										icon: 'error',
+										title: 'Submission Failed',
+										text: payload?.message || 'An error occurred while submitting the form.'
+									});
+								} else {
+									alert(payload?.message || 'An error occurred while submitting the form.');
+								}
+								return;
+							}
+
+							if (window.Swal && typeof window.Swal.fire === 'function') {
+								await window.Swal.fire({
+									icon: 'success',
+									title: 'Submitted',
+									text: payload.message || 'PWD registration successful.',
+									confirmButtonColor: '#0f766e'
+								});
+							}
+
+							window.location.href = '/add_pwd';
+						} catch (err) {
+							if (window.Swal && typeof window.Swal.fire === 'function') {
+								await window.Swal.fire({
+									icon: 'error',
+									title: 'Network Error',
+									text: 'Unable to submit right now. Please try again.'
+								});
+							} else {
+								alert('Unable to submit right now. Please try again.');
+							}
+						} finally {
+							isSubmitting = false;
+						}
+					});
+				});
+			</script>
 			
 	</body>
 </html>

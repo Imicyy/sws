@@ -115,6 +115,20 @@ class Controller
         return date('Y-m-d H:i:s', $ts);
     }
 
+    private function normalizeEnumValue(mixed $value, array $allowed): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $text = trim((string) $value);
+        if ($text === '') {
+            return null;
+        }
+
+        return in_array($text, $allowed, true) ? $text : null;
+    }
+
     private function fetchBarangays(): array
     {
         $rows = $this->queryAll(
@@ -767,32 +781,30 @@ class Controller
                 $this->jsonResponse(['success' => false, 'error' => 'Invalid credentials'], 401);
             }
 
-            if ((int) ($user['is_verified'] ?? 0) === 0) {
-                $code = $this->generateVerificationCode();
-                $_SESSION['pendingVerification'] = [
-                    'userId' => (int) $user['id'],
-                    'email' => $user['email'],
-                    'role' => $user['role'],
-                    'barangay_id' => $user['barangay_id'] !== null ? (int) $user['barangay_id'] : null,
-                    'staff_classification' => $user['staff_classification'] ?? null,
-                    'code' => $code,
-                    'expiresAt' => time() + (10 * 60),
-                ];
+            $code = $this->generateVerificationCode();
+            $_SESSION['pendingVerification'] = [
+                'userId' => (int) $user['id'],
+                'email' => $user['email'],
+                'role' => $user['role'],
+                'barangay_id' => $user['barangay_id'] !== null ? (int) $user['barangay_id'] : null,
+                'staff_classification' => $user['staff_classification'] ?? null,
+                'code' => $code,
+                'expiresAt' => time() + (10 * 60),
+            ];
 
-                if (!$this->sendLoginVerificationEmail((string) $user['email'], $code)) {
-                    unset($_SESSION['pendingVerification']);
-                    $this->jsonResponse([
-                        'success' => false,
-                        'error' => 'Unable to send verification email. Please try again.',
-                    ], 500);
-                }
-
+            if (!$this->sendLoginVerificationEmail((string) $user['email'], $code)) {
+                unset($_SESSION['pendingVerification']);
                 $this->jsonResponse([
-                    'success' => true,
-                    'verificationRequired' => true,
-                    'message' => 'A verification code has been sent to your email.',
-                ]);
+                    'success' => false,
+                    'error' => 'Unable to send verification email. Please try again.',
+                ], 500);
             }
+
+            $this->jsonResponse([
+                'success' => true,
+                'verificationRequired' => true,
+                'message' => 'A verification code has been sent to your email.',
+            ]);
 
             $this->execute('INSERT INTO login_logs (user_id, status) VALUES (?, ?)', [(int) $user['id'], 'success']);
 
@@ -989,6 +1001,29 @@ class Controller
                 ], 400);
             }
 
+            $employmentStatus = $this->normalizeEnumValue(
+                $body['employment_status'] ?? null,
+                ['Employee', 'Unemployed', 'Self-employed']
+            );
+
+            if ($employmentStatus === null) {
+                $this->jsonResponse(['success' => false, 'message' => 'Employment status is invalid'], 400);
+            }
+
+            $employmentCategory = $this->normalizeEnumValue(
+                $body['employment_category'] ?? null,
+                ['Government', 'Private']
+            );
+            $employmentType = $this->normalizeEnumValue(
+                $body['employment_type'] ?? null,
+                ['Permanent/Regular', 'Seasonal', 'Casual', 'Emergency']
+            );
+
+            if ($employmentStatus !== 'Employee') {
+                $employmentCategory = null;
+                $employmentType = null;
+            }
+
             $stmt = $this->db->prepare(
                 'INSERT INTO pwd (
                     first_name, middle_name, last_name,
@@ -1037,9 +1072,9 @@ class Controller
                 $body['psn_no'] ?? null,
                 $body['philhealth_no'] ?? null,
                 $body['education_level'] ?? null,
-                $body['employment_status'] ?? null,
-                $body['employment_category'] ?? null,
-                $body['employment_type'] ?? null,
+                $employmentStatus,
+                $employmentCategory,
+                $employmentType,
                 $body['disability_other_text'] ?? null,
                 $body['cause_other_text'] ?? null,
             ]);
@@ -1104,6 +1139,25 @@ class Controller
                 'employment_type','disability_other_text','cause_other_text','status','archive_reason'
             ];
 
+            $resolvedEmploymentStatus = array_key_exists('employment_status', $body)
+                ? $this->normalizeEnumValue($body['employment_status'], ['Employee', 'Unemployed', 'Self-employed'])
+                : ($before['employment_status'] ?? null);
+            if (array_key_exists('employment_status', $body) && $resolvedEmploymentStatus === null) {
+                $this->jsonResponse(['success' => false, 'message' => 'Employment status is invalid'], 400);
+            }
+
+            $resolvedEmploymentCategory = array_key_exists('employment_category', $body)
+                ? $this->normalizeEnumValue($body['employment_category'], ['Government', 'Private'])
+                : ($before['employment_category'] ?? null);
+            $resolvedEmploymentType = array_key_exists('employment_type', $body)
+                ? $this->normalizeEnumValue($body['employment_type'], ['Permanent/Regular', 'Seasonal', 'Casual', 'Emergency'])
+                : ($before['employment_type'] ?? null);
+
+            if ($resolvedEmploymentStatus !== 'Employee') {
+                $resolvedEmploymentCategory = null;
+                $resolvedEmploymentType = null;
+            }
+
             $fields = [];
             $params = [];
             foreach ($mapping as $field) {
@@ -1113,6 +1167,12 @@ class Controller
                         $params[] = $this->parseDate((string) $body[$field]);
                     } elseif ($field === 'age') {
                         $params[] = ($body[$field] === '' || $body[$field] === null) ? null : (int) $body[$field];
+                    } elseif ($field === 'employment_status') {
+                        $params[] = $resolvedEmploymentStatus;
+                    } elseif ($field === 'employment_category') {
+                        $params[] = $resolvedEmploymentCategory;
+                    } elseif ($field === 'employment_type') {
+                        $params[] = $resolvedEmploymentType;
                     } else {
                         $value = $body[$field];
                         $params[] = ($value === '' || $value === null) ? null : $value;
@@ -2519,6 +2579,9 @@ class Controller
 
     public function renderStaffDashboard(): void
     {
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
         $this->render('staff/dashboard', ['title' => 'Staff Dashboard', 'user' => $_SESSION['user'] ?? null]);
     }
 
@@ -2582,6 +2645,10 @@ class Controller
 
     public function renderPdaoDashboard(): void
     {
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
         $pwds = [];
         $totalPwd = 0;
 

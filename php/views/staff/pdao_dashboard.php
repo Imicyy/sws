@@ -19,12 +19,20 @@
     .main { flex: 1 1 auto; min-width: 0; padding: 20px; }
     .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
     .top .welcome { color: #6b7280; font-size: 14px; }
-    .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    .card-metric { border-radius: 12px; padding: 16px; color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.12); }
-    .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; }
-    .card-metric .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
-    .bg-blue { background: linear-gradient(135deg, #2563eb, #60a5fa); }
-    .bg-indigo { background: linear-gradient(135deg, #4f46e5, #818cf8); }
+    .top-left { display: flex; align-items: center; gap: 12px; }
+    .top-right { display: flex; align-items: center; gap: 12px; }
+    .add-pwd-btn {
+      display: inline-block;
+      padding: 9px 14px;
+      border-radius: 8px;
+      background: #0f766e;
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+    }
+    .add-pwd-btn:hover { background: #115e59; color: #fff; text-decoration: none; }
     .panel { margin-top: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; }
     .quick a { display: inline-block; margin-right: 10px; margin-bottom: 10px; padding: 9px 12px; border-radius: 8px; background: #eff6ff; color: #1e40af; text-decoration: none; }
     .quick a:hover { background: #dbeafe; }
@@ -67,31 +75,19 @@
       <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">PDAO Department</span></div>
       <div class="nav-title">Navigation</div>
       <a class="nav-link active" href="/pdao-dashboard">Dashboard</a>
-      <a class="nav-link" href="/add_pwd">Register New PWD</a>
       <a class="nav-link" href="/logout">Logout</a>
     </aside>
 
     <main class="main">
       <div class="top">
-        <h1 class="h4 mb-0">PDAO Dashboard</h1>
-        <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
+        <div class="top-left">
+          <h1 class="h4 mb-0">PDAO Dashboard</h1>
+        </div>
+        <div class="top-right">
+          <button type="button" class="add-pwd-btn" onclick="window.location.href = window.location.origin + '/add_pwd'">Add PWD</button>
+          <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
+        </div>
       </div>
-
-      <section class="cards">
-        <div class="card-metric bg-blue">
-          <div class="label">PWD Records Registered</div>
-          <div class="value"><?= (int) ($totalPwd ?? 0) ?></div>
-        </div>
-        <div class="card-metric bg-indigo">
-          <div class="label">Current Records Shown</div>
-          <div class="value" id="entryCount"><?= count($pwds ?? []) ?></div>
-        </div>
-      </section>
-
-      <section class="panel quick">
-        <h2 class="h6 mb-3">Quick Entry Actions</h2>
-        <a href="/add_pwd">Register New PWD</a>
-      </section>
 
       <section class="panel">
         <h2 class="h6 mb-3">Persons With Disabilities</h2>
@@ -197,7 +193,10 @@
         if (show) visibleCount++;
       });
 
-      document.getElementById('entryCount').textContent = visibleCount;
+      const entryCountEl = document.getElementById('entryCount');
+      if (entryCountEl) {
+        entryCountEl.textContent = visibleCount;
+      }
       updateActions();
     }
 

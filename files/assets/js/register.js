@@ -123,11 +123,16 @@ document.getElementById('registerForm').addEventListener('submit', async functio
                 window.location.href = ''; // Redirect to login page
             });
         } else {
+            const errorMessage = String(result.error || 'Something went wrong');
+            const isDuplicateEmail = /email already exists/i.test(errorMessage);
+
             // Error case
             Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: result.error || 'Something went wrong',
+                icon: isDuplicateEmail ? 'warning' : 'error',
+                title: isDuplicateEmail ? 'Email already exists' : 'Error',
+                text: isDuplicateEmail
+                    ? 'Email already exists'
+                    : errorMessage,
                 confirmButtonText: 'OK'
             });
         }

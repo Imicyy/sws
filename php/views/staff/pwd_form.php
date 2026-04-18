@@ -17,6 +17,17 @@
 		.main { margin-left: 260px; padding: 20px; }
 		.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 		.top h1 { margin: 0; font-size: 28px; font-weight: 600; }
+		.top-left { display: flex; align-items: center; gap: 12px; }
+		.add-pwd-btn {
+			display: inline-block;
+			padding: 9px 14px;
+			border-radius: 8px;
+			background: #0f766e;
+			color: #fff;
+			font-weight: 700;
+			text-decoration: none;
+		}
+		.add-pwd-btn:hover { background: #115e59; color: #fff; text-decoration: none; }
 		.filters { background: #fff; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e5e7eb; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end; }
 		.filter-group { display: flex; flex-direction: column; }
 		.filter-group label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280; }
@@ -60,13 +71,16 @@
 			<div class="nav-title">Navigation</div>
 			<a class="nav-link" href="/pdao-dashboard">Dashboard</a>
 			<a class="nav-link active" href="/Pwd-form">PWD List</a>
-			<a class="nav-link" href="/add_pwd">Register New PWD</a>
+			<a class="nav-link" href="/add_pwd">Add PWD</a>
 			<a class="nav-link" href="/logout">Logout</a>
 		</aside>
 
 		<main class="main">
 			<div class="top">
-				<h1>PERSONS WITH DISABILITIES (PWD)</h1>
+				<div class="top-left">
+					<a class="add-pwd-btn" href="/add_pwd">Add PWD</a>
+					<h1>PERSONS WITH DISABILITIES (PWD)</h1>
+				</div>
 				<div style="color: #6b7280; font-size: 14px;">
 					Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?>
 				</div>

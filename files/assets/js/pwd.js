@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const typeGroup = document.getElementById('typeGroup');
     const categorySelect = document.getElementById('employment_category');
     const typeSelect = document.getElementById('employment_type');
+
+    if (!employmentStatus || !categoryGroup || !typeGroup || !categorySelect || !typeSelect) {
+        return;
+    }
   
     employmentStatus.addEventListener('change', function() {
         if (this.value === 'Employee') {
@@ -28,13 +32,22 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Age calculation with validation
+    function showAlert(options) {
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+                return window.Swal.fire(options);
+        }
+        const text = options && (options.text || options.title) ? (options.text || options.title) : 'Please check your input.';
+        alert(text);
+        return Promise.resolve();
+    }
+
   function calculateAge() {
     const birthdayInput = document.getElementById('birthday').value;
     if (!birthdayInput) return false;
     
     const birthday = new Date(birthdayInput);
     if (isNaN(birthday.getTime())) {
-        Swal.fire({
+        showAlert({
             title: "Invalid date",
             text: "Please enter a valid date of birth",
             icon: "error"
@@ -199,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
             firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         
-        Swal.fire({
+        showAlert({
             title: errorMessage ? "Validation Error" : "Missing Information",
             text: errorMessage || "Please complete all required fields before proceeding.",
             icon: "error"
@@ -227,24 +240,36 @@ document.addEventListener('DOMContentLoaded', function() {
   
   function showTab(n) {
       var x = document.getElementsByTagName("fieldset");
+            if (!x.length) return;
+            if (n < 0) n = 0;
+            if (n >= x.length) n = x.length - 1;
+            currentTab = n;
+
       for (var i = 0; i < x.length; i++) {
         x[i].style.display = "none";
       }
       
       x[n].style.display = "block";
+
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
       
       if (n == 0) {
-        document.getElementById("prevBtn").style.display = "none";
+                if (prevBtn) prevBtn.style.display = "none";
       } else {
-        document.getElementById("prevBtn").style.display = "inline";
+                if (prevBtn) prevBtn.style.display = "inline";
       }
       
       if (n == x.length - 1) {
-        document.getElementById("nextBtn").innerHTML = "Submit";
-        document.getElementById("nextBtn").setAttribute("type", "button");
+                if (nextBtn) {
+                        nextBtn.innerHTML = "SUBMIT";
+                        nextBtn.setAttribute("type", "button");
+                }
       } else {
-        document.getElementById("nextBtn").innerHTML = "Next";
-        document.getElementById("nextBtn").setAttribute("type", "button");
+                if (nextBtn) {
+                        nextBtn.innerHTML = "NEXT";
+                        nextBtn.setAttribute("type", "button");
+                }
       }
       
       fixStepIndicator(n);
@@ -252,15 +277,19 @@ document.addEventListener('DOMContentLoaded', function() {
   
   function nextPrev(n) {
     var x = document.getElementsByTagName("fieldset");
+        if (!x.length) return false;
     
     if (n > 0 && !validateCurrentStep(currentTab)) {
       return false;
     }
+
+        const nextIndex = currentTab + n;
+        if (nextIndex < 0) {
+            showTab(0);
+            return false;
+        }
     
-    x[currentTab].style.display = "none";
-    currentTab = currentTab + n;
-    
-    if (currentTab >= x.length) {
+        if (nextIndex >= x.length) {
       // Submit the form via AJAX
       const form = document.getElementById("housingForm");
       const formData = new FormData(form);
@@ -300,12 +329,14 @@ document.addEventListener('DOMContentLoaded', function() {
       jsonData.contacts = Object.values(contacts);
       
       // Show loading indicator
-      Swal.fire({
+      showAlert({
           title: 'Processing...',
           html: 'Please wait while we submit your information',
           allowOutsideClick: false,
           didOpen: () => {
-              Swal.showLoading();
+              if (window.Swal && typeof window.Swal.showLoading === 'function') {
+                  window.Swal.showLoading();
+              }
           }
       });
   
@@ -323,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
           return response.json();
       })
       .then(data => {
-          Swal.fire({
+          showAlert({
               title: "Success!",
               text: data.message || "Your information has been successfully submitted.",
               icon: "success",
@@ -340,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(error => {
           // Check if server returned an alert object (for duplicate or validation errors)
           if (error.alert) {
-              Swal.fire(error.alert);
+              showAlert(error.alert);
           } else {
               let errorMessage = "There was a problem submitting your form. Please try again.";
               
@@ -352,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   errorMessage = error.message;
               }
               
-              Swal.fire({
+              showAlert({
                   title: "Error!",
                   html: errorMessage.replace(/\n/g, '<br>'), // Convert newlines to <br>
                   icon: "error",
@@ -367,6 +398,9 @@ document.addEventListener('DOMContentLoaded', function() {
       
       return false;
     }
+
+        x[currentTab].style.display = "none";
+        currentTab = nextIndex;
     
     showTab(currentTab);
   }
@@ -375,13 +409,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const steps = document.getElementsByClassName("step");
     for (let i = 0; i < steps.length; i++) {
         steps[i].classList.remove("active");
+        steps[i].classList.remove("completed");
+        if (i < n) {
+            steps[i].classList.add("completed");
+        }
     }
-    steps[n].classList.add("active");
+        if (steps[n]) {
+                steps[n].classList.add("active");
+        }
   }
   
   function toggleIncome(selectElement) {
+        if (!selectElement) return;
     const formRow = selectElement.closest('.form-row');
+        if (!formRow) return;
     const incomeInput = formRow.querySelector('input[name="childIncome[]"]');
+        if (!incomeInput) return;
     incomeInput.style.display = selectElement.value === 'working' ? 'block' : 'none';
     if (selectElement.value !== 'working') incomeInput.value = '';
   }
@@ -389,40 +432,67 @@ document.addEventListener('DOMContentLoaded', function() {
   // Child information management
   document.addEventListener('DOMContentLoaded', function() {
     const childrenContainer = document.getElementById('childrenContainer');
+    const contactsContainer = document.getElementById('contactsContainer');
+    const addChildBtn = document.getElementById('addChild');
+    const addContactBtn = document.getElementById('addContact');
     let contactCounter = document.querySelectorAll('.contact-entry').length;
 
+    function updateContactRemoveButtons() {
+        if (!contactsContainer) return;
+        const removeButtons = contactsContainer.querySelectorAll('.remove-contact');
+        const shouldDisable = removeButtons.length <= 1;
+        removeButtons.forEach(function(btn) {
+            btn.disabled = shouldDisable;
+        });
+    }
+
     // Add child entry handler
-    document.getElementById('addChild').addEventListener('click', function() {
-        const childEntry = childrenContainer.querySelector('.child-entry');
-        const newChild = childEntry.cloneNode(true);
-        
-        // Clear values
-        newChild.querySelectorAll('input').forEach(input => input.value = '');
-        newChild.querySelector('select').value = 'not_working';
-        newChild.querySelector('.delete-child').style.display = 'inline-block';
-        
-        childrenContainer.appendChild(newChild);
-        attachWorkingStatusListeners();
-    });
+    if (addChildBtn && childrenContainer) {
+        addChildBtn.addEventListener('click', function() {
+            const childEntry = childrenContainer.querySelector('.child-entry');
+            if (!childEntry) return;
+
+            const newChild = childEntry.cloneNode(true);
+
+            // Clear values
+            newChild.querySelectorAll('input').forEach(input => input.value = '');
+
+            const childSelect = newChild.querySelector('select');
+            if (childSelect) {
+                childSelect.value = 'not_working';
+            }
+
+            const deleteBtn = newChild.querySelector('.delete-child');
+            if (deleteBtn) {
+                deleteBtn.style.display = 'inline-block';
+            }
+
+            childrenContainer.appendChild(newChild);
+            attachWorkingStatusListeners();
+        });
+    }
 
     // Delete child entry (event delegation)
-    childrenContainer.addEventListener('click', function(e) {
-        if (e.target.classList.contains('delete-child')) {
-            const childEntries = childrenContainer.querySelectorAll('.child-entry');
-            if (childEntries.length > 1) {
-                e.target.closest('.child-entry').remove();
+    if (childrenContainer) {
+        childrenContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('delete-child')) {
+                const childEntries = childrenContainer.querySelectorAll('.child-entry');
+                if (childEntries.length > 1) {
+                    e.target.closest('.child-entry').remove();
+                }
             }
-        }
-    });
+        });
+    }
 
     // Add contact entry handler
-    document.getElementById('addContact').addEventListener('click', function() {
-        contactCounter++;
-        const newContact = document.createElement('div');
-        newContact.className = 'contact-entry';
-        newContact.dataset.contactId = contactCounter;
+    if (addContactBtn && contactsContainer) {
+        addContactBtn.addEventListener('click', function() {
+            contactCounter++;
+            const newContact = document.createElement('div');
+            newContact.className = 'contact-entry';
+            newContact.dataset.contactId = contactCounter;
 
-        newContact.innerHTML = `
+            newContact.innerHTML = `
             <div class="form-row">
                 <div class="form-group">
                     <label>Contact Type</label>
@@ -473,32 +543,38 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
 
-        contactsContainer.appendChild(newContact);
-        
-        // Convert new inputs to uppercase
-        const newInputs = newContact.querySelectorAll('input[type="text"], input[type="tel"]');
-        newInputs.forEach(input => {
-            input.addEventListener('input', function() {
-                convertToUppercase(this);
+            contactsContainer.appendChild(newContact);
+
+            // Convert new inputs to uppercase
+            const newInputs = newContact.querySelectorAll('input[type="text"], input[type="tel"]');
+            newInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    convertToUppercase(this);
+                });
             });
+
+            updateContactRemoveButtons();
         });
-    });
+    }
 
     // Remove contact entry handler using event delegation
-    contactsContainer.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-contact') && !e.target.disabled) {
-            const allContacts = contactsContainer.querySelectorAll('.contact-entry');
-            if (allContacts.length > 1) {
-                e.target.closest('.contact-entry').remove();
-            } else {
-                Swal.fire({
-                    title: "Cannot Remove",
-                    text: "You must keep at least one contact.",
-                    icon: "warning"
-                });
+    if (contactsContainer) {
+        contactsContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-contact') && !e.target.disabled) {
+                const allContacts = contactsContainer.querySelectorAll('.contact-entry');
+                if (allContacts.length > 1) {
+                    e.target.closest('.contact-entry').remove();
+                    updateContactRemoveButtons();
+                } else {
+                    showAlert({
+                        title: "Cannot Remove",
+                        text: "You must keep at least one contact.",
+                        icon: "warning"
+                    });
+                }
             }
-        }
-    });
+        });
+    }
     
     // Initialize purok options if barangay is selected
     if (document.getElementById('barangay').value) {
@@ -507,6 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize working status listeners
     attachWorkingStatusListeners();
+    updateContactRemoveButtons();
     
     // Initialize first tab
     showTab(0);
