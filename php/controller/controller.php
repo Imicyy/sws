@@ -378,6 +378,58 @@ class Controller
         }
     }
 
+    private function canonicalizePwdContacts(array $contacts): array
+    {
+        $normalized = [];
+        foreach ($contacts as $contact) {
+            if (!is_array($contact)) {
+                continue;
+            }
+
+            $name = trim((string) ($contact['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'type' => trim((string) ($contact['type'] ?? 'primary')),
+                'name' => $name,
+                'relationship' => trim((string) ($contact['relationship'] ?? '')),
+                'phone' => trim((string) ($contact['phone'] ?? '')),
+                'email' => trim((string) ($contact['email'] ?? '')),
+            ];
+        }
+
+        usort($normalized, static function (array $a, array $b): int {
+            return strcmp(json_encode($a, JSON_UNESCAPED_UNICODE) ?: '', json_encode($b, JSON_UNESCAPED_UNICODE) ?: '');
+        });
+
+        return $normalized;
+    }
+
+    private function addPwdEditLog(int $pwdId, string $field, mixed $oldValue, mixed $newValue, string $editedBy, string $editedAt): void
+    {
+        if (!$this->valuesDiffer($oldValue, $newValue)) {
+            return;
+        }
+
+        try {
+            $this->execute(
+                'INSERT INTO pwd_edit_logs (pwd_id, field, old_value, new_value, edited_by, edited_at) VALUES (?, ?, ?, ?, ?, ?)',
+                [
+                    $pwdId,
+                    $field,
+                    $this->normalizeLogValue($oldValue),
+                    $this->normalizeLogValue($newValue),
+                    $editedBy,
+                    $editedAt,
+                ]
+            );
+        } catch (Throwable $e) {
+            error_log('[PwdEditLog] Failed to write log: ' . $e->getMessage());
+        }
+    }
+
     private function outputPdfFromTemplateWithText(string $templatePath, string $filename, callable $drawPage1): void
     {
         $streamTemplate = static function () use ($templatePath, $filename): void {
@@ -1158,6 +1210,9 @@ class Controller
                 $resolvedEmploymentType = null;
             }
 
+            $editor = (string) ($_SESSION['user']['email'] ?? ($body['edited_by'] ?? 'Unknown'));
+            $editedAt = (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('Y-m-d H:i:s');
+
             $fields = [];
             $params = [];
             foreach ($mapping as $field) {
@@ -1219,6 +1274,50 @@ class Controller
             }
 
             $after = $this->getPwdByIdWithRelations($id);
+
+            $scalarFieldsForLogs = [
+                'first_name','middle_name','last_name','barangay','purok','birthday','age','gender','place_of_birth','civil_status',
+                'spouse_name','fatherLastName','fatherFirstName','fatherMiddleName','fatherExtension','motherLastName','motherFirstName',
+                'motherMiddleName','sss_id','gsis_sss_no','psn_no','philhealth_no','education_level','employment_status','employment_category',
+                'employment_type','disability_other_text','cause_other_text','status','archive_reason'
+            ];
+
+            foreach ($scalarFieldsForLogs as $field) {
+                $this->addPwdEditLog(
+                    $id,
+                    $field,
+                    $before[$field] ?? null,
+                    $after[$field] ?? ($before[$field] ?? null),
+                    $editor,
+                    $editedAt
+                );
+            }
+
+            $this->addPwdEditLog(
+                $id,
+                'contacts',
+                $this->canonicalizePwdContacts(is_array($before['contacts'] ?? null) ? $before['contacts'] : []),
+                $this->canonicalizePwdContacts(is_array($after['contacts'] ?? null) ? $after['contacts'] : []),
+                $editor,
+                $editedAt
+            );
+            $this->addPwdEditLog(
+                $id,
+                'disability',
+                $this->canonicalizeStringList(is_array($before['disability'] ?? null) ? $before['disability'] : []),
+                $this->canonicalizeStringList(is_array($after['disability'] ?? null) ? $after['disability'] : []),
+                $editor,
+                $editedAt
+            );
+            $this->addPwdEditLog(
+                $id,
+                'cause_disability',
+                $this->canonicalizeStringList(is_array($before['cause_disability'] ?? null) ? $before['cause_disability'] : []),
+                $this->canonicalizeStringList(is_array($after['cause_disability'] ?? null) ? $after['cause_disability'] : []),
+                $editor,
+                $editedAt
+            );
+
             $this->jsonResponse([
                 'success' => true,
                 'message' => 'PWD record updated successfully',
@@ -1619,6 +1718,28 @@ class Controller
             $this->jsonResponse(['success' => true, 'data' => $logs]);
         } catch (Throwable $e) {
             $this->jsonResponse(['success' => false, 'message' => 'Failed to load senior edit logs'], 500);
+        }
+    }
+
+    public function getPwdEditLogs(): void
+    {
+        try {
+            $pwdId = isset($_GET['pwd_id']) ? (int) $_GET['pwd_id'] : 0;
+            if ($pwdId <= 0) {
+                $this->jsonResponse(['success' => false, 'message' => 'PWD ID is required'], 400);
+            }
+
+            $logs = $this->queryAll(
+                'SELECT id, pwd_id, field, old_value, new_value, edited_by, edited_at
+                 FROM pwd_edit_logs
+                 WHERE pwd_id = ?
+                 ORDER BY edited_at DESC, id DESC',
+                [$pwdId]
+            );
+
+            $this->jsonResponse(['success' => true, 'data' => $logs]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to load PWD edit logs'], 500);
         }
     }
 
@@ -2258,6 +2379,20 @@ class Controller
 
     public function renderAddPWD(): void
     {
+        $editPwd = null;
+        $isEditMode = false;
+
+        $editId = isset($_GET['edit']) ? (int) $_GET['edit'] : 0;
+        if ($editId > 0) {
+            try {
+                $editPwd = $this->getPwdByIdWithRelations($editId);
+                $isEditMode = $editPwd !== null;
+            } catch (Throwable $e) {
+                $editPwd = null;
+                $isEditMode = false;
+            }
+        }
+
         try {
             $barangays = $this->fetchBarangays();
         } catch (Throwable $e) {
@@ -2265,9 +2400,11 @@ class Controller
         }
 
         $this->render('staff/add_pwd', [
-            'title' => 'Add PWD',
+            'title' => $isEditMode ? 'Edit PWD' : 'Add PWD',
             'user' => $_SESSION['user'] ?? null,
             'barangays' => $barangays,
+            'isEditMode' => $isEditMode,
+            'editPwd' => $editPwd,
         ]);
     }
 

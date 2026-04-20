@@ -171,6 +171,10 @@ $router->add('GET', '/api/senior-edit-logs/{id}', static function (array $params
     $_GET['senior_id'] = (int) ($params['id'] ?? 0);
     $controller->getSeniorEditLogs();
 }, [$requireAuth]);
+$router->add('GET', '/api/pwd-edit-logs/{id}', static function (array $params) use ($controller) {
+    $_GET['pwd_id'] = (int) ($params['id'] ?? 0);
+    $controller->getPwdEditLogs();
+}, [$requireAuth]);
 $router->add('GET', '/api/senior-citizens/barangay/{barangay}', static function (array $params) use ($controller) {
     $_GET['barangay'] = urldecode((string) ($params['barangay'] ?? ''));
     $controller->getSeniorCitizensByBarangay();

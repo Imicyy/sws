@@ -121,6 +121,58 @@
 
     .helper { margin: 0 0 12px; color: #6b7280; font-size: 14px; }
 
+    .logs-panel {
+      margin-bottom: 14px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .logs-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f766e;
+    }
+
+    .logs-wrapper {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      overflow: auto;
+      max-height: 240px;
+      background: #ffffff;
+    }
+
+    .logs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .logs-table th,
+    .logs-table td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .logs-table th {
+      background: #f8fafc;
+      color: #374151;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .logs-empty {
+      color: #6b7280;
+      font-size: 13px;
+      padding: 10px 0 2px;
+    }
+
     .form-panel .progress-bar {
       display: flex;
       align-items: flex-start;
@@ -429,20 +481,41 @@
     }
   </style>
 </head>
-<body>
+<?php
+$isEditMode = !empty($isEditMode);
+$editPwd = is_array($editPwd ?? null) ? $editPwd : null;
+$formAction = $isEditMode ? '/update-pwd' : '/register-pwd';
+$isModal = isset($_GET['modal']) && $_GET['modal'] === '1';
+$isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
+?>
+<body class="<?= $isModal ? 'modal-mode' : '' ?><?= $isViewMode ? ' view-mode' : '' ?>">
   <div class="page-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a class="topbar-btn" href="/pwd-dashboard">← Back to Dashboard</a>
+        <?php if ($isModal): ?>
+          <a class="topbar-btn" href="#" id="closeModalBtn">Close</a>
+        <?php else: ?>
+          <a class="topbar-btn" href="/pdao-dashboard">← Back to Dashboard</a>
+        <?php endif; ?>
         <div>
-          <h1 class="topbar-title" id="formTitle">Person With Disability FORM</h1>
-          <p class="helper">Complete all fields across the sections below. This mirrors the original intake form content.</p>
+          <h1 class="topbar-title" id="formTitle"><?= $isViewMode ? 'View Person With Disability FORM' : ($isEditMode ? 'Edit Person With Disability FORM' : 'Person With Disability FORM') ?></h1>
+          <p class="helper" id="formHelper"><?= $isViewMode ? 'Review each section using Next and Back.' : ($isEditMode ? 'Update the required fields, then submit to save changes.' : 'Complete all fields across the sections below. This mirrors the original intake form content.') ?></p>
         </div>
       </div>
       <div class="meta">Use the barangay dropdown to populate purok options.</div>
     </div>
 
-    <form id="housingForm" class="form-panel" action="/register-pwd" method="post">
+    <?php if ($isViewMode): ?>
+      <section class="logs-panel" id="editLogsPanel">
+        <h2 class="logs-title">Edit Logs</h2>
+        <div class="logs-wrapper" id="editLogsContainer">
+          <div class="logs-empty">Loading edit logs...</div>
+        </div>
+      </section>
+    <?php endif; ?>
+
+    <form id="housingForm" class="form-panel" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>" method="post">
+      <input type="hidden" id="pwd_id" name="pwd_id" value="<?= (int) (($editPwd['id'] ?? 0)) ?>">
       <div class="progress-bar">
         <div class="step active"><span class="step-number">1</span><span>Personal Information</span></div>
         <div class="step"><span class="step-number">2</span><span>Contact Information</span></div>
@@ -618,6 +691,10 @@
 
   <script>
     const barangays = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
+    const isEditMode = <?= $isEditMode ? 'true' : 'false' ?>;
+    const isModal = <?= $isModal ? 'true' : 'false' ?>;
+    const isViewMode = <?= $isViewMode ? 'true' : 'false' ?>;
+    const editPwd = <?= json_encode($editPwd, JSON_UNESCAPED_UNICODE) ?>;
 
     function updatePurokOptions() {
       const barangaySelect = document.getElementById('barangay');
@@ -667,6 +744,18 @@
     });
 
     document.addEventListener('DOMContentLoaded', function () {
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function (event) {
+          event.preventDefault();
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: isViewMode ? 'pwd-view-close' : 'pwd-edit-cancel' }, window.location.origin);
+            return;
+          }
+          window.location.href = '/pdao-dashboard';
+        });
+      }
+
       if (document.getElementById('barangay').value) {
         updatePurokOptions();
       }
@@ -693,6 +782,33 @@
       let currentStep = 0;
       let isSubmitting = false;
 
+      function applyViewModeReadonly() {
+        if (!isViewMode) return;
+
+        form.querySelectorAll('input, select, textarea').forEach(function (el) {
+          const isCheckbox = el.type === 'checkbox';
+          if (isCheckbox) {
+            el.disabled = true;
+          } else {
+            el.readOnly = true;
+            el.disabled = true;
+          }
+        });
+
+        form.querySelectorAll('button').forEach(function (btn) {
+          if (btn.id !== 'prevBtn' && btn.id !== 'nextBtn') {
+            btn.style.display = 'none';
+          }
+        });
+
+        if (prevBtn) {
+          prevBtn.disabled = false;
+        }
+        if (nextBtn) {
+          nextBtn.disabled = false;
+        }
+      }
+
       function showModal(options) {
         if (window.Swal && typeof window.Swal.fire === 'function') {
           return window.Swal.fire(options);
@@ -701,6 +817,96 @@
         const fallbackText = options.text || options.title || 'Notification';
         window.alert(fallbackText);
         return Promise.resolve({ isConfirmed: true });
+      }
+
+      function setInputValue(id, value) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.value = (value === null || value === undefined) ? '' : String(value);
+      }
+
+      function setCheckboxValues(name, values) {
+        const list = Array.isArray(values) ? values : [];
+        document.querySelectorAll(`input[name="${name}"]`).forEach(function (box) {
+          box.checked = list.includes(box.value);
+        });
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function formatEditedAt(value) {
+        const raw = String(value || '').trim();
+        if (!raw) {
+          return 'N/A';
+        }
+
+        const date = new Date(raw.replace(' ', 'T') + '+08:00');
+        if (Number.isNaN(date.getTime())) {
+          return raw;
+        }
+
+        return new Intl.DateTimeFormat('en-PH', {
+          timeZone: 'Asia/Manila',
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        }).format(date);
+      }
+
+      async function loadPwdEditLogs() {
+        if (!isViewMode) return;
+
+        const container = document.getElementById('editLogsContainer');
+        if (!container) return;
+
+        const pwdId = Number((editPwd && (editPwd.id || editPwd._id)) || 0);
+        if (pwdId <= 0) {
+          container.innerHTML = '<div class="logs-empty">No logs available: invalid PWD ID.</div>';
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/pwd-edit-logs/' + encodeURIComponent(String(pwdId)), {
+            headers: { Accept: 'application/json' }
+          });
+          const payload = await response.json();
+
+          if (!response.ok || !payload || payload.success === false) {
+            container.innerHTML = '<div class="logs-empty">Unable to load edit logs.</div>';
+            return;
+          }
+
+          const logs = Array.isArray(payload.data) ? payload.data : [];
+          if (logs.length === 0) {
+            container.innerHTML = '<div class="logs-empty">No edits recorded yet.</div>';
+            return;
+          }
+
+          container.innerHTML = '<table class="logs-table"><thead><tr><th>Field</th><th>Old Value</th><th>New Value</th><th>Editor</th><th>Date and Time</th></tr></thead><tbody>' +
+            logs.map(function (log) {
+              return '<tr>' +
+                '<td>' + escapeHtml(log.field || '') + '</td>' +
+                '<td>' + escapeHtml(log.old_value || 'N/A') + '</td>' +
+                '<td>' + escapeHtml(log.new_value || 'N/A') + '</td>' +
+                '<td>' + escapeHtml(log.edited_by || 'Unknown') + '</td>' +
+                '<td>' + escapeHtml(formatEditedAt(log.edited_at)) + '</td>' +
+              '</tr>';
+            }).join('') +
+            '</tbody></table>';
+        } catch (error) {
+          container.innerHTML = '<div class="logs-empty">Network error while loading edit logs.</div>';
+        }
       }
 
       async function submitPwdForm() {
@@ -742,7 +948,9 @@
             await showModal({
               icon: 'error',
               title: 'Submission Failed',
-              text: (payload && payload.message) ? payload.message : 'An error occurred while submitting the form.',
+              text: (payload && payload.error)
+                ? String(payload.error)
+                : ((payload && payload.message) ? payload.message : 'An error occurred while submitting the form.'),
               confirmButtonColor: '#b91c1c'
             });
             return;
@@ -750,12 +958,17 @@
 
           await showModal({
             icon: 'success',
-            title: 'Submitted',
-            text: payload.message || 'PWD registration successful.',
+            title: isEditMode ? 'Updated' : 'Submitted',
+            text: payload.message || (isEditMode ? 'PWD record updated successfully.' : 'PWD registration successful.'),
             confirmButtonColor: '#0f766e'
           });
 
-          window.location.href = '/add_pwd';
+          if (isEditMode && isModal && window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'pwd-edit-saved', data: payload.data || null }, window.location.origin);
+            return;
+          }
+
+          window.location.href = '/pdao-dashboard';
         } catch (error) {
           await showModal({
             icon: 'error',
@@ -772,6 +985,7 @@
       }
 
       function updateEmploymentFields() {
+        if (isViewMode) return;
         if (!employmentStatus || !categoryGroup || !typeGroup || !categorySelect || !typeSelect) return;
         const isEmployee = employmentStatus.value === 'Employee';
         categoryGroup.style.display = isEmployee ? 'block' : 'none';
@@ -805,11 +1019,19 @@
 
         if (nextBtn) {
           const isLastStep = currentStep === fieldsets.length - 1;
-          nextBtn.textContent = isLastStep ? 'SUBMIT' : 'NEXT';
+          if (isViewMode) {
+            nextBtn.textContent = isLastStep ? 'CLOSE' : 'NEXT';
+          } else {
+            nextBtn.textContent = isLastStep ? (isEditMode ? 'UPDATE' : 'SUBMIT') : 'NEXT';
+          }
         }
       }
 
       function validateStep(index) {
+        if (isViewMode) {
+          return true;
+        }
+
         const fieldset = fieldsets[index];
         if (!fieldset) return true;
 
@@ -829,13 +1051,22 @@
 
         const isLastStep = currentStep >= fieldsets.length - 1;
         if (isLastStep) {
+          if (isViewMode) {
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ type: 'pwd-view-close' }, window.location.origin);
+            } else {
+              window.location.href = '/pdao-dashboard';
+            }
+            return;
+          }
+
           if (window.Swal && typeof window.Swal.fire === 'function') {
             window.Swal.fire({
-              title: 'Submit PWD Form?',
-              text: 'Please confirm that all information is correct.',
+              title: isEditMode ? 'Update PWD Form?' : 'Submit PWD Form?',
+              text: isEditMode ? 'Please confirm that all changes are correct.' : 'Please confirm that all information is correct.',
               icon: 'question',
               showCancelButton: true,
-              confirmButtonText: 'Submit',
+              confirmButtonText: isEditMode ? 'Update' : 'Submit',
               cancelButtonText: 'Cancel',
               confirmButtonColor: '#0f766e'
             }).then(function (result) {
@@ -844,7 +1075,7 @@
               }
             });
           } else {
-            const confirmed = window.confirm('Submit PWD Form?');
+            const confirmed = window.confirm(isEditMode ? 'Update PWD Form?' : 'Submit PWD Form?');
             if (confirmed) {
               submitPwdForm();
             }
@@ -904,21 +1135,27 @@
           });
         }
 
-        function buildContactEntry(contactId) {
+        function buildContactEntry(contactId, contactData) {
+          const contact = contactData && typeof contactData === 'object' ? contactData : {};
+          const safeType = contact.type || 'primary';
+          const safeName = contact.name || '';
+          const safeRelationship = contact.relationship || '';
+          const safePhone = contact.phone || '';
+          const safeEmail = contact.email || '';
           const wrapper = document.createElement('div');
           wrapper.className = 'contact-entry';
           wrapper.setAttribute('data-contact-id', String(contactId));
           wrapper.innerHTML = `
             <div class="form-row">
-              <div class="form-group"><label>Contact Type</label><select class="contact-type" name="contacts[${contactId}][type]" required><option value="primary">Primary</option><option value="secondary">Secondary</option><option value="emergency">Emergency</option></select></div>
-              <div class="form-group"><label>Full Name</label><input type="text" name="contacts[${contactId}][name]" required maxlength="25"></div>
+              <div class="form-group"><label>Contact Type</label><select class="contact-type" name="contacts[${contactId}][type]" required><option value="primary" ${safeType === 'primary' ? 'selected' : ''}>Primary</option><option value="secondary" ${safeType === 'secondary' ? 'selected' : ''}>Secondary</option><option value="emergency" ${safeType === 'emergency' ? 'selected' : ''}>Emergency</option></select></div>
+              <div class="form-group"><label>Full Name</label><input type="text" name="contacts[${contactId}][name]" required maxlength="25" value="${String(safeName).replace(/"/g, '&quot;')}"></div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Relationship</label><input type="text" name="contacts[${contactId}][relationship]" maxlength="25"></div>
-              <div class="form-group"><label>Phone Number</label><input type="tel" name="contacts[${contactId}][phone]" maxlength="11" pattern="09\\d{9}" title="Phone number must start with 09 and be 11 digits" required></div>
+              <div class="form-group"><label>Relationship</label><input type="text" name="contacts[${contactId}][relationship]" maxlength="25" value="${String(safeRelationship).replace(/"/g, '&quot;')}"></div>
+              <div class="form-group"><label>Phone Number</label><input type="tel" name="contacts[${contactId}][phone]" maxlength="11" pattern="09\\d{9}" title="Phone number must start with 09 and be 11 digits" required value="${String(safePhone).replace(/"/g, '&quot;')}"></div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Email Address</label><input type="email" name="contacts[${contactId}][email]" maxlength="100" pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$" title="Please enter a valid email address"></div>
+              <div class="form-group"><label>Email Address</label><input type="email" name="contacts[${contactId}][email]" maxlength="100" pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$" title="Please enter a valid email address" value="${String(safeEmail).replace(/"/g, '&quot;')}"></div>
               <div class="form-group"><button type="button" class="remove-contact">Remove</button></div>
             </div>
           `;
@@ -927,6 +1164,9 @@
 
         addContactBtn.addEventListener('click', function (event) {
           event.preventDefault();
+          if (isViewMode) {
+            return;
+          }
           contactCounter += 1;
           const newEntry = buildContactEntry(contactCounter);
           contactsContainer.appendChild(newEntry);
@@ -937,6 +1177,10 @@
           const removeBtn = event.target.closest('.remove-contact');
           if (!removeBtn) return;
           event.preventDefault();
+
+          if (isViewMode) {
+            return;
+          }
 
           const allEntries = contactsContainer.querySelectorAll('.contact-entry');
           if (allEntries.length <= 1) {
@@ -959,11 +1203,90 @@
         });
 
         updateRemoveButtons();
+
+        if (isEditMode && editPwd && typeof editPwd === 'object') {
+          if (form) {
+            form.action = '/update-pwd';
+          }
+
+          setInputValue('pwd_id', editPwd.id || editPwd._id || '');
+          setInputValue('first_name', editPwd.first_name);
+          setInputValue('middle_name', editPwd.middle_name);
+          setInputValue('last_name', editPwd.last_name);
+          setInputValue('birthday', editPwd.birthday ? String(editPwd.birthday).slice(0, 10) : '');
+          setInputValue('age', editPwd.age);
+          setInputValue('gender', editPwd.gender);
+          setInputValue('place_of_birth', editPwd.place_of_birth);
+          setInputValue('civil_status', editPwd.civil_status);
+          setInputValue('spouse_name', editPwd.spouse_name);
+          setInputValue('fatherLastName', editPwd.fatherLastName);
+          setInputValue('fatherFirstName', editPwd.fatherFirstName);
+          setInputValue('fatherMiddleName', editPwd.fatherMiddleName);
+          setInputValue('fatherExtension', editPwd.fatherExtension);
+          setInputValue('motherLastName', editPwd.motherLastName);
+          setInputValue('motherFirstName', editPwd.motherFirstName);
+          setInputValue('motherMiddleName', editPwd.motherMiddleName);
+          setInputValue('sss_id', editPwd.sss_id);
+          setInputValue('gsis_sss_no', editPwd.gsis_sss_no);
+          setInputValue('psn_no', editPwd.psn_no);
+          setInputValue('philhealth_no', editPwd.philhealth_no);
+          setInputValue('education_level', editPwd.education_level);
+          setInputValue('employment_status', editPwd.employment_status);
+          setInputValue('employment_category', editPwd.employment_category);
+          setInputValue('employment_type', editPwd.employment_type);
+          setInputValue('disability-other-text', editPwd.disability_other_text);
+          setInputValue('cause-other-text', editPwd.cause_other_text);
+
+          setInputValue('barangay', editPwd.barangay);
+          updatePurokOptions();
+          setInputValue('purok', editPwd.purok);
+
+          setCheckboxValues('disability[]', editPwd.disability);
+          setCheckboxValues('cause_disability[]', editPwd.cause_disability);
+
+          if (Array.isArray(editPwd.contacts) && editPwd.contacts.length > 0) {
+            contactsContainer.innerHTML = '';
+            contactCounter = 0;
+            editPwd.contacts.forEach(function (contact) {
+              contactCounter += 1;
+              contactsContainer.appendChild(buildContactEntry(contactCounter, contact));
+            });
+            updateRemoveButtons();
+          }
+
+          toggleSpouseInput();
+          calculateAge();
+          updateEmploymentFields();
+        }
+
+        applyViewModeReadonly();
       }
 
       updateEmploymentFields();
       renderSteps();
+      loadPwdEditLogs();
     });
   </script>
+
+  <style>
+    body.modal-mode .page-shell {
+      max-width: 100%;
+      padding: 10px;
+    }
+
+    body.modal-mode .topbar {
+      margin-bottom: 10px;
+      padding: 12px 14px;
+    }
+
+    body.modal-mode .topbar-title {
+      font-size: 20px;
+    }
+
+    body.view-mode .helper {
+      color: #374151;
+      font-weight: 600;
+    }
+  </style>
 </body>
 </html>

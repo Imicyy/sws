@@ -61,6 +61,103 @@
     .btn-sms { background: #2563eb; color: white; }
     .btn-sms:disabled { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
     .btn-history { background: #1e40af; color: white; }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 1200;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      width: min(760px, 100%);
+      max-height: 88vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+    }
+    .modal-card.edit-frame {
+      width: min(1240px, 100%);
+      height: 92vh;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .modal-header h3 { margin: 0; font-size: 18px; }
+    .modal-close {
+      border: none;
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      color: #4b5563;
+      cursor: pointer;
+    }
+    .modal-body { padding: 16px; }
+    .modal-body.edit-frame-body {
+      padding: 0;
+      flex: 1 1 auto;
+      overflow: hidden;
+      background: #f3f6fb;
+    }
+    .edit-frame-body iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #f3f6fb;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .detail-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; }
+    .detail-item strong { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 14px 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .modal-actions button {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .modal-actions .primary {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+    .edit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .edit-grid label { font-size: 12px; color: #6b7280; margin-bottom: 6px; display: block; }
+    .edit-grid input,
+    .edit-grid select {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
     @media (max-width: 980px) {
       .layout { flex-direction: column; }
       .sidebar { flex: none; width: 100%; }
@@ -138,7 +235,7 @@
                 $status = (string) ($pwd['status'] ?? 'Active');
                 $statusClass = $status === 'Archived' ? 'status-archived' : 'status-active';
               ?>
-                <tr data-barangay="<?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?>" data-purok="<?= htmlspecialchars($purok, ENT_QUOTES, 'UTF-8') ?>" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>">
+                <tr data-barangay="<?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?>" data-purok="<?= htmlspecialchars($purok, ENT_QUOTES, 'UTF-8') ?>" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" data-pwd='<?= htmlspecialchars(json_encode($pwd, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'>
                   <td><input type="checkbox" class="rowCheckbox" value="<?= (int) ($pwd['id'] ?? 0) ?>"></td>
                   <td><?= htmlspecialchars($fullName !== '' ? $fullName : 'Unnamed record', ENT_QUOTES, 'UTF-8') ?></td>
                   <td><?= isset($pwd['age']) && $pwd['age'] !== null ? (int) $pwd['age'] : 'N/A' ?></td>
@@ -147,9 +244,9 @@
                   <td><span class="status-badge <?= $statusClass ?>"><?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?></span></td>
                   <td>
                     <div class="actions">
-                      <button class="btn-sm btn-view" title="View">View</button>
-                      <button class="btn-sm btn-edit" title="Edit">Edit</button>
-                      <button class="btn-sm btn-archive" title="Archive">Archive</button>
+                      <button type="button" class="btn-sm btn-view view-btn" title="View">View</button>
+                      <button type="button" class="btn-sm btn-edit edit-btn" title="Edit">Edit</button>
+                      <button type="button" class="btn-sm btn-archive archive-btn" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars(($status === 'Archived') ? 'Unarchive' : 'Archive', ENT_QUOTES, 'UTF-8') ?>"><?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?></button>
                     </div>
                   </td>
                 </tr>
@@ -166,10 +263,116 @@
     </main>
   </div>
 
+  <div id="viewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
+    <div class="modal-card edit-frame">
+      <div class="modal-header">
+        <h3 id="viewModalTitle">View PWD Record</h3>
+        <button type="button" class="modal-close" data-close="viewModal">&times;</button>
+      </div>
+      <div class="modal-body edit-frame-body">
+        <iframe id="viewPwdFrame" title="View PWD Form" loading="lazy" src="about:blank"></iframe>
+      </div>
+      <div class="modal-actions">
+        <button type="button" data-close="viewModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="modal-card edit-frame">
+      <div class="modal-header">
+        <h3 id="editModalTitle">Edit PWD Record</h3>
+        <button type="button" class="modal-close" data-close="editModal">&times;</button>
+      </div>
+      <div class="modal-body edit-frame-body">
+        <iframe id="editPwdFrame" title="Edit PWD Form" loading="lazy" src="about:blank"></iframe>
+      </div>
+      <div class="modal-actions">
+        <button type="button" data-close="editModal">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const barangays = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
     const barangayFilter = document.getElementById('barangayFilter');
     const purokFilter = document.getElementById('purokFilter');
+    const editPwdFrame = document.getElementById('editPwdFrame');
+    const viewPwdFrame = document.getElementById('viewPwdFrame');
+
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.add('open');
+      }
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.remove('open');
+      }
+      if (id === 'editModal' && editPwdFrame) {
+        editPwdFrame.src = 'about:blank';
+      }
+      if (id === 'viewModal' && viewPwdFrame) {
+        viewPwdFrame.src = 'about:blank';
+      }
+    }
+
+    function getPwdFromRow(row) {
+      if (!row) return {};
+      try {
+        return JSON.parse(row.dataset.pwd || '{}');
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function updateRowFromPayload(row, payloadData) {
+      if (!row || !payloadData) return;
+      const firstName = payloadData.first_name || '';
+      const middleName = payloadData.middle_name || '';
+      const lastName = payloadData.last_name || '';
+      const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ').trim() || 'Unnamed record';
+      const age = payloadData.age === null || payloadData.age === undefined || payloadData.age === '' ? 'N/A' : payloadData.age;
+      const status = payloadData.status || 'Active';
+
+      row.dataset.barangay = payloadData.barangay || '';
+      row.dataset.purok = payloadData.purok || '';
+      row.dataset.status = status;
+      row.dataset.pwd = JSON.stringify(payloadData);
+
+      const cells = row.querySelectorAll('td');
+      if (cells[1]) cells[1].textContent = fullName;
+      if (cells[2]) cells[2].textContent = String(age);
+      if (cells[3]) cells[3].textContent = payloadData.barangay || '';
+      if (cells[4]) cells[4].textContent = payloadData.purok || '';
+
+      const statusBadge = row.querySelector('.status-badge');
+      if (statusBadge) {
+        statusBadge.textContent = status;
+        statusBadge.className = 'status-badge ' + (status === 'Archived' ? 'status-archived' : 'status-active');
+      }
+
+      const archiveBtn = row.querySelector('.archive-btn');
+      if (archiveBtn) {
+        archiveBtn.dataset.status = status;
+        archiveBtn.textContent = status === 'Archived' ? 'Unarchive' : 'Archive';
+        archiveBtn.title = status === 'Archived' ? 'Unarchive' : 'Archive';
+      }
+
+      filterTable();
+    }
 
     function getVisibleRows() {
       return Array.from(document.querySelectorAll('#pwdTable tbody tr')).filter(row => row.style.display !== 'none');
@@ -244,6 +447,119 @@
 
     document.getElementById('viewHistoryBtn').addEventListener('click', function () {
       alert('SMS history view is not wired yet.');
+    });
+
+    document.querySelectorAll('[data-close]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        closeModal(button.dataset.close);
+      });
+    });
+
+    document.querySelectorAll('.modal-overlay').forEach(function (modal) {
+      modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+          closeModal(modal.id);
+        }
+      });
+    });
+
+    document.querySelectorAll('.view-btn').forEach(function (button) {
+      button.addEventListener('click', function () {
+        const row = button.closest('tr');
+        const pwd = getPwdFromRow(row);
+        const id = pwd.id || 0;
+        if (!id) {
+          alert('Unable to open view form: missing PWD ID.');
+          return;
+        }
+
+        if (viewPwdFrame) {
+          viewPwdFrame.src = '/add_pwd?edit=' + encodeURIComponent(String(id)) + '&modal=1&view=1';
+        }
+
+        openModal('viewModal');
+      });
+    });
+
+    document.querySelectorAll('.edit-btn').forEach(function (button) {
+      button.addEventListener('click', function () {
+        const row = button.closest('tr');
+        const pwd = getPwdFromRow(row);
+        const id = pwd.id || 0;
+        if (!id) {
+          alert('Unable to open edit form: missing PWD ID.');
+          return;
+        }
+        if (editPwdFrame) {
+          editPwdFrame.src = '/add_pwd?edit=' + encodeURIComponent(String(id)) + '&modal=1';
+        }
+        openModal('editModal');
+      });
+    });
+
+    window.addEventListener('message', function (event) {
+      if (!event || event.origin !== window.location.origin || !event.data) {
+        return;
+      }
+
+      if (event.data.type === 'pwd-edit-saved') {
+        closeModal('editModal');
+        window.location.reload();
+      }
+
+      if (event.data.type === 'pwd-edit-cancel') {
+        closeModal('editModal');
+      }
+
+      if (event.data.type === 'pwd-view-close') {
+        closeModal('viewModal');
+      }
+    });
+
+    document.querySelectorAll('.archive-btn').forEach(function (button) {
+      button.addEventListener('click', async function () {
+        const row = button.closest('tr');
+        const pwd = getPwdFromRow(row);
+        const isArchived = (button.dataset.status || pwd.status || '') === 'Archived';
+        const endpoint = isArchived ? '/unarchive-pwd' : '/archive-pwd';
+
+        let reason = '';
+        if (!isArchived) {
+          reason = window.prompt('Enter archive reason (optional):', '') || '';
+        }
+
+        const confirmationText = isArchived
+          ? 'Unarchive this PWD record?'
+          : 'Archive this PWD record?';
+
+        if (!window.confirm(confirmationText)) {
+          return;
+        }
+
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json'
+            },
+            body: JSON.stringify({
+              pwd_id: pwd.id,
+              reason: reason
+            })
+          });
+          const payload = await response.json();
+          if (!response.ok || !payload || payload.success === false) {
+            alert((payload && payload.message) ? payload.message : 'Failed to update archive status.');
+            return;
+          }
+
+          updateRowFromPayload(row, payload.data || {});
+          alert(payload.message || 'Record status updated.');
+        } catch (error) {
+          alert('Network error while updating archive status.');
+        }
+      });
     });
   </script>
 </body>
