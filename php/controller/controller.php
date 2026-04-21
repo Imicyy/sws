@@ -533,8 +533,18 @@ class Controller
             if ($staffClassification === 'OSCA') {
                 return '/Analytics';
             }
+            if ($staffClassification === 'PDAO') {
+                return '/pdao-admin-dashboard';
+            }
             return '/Index';
         }
+    public function renderPdaoAdminDashboard(): void
+    {
+        $this->render('admin/pdao_dashboard', [
+            'title' => 'PDAO Admin Dashboard',
+            'user' => $_SESSION['user'] ?? null,
+        ]);
+    }
 
         if ($role === 'Staff') {
             if ($staffClassification === 'OSCA') {
@@ -2706,7 +2716,40 @@ class Controller
 
     public function renderAnalyticsPage(): void
     {
-        $this->render('admin/analytics', ['title' => 'Analytics', 'user' => $_SESSION['user'] ?? null]);
+        $seniors = [];
+        try {
+            $where = "WHERE status <> 'Archived'";
+            $basicRows = $this->queryAll(
+                'SELECT id, last_name, first_name, middle_name, extension, barangay, purok, age, gender, status, created_at
+                 FROM senior_citizens ' . $where . ' ORDER BY created_at DESC'
+            );
+            $seniors = array_values(array_filter(array_map(function (array $row): ?array {
+                $full = $this->getSeniorByIdWithRelations((int) $row['id']);
+                if ($full === null) {
+                    return null;
+                }
+                $full['id'] = (int) $row['id'];
+                $full['first_name'] = $row['first_name'] ?? null;
+                $full['middle_name'] = $row['middle_name'] ?? null;
+                $full['last_name'] = $row['last_name'] ?? null;
+                $full['extension'] = $row['extension'] ?? null;
+                $full['barangay'] = $row['barangay'] ?? null;
+                $full['purok'] = $row['purok'] ?? null;
+                $full['age'] = isset($row['age']) ? (int) $row['age'] : null;
+                $full['gender'] = $row['gender'] ?? null;
+                $full['status'] = $row['status'] ?? null;
+                $full['created_at'] = $row['created_at'] ?? null;
+                return $full;
+            }, $basicRows)));
+        } catch (Throwable $e) {
+            $seniors = [];
+        }
+
+        $this->render('admin/analytics', [
+            'title' => 'Analytics',
+            'user' => $_SESSION['user'] ?? null,
+            'seniors' => $seniors,
+        ]);
     }
 
     public function renderUserManagementPage(): void

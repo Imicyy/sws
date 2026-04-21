@@ -41,10 +41,8 @@
       <div class="nav-title">Navigation</div>
       <a class="nav-link active" href="/Index">Dashboard</a>
       <a class="nav-link" href="/Analytics">Senior Citizen Table</a>
-      <a class="nav-link" href="/Map">PWD Map</a>
-      <a class="nav-link" href="/Maps">Senior Map</a>
+      
       <a class="nav-link" href="/admin-alert">Alerts</a>
-      <a class="nav-link" href="/User">User Management</a>
       <a class="nav-link" href="/logout">Logout</a>
     </aside>
 
@@ -73,14 +71,7 @@
         </div>
       </section>
 
-      <section class="panel quick">
-        <h2 class="h6">Quick Actions</h2>
-        <a href="/add_pwd">Register PWD</a>
-        <a href="/add_senior">Register Senior</a>
-        <a href="/Pwd-form">View PWD Form</a>
-        <a href="/Senior-form">View Senior Form</a>
-        <a href="/Analytics">Open Analytics</a>
-      </section>
+      
 
       <section class="panel">
         <h2 class="h6">Legacy Flow Notes</h2>

@@ -31,12 +31,10 @@
     <aside class="sidebar">
       <div class="brand">ENRIQUE B. MAGALONA</div>
       <div class="nav-title">Navigation</div>
-      <a class="nav-link" href="/Index">Dashboard</a>
+      
       <a class="nav-link" href="/Analytics">Senior Citizen Table</a>
-      <a class="nav-link" href="/Map">PWD Map</a>
-      <a class="nav-link" href="/Maps">Senior Map</a>
+      
       <a class="nav-link active" href="/admin-alert">Alerts</a>
-      <a class="nav-link" href="/User">User Management</a>
       <a class="nav-link" href="/logout">Logout</a>
     </aside>
 
@@ -50,22 +48,12 @@
             <select id="room" name="room" required>
               <option value="">-- Select Channel --</option>
               <option value="staff">Staff</option>
-              <option value="youth">Youth</option>
               <option value="barangay">Barangay</option>
               <option value="all">All Users</option>
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="messageType">Message Type</label>
-            <select id="messageType" name="messageType" required>
-              <option value="">-- Select Type --</option>
-              <option value="info">Information</option>
-              <option value="warning">Warning</option>
-              <option value="error">Error</option>
-              <option value="success">Success</option>
-            </select>
-          </div>
+
 
           <div class="form-group">
             <label for="subject">Subject (Optional)</label>
