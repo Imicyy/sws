@@ -560,10 +560,33 @@ class Controller
 
     public function renderPdaoAdminDashboard(): void
     {
-        $this->render('admin/pdao_dashboard', [
-            'title' => 'PDAO Admin Dashboard',
-            'user' => $_SESSION['user'] ?? null,
-        ]);
+        try {
+            $sql = "SELECT barangay AS name, COUNT(*) AS pdaoCount FROM pwd WHERE status <> 'Archived' GROUP BY barangay ORDER BY barangay ASC";
+            $rows = $this->queryAll($sql);
+            $barangayData = [];
+            $totalPwds = 0;
+            foreach ($rows as $row) {
+                $barangayData[] = [
+                    'name' => $row['name'],
+                    'pwdCount' => (int) $row['pdaoCount'],
+                ];
+                $totalPwds += (int) $row['pdaoCount'];
+            }
+
+            $this->render('admin/pdao_dashboard', [
+                'title' => 'PDAO Admin Dashboard',
+                'user' => $_SESSION['user'] ?? null,
+                'barangayData' => $barangayData,
+                'totalPwds' => $totalPwds,
+            ]);
+        } catch (Throwable $e) {
+            $this->render('admin/pdao_dashboard', [
+                'title' => 'PDAO Admin Dashboard',
+                'user' => $_SESSION['user'] ?? null,
+                'barangayData' => [],
+                'totalPwds' => 0,
+            ]);
+        }
     }
 
     private function generateVerificationCode(): string

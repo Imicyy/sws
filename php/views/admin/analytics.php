@@ -73,26 +73,36 @@ document.getElementById('searchInput').addEventListener('input', function() {
         <div class="welcome" style="width: 100%; text-align: center;">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'admin'), ENT_QUOTES, 'UTF-8') ?></div>
       </div>
 
+      <?php
+      // Aggregate senior count per barangay from $seniors
+      $barangayCounts = [];
+      if (isset($seniors) && is_array($seniors)) {
+        foreach ($seniors as $senior) {
+          $barangay = trim((string)($senior['barangay'] ?? 'Unknown'));
+          if ($barangay === '') $barangay = 'Unknown';
+          if (!isset($barangayCounts[$barangay])) $barangayCounts[$barangay] = 0;
+          $barangayCounts[$barangay]++;
+        }
+      }
+      $totalBarangays = count($barangayCounts);
+      $totalSeniors = isset($seniors) && is_array($seniors) ? count($seniors) : 0;
+      $averagePerBarangay = $totalBarangays > 0 ? round($totalSeniors / $totalBarangays, 1) : 0;
+      ?>
+
       <section class="cards">
         <div class="card-metric bg-yellow">
           <div class="label">Total Barangays</div>
-          <div class="value">23</div>
+          <div class="value"><?php echo $totalBarangays; ?></div>
         </div>
         <div class="card-metric bg-blue">
           <div class="label">Total Senior Citizen</div>
           <div class="value">
-            <?php
-              if (isset($seniors) && is_array($seniors)) {
-                echo count($seniors);
-              } else {
-                echo 0;
-              }
-            ?>
+            <?php echo $totalSeniors; ?>
           </div>
         </div>
         <div class="card-metric bg-green">
           <div class="label">Average per Barangay</div>
-          <div class="value">1</div>
+          <div class="value"><?php echo $averagePerBarangay; ?></div>
         </div>
       </section>
       <!-- Generate Report Modal -->
@@ -144,18 +154,6 @@ document.getElementById('searchInput').addEventListener('input', function() {
               </div>
               <div class="table-responsive">
                               
-                <?php
-                // Aggregate senior count per barangay from $seniors
-                $barangayCounts = [];
-                if (isset($seniors) && is_array($seniors)) {
-                  foreach ($seniors as $senior) {
-                    $barangay = trim((string)($senior['barangay'] ?? 'Unknown'));
-                    if ($barangay === '') $barangay = 'Unknown';
-                    if (!isset($barangayCounts[$barangay])) $barangayCounts[$barangay] = 0;
-                    $barangayCounts[$barangay]++;
-                  }
-                }
-                ?>
                 <table>
                   <thead>
                     <tr>

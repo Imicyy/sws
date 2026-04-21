@@ -32,7 +32,7 @@
       <div class="brand">ENRIQUE B. MAGALONA</div>
       <div class="nav-title">Navigation</div>
       
-      <a class="nav-link" href="/Analytics">Senior Citizen Table</a>
+      <a class="nav-link" href="/pdao-admin-dashboard">Person With Disability Table</a>
       
       <a class="nav-link active" href="/admin-alert">Alerts</a>
       <a class="nav-link" href="/logout">Logout</a>

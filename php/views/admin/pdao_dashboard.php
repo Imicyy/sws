@@ -52,7 +52,7 @@
     <aside class="sidebar">
       <div class="brand">ENRIQUE B. MAGALONA</div>
       <div class="nav-title">Navigation</div>
-      <a class="nav-link active" href="/pdao-admin-dashboard">PDAO Admin Dashboard</a>
+      <a class="nav-link active" href="/pdao-admin-dashboard">Person With Disability Table</a>
       <a class="nav-link" href="/admin-alert">Alerts</a>
       <a class="nav-link" href="/logout">Logout</a>
     </aside>
@@ -66,17 +66,7 @@
           <div class="label">Total Barangays</div>
           <div class="value">
             <?php
-              // Calculate total barangays from barangayCounts
-              $barangayCounts = [];
-              if (isset($pwds) && is_array($pwds)) {
-                foreach ($pwds as $pwd) {
-                  $barangay = trim((string)($pwd['barangay'] ?? 'Unknown'));
-                  if ($barangay === '') $barangay = 'Unknown';
-                  if (!isset($barangayCounts[$barangay])) $barangayCounts[$barangay] = 0;
-                  $barangayCounts[$barangay]++;
-                }
-              }
-              echo count($barangayCounts);
+              echo isset($barangayData) && is_array($barangayData) ? count($barangayData) : 0;
             ?>
           </div>
         </div>
@@ -84,7 +74,7 @@
           <div class="label">Total PWDs</div>
           <div class="value">
             <?php
-              echo isset($pwds) && is_array($pwds) ? count($pwds) : 0;
+              echo isset($totalPwds) ? $totalPwds : 0;
             ?>
           </div>
         </div>
@@ -92,8 +82,8 @@
           <div class="label">Average per Barangay</div>
           <div class="value">
             <?php
-              $totalBarangays = count($barangayCounts);
-              $totalPWDs = isset($pwds) && is_array($pwds) ? count($pwds) : 0;
+              $totalBarangays = isset($barangayData) && is_array($barangayData) ? count($barangayData) : 0;
+              $totalPWDs = isset($totalPwds) ? $totalPwds : 0;
               echo $totalBarangays > 0 ? round($totalPWDs / $totalBarangays, 1) : 0;
             ?>
           </div>
@@ -119,14 +109,14 @@
               </tr>
             </thead>
             <tbody>
-              <?php if (!empty($barangayCounts)): ?>
-                <?php foreach ($barangayCounts as $barangay => $count): ?>
+              <?php if (!empty($barangayData)): ?>
+                <?php foreach ($barangayData as $data): ?>
                   <tr>
-                    <td><?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= (int)$count ?></td>
+                    <td><?= htmlspecialchars($data['name'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= (int)$data['pwdCount'] ?></td>
                     <td>
                       <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-primary btn-sm" type="button" onclick="viewChart('<?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?>')">View Chart</button>
+                        <button class="btn btn-primary btn-sm" type="button" onclick="viewChart('<?= htmlspecialchars($data['name'], ENT_QUOTES, 'UTF-8') ?>')">View Chart</button>
                         <button class="btn btn-secondary btn-sm" type="button" onclick="window.print()">Print</button>
                       </div>
                     </td>
