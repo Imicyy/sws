@@ -529,6 +529,7 @@ class Controller
         $role = $user['role'] ?? '';
         $staffClassification = $user['staff_classification'] ?? null;
 
+
         if ($role === 'Admin') {
             if ($staffClassification === 'OSCA') {
                 return '/Analytics';
@@ -538,13 +539,6 @@ class Controller
             }
             return '/Index';
         }
-    public function renderPdaoAdminDashboard(): void
-    {
-        $this->render('admin/pdao_dashboard', [
-            'title' => 'PDAO Admin Dashboard',
-            'user' => $_SESSION['user'] ?? null,
-        ]);
-    }
 
         if ($role === 'Staff') {
             if ($staffClassification === 'OSCA') {
@@ -562,6 +556,14 @@ class Controller
         }
 
         return '/index';
+    }
+
+    public function renderPdaoAdminDashboard(): void
+    {
+        $this->render('admin/pdao_dashboard', [
+            'title' => 'PDAO Admin Dashboard',
+            'user' => $_SESSION['user'] ?? null,
+        ]);
     }
 
     private function generateVerificationCode(): string

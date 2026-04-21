@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 /** @var Router $router */
@@ -14,6 +13,10 @@ $requireAuth = static function (): bool {
     }
     return true;
 };
+
+$router->add('GET', '/pdao-admin-dashboard', static function () use ($controller) {
+    $controller->renderPdaoAdminDashboard();
+}, [$requireAuth]);
 
 $router->add('GET', '/', static function () {
     View::render('auth/login', []);
