@@ -3147,6 +3147,10 @@ class Controller
 
     public function getPwdMapData(): void
     {
+        if (!$this->db) {
+            $this->jsonResponse(['success' => false, 'message' => 'Database not connected'], 500);
+            return;
+        }
         try {
             $counts = $this->queryAll(
                 "SELECT barangay AS name,

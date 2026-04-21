@@ -1,5 +1,8 @@
 RewriteEngine On
 
+# Serve /assets/ from files/assets/
+RewriteRule ^assets/(.*)$ files/assets/ [L]
+
 # Keep existing files/directories directly accessible
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
