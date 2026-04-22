@@ -146,6 +146,10 @@ $router->add('GET', '/senior/{id}/application-pdf', static function (array $para
     $_GET['id'] = $params['id'] ?? null;
     $controller->generateSeniorApplicationPdf();
 }, [$requireAuth]);
+$router->add('GET', '/pdf-template/{type}', static function (array $params) use ($controller) {
+    $_GET['type'] = $params['type'] ?? null;
+    $controller->servePdfTemplate();
+}, [$requireAuth]);
 
 $router->add('GET', '/admin-alert', static function () use ($controller) {
     $controller->renderAdminAlert();
@@ -162,6 +166,10 @@ $router->add('GET', '/api/analytics/osca', static function () use ($controller) 
     $controller->getOscaAnalytics();
 }, [$requireAuth]);
 $router->add('GET', '/api/analytics/pdao', static function () use ($controller) {
+    $controller->getPdaoAnalytics();
+}, [$requireAuth]);
+
+$router->add('GET', '/get-pdao-analytics', static function () use ($controller) {
     $controller->getPdaoAnalytics();
 }, [$requireAuth]);
 $router->add('GET', '/api/pwds', static function () use ($controller) {

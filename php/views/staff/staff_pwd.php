@@ -56,6 +56,10 @@
     .btn-edit { color: #4f46e5; }
     .btn-archive { color: #dc2626; }
     .btn-sm:hover { background: #f3f4f6; }
+    .table-toolbar { margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .table-toolbar .toolbar-search { flex: 1 1 200px; max-width: 320px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+    .btn-print-app { background: #0f766e; color: #fff; border-color: #0f766e; }
+    .btn-print-app:hover { background: #0d5f59; color: #fff; }
     .action-bar { margin-top: 16px; display: flex; gap: 12px; }
     .action-bar button { padding: 10px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
     .btn-sms { background: #2563eb; color: white; }
@@ -214,6 +218,10 @@
           </div>
         </div>
 
+        <div class="table-toolbar">
+          <input type="text" id="pwdSearchInput" class="toolbar-search" placeholder="Search name, barangay, or purok…" autocomplete="off">
+        </div>
+
         <div class="table-container">
           <table id="pwdTable" class="table table-hover mb-0">
             <thead>
@@ -273,6 +281,7 @@
         <iframe id="viewPwdFrame" title="View PWD Form" loading="lazy" src="about:blank"></iframe>
       </div>
       <div class="modal-actions">
+        <button type="button" id="printApplicationBtn" class="btn-print-app">Print Application</button>
         <button type="button" data-close="viewModal">Close</button>
       </div>
     </div>
@@ -293,12 +302,60 @@
     </div>
   </div>
 
+  <div id="smsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="smsModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="smsModalTitle">Send SMS Assistance</h3>
+        <button type="button" class="modal-close" data-close="smsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="recipientsList" style="max-height:160px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:8px; margin-bottom:10px;"></div>
+        <label for="smsMessage" style="font-size:12px;color:#6b7280;font-weight:600;">Message</label>
+        <textarea id="smsMessage" rows="4" style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px;"></textarea>
+        <div style="margin-top:6px; font-size:12px; color:#6b7280;">Characters: <span id="charCount">0</span></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="sendSmsModalBtn" class="primary">Send SMS</button>
+        <button type="button" data-close="smsModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="smsHistoryModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="smsHistoryTitle">
+    <div class="modal-card" style="width:min(1100px,100%);">
+      <div class="modal-header">
+        <h3 id="smsHistoryTitle">SMS History</h3>
+        <button type="button" class="modal-close" data-close="smsHistoryModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="overflow:auto;">
+          <table class="table table-sm table-bordered mb-0">
+            <thead>
+              <tr>
+                <th>Sent At</th><th>Phone</th><th>Name</th><th>Barangay</th><th>Purok</th><th>Message</th><th>Status</th><th>Received</th>
+              </tr>
+            </thead>
+            <tbody id="smsHistoryTableBody">
+              <tr><td colspan="8" class="text-center">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" data-close="smsHistoryModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script>
     const barangays = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
     const barangayFilter = document.getElementById('barangayFilter');
     const purokFilter = document.getElementById('purokFilter');
     const editPwdFrame = document.getElementById('editPwdFrame');
     const viewPwdFrame = document.getElementById('viewPwdFrame');
+    let currentViewPwdId = null;
+    let currentViewPwdData = null;
 
     function openModal(id) {
       const modal = document.getElementById(id);
@@ -336,6 +393,126 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    function asDateMmDdYyyy(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      const yyyy = String(date.getFullYear());
+      return mm + '/' + dd + '/' + yyyy;
+    }
+
+    function setTextField(form, fieldName, value) {
+      try {
+        const field = form.getTextField(fieldName);
+        field.setText(String(value || ''));
+      } catch (error) {}
+    }
+
+    function setCheckField(form, fieldName, checked) {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (checked) field.check();
+        else field.uncheck();
+      } catch (error) {}
+    }
+
+    async function ensurePdfLibLoaded() {
+      if (window.PDFLib && window.PDFLib.PDFDocument) {
+        return;
+      }
+
+      const cdnUrls = [
+        'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js',
+        'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'
+      ];
+
+      for (const url of cdnUrls) {
+        try {
+          await new Promise(function (resolve, reject) {
+            const script = document.createElement('script');
+            script.src = url;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+          if (window.PDFLib && window.PDFLib.PDFDocument) {
+            return;
+          }
+        } catch (error) {}
+      }
+
+      throw new Error('Unable to load pdf-lib library.');
+    }
+
+    async function fetchTemplateBytes(pathCandidates) {
+      let lastError = 'Template not found.';
+      for (const candidate of pathCandidates) {
+        try {
+          const response = await fetch(candidate, { cache: 'no-store' });
+          if (!response.ok) {
+            lastError = 'HTTP ' + response.status + ' for ' + candidate;
+            continue;
+          }
+          return await response.arrayBuffer();
+        } catch (error) {
+          lastError = (error && error.message) ? error.message : String(error);
+        }
+      }
+      throw new Error(lastError);
+    }
+
+    async function buildPwdApplicationPdf(pwd) {
+      if (!pwd || !pwd.id) {
+        throw new Error('Missing PWD record.');
+      }
+      await ensurePdfLibLoaded();
+      const templateBytes = await fetchTemplateBytes([
+        '/pdf-template/pwd',
+        '/default/pdf/PWD-APPLICATION-FORMFIELD.pdf',
+        'default/pdf/PWD-APPLICATION-FORMFIELD.pdf',
+        '../default/pdf/PWD-APPLICATION-FORMFIELD.pdf',
+        '../../default/pdf/PWD-APPLICATION-FORMFIELD.pdf'
+      ]);
+
+      const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+      const form = pdfDoc.getForm();
+
+      setTextField(form, 'LAST NAME', pwd.last_name || '');
+      setTextField(form, 'FIRST NAME', pwd.first_name || '');
+      setTextField(form, 'MIDDLE NAME', pwd.middle_name || '');
+      setTextField(form, 'Barangay', [pwd.barangay || '', pwd.purok || ''].filter(Boolean).join(' / '));
+      setTextField(form, 'DATE OF BIRTH', asDateMmDdYyyy(pwd.birthday || pwd.date_of_birth || ''));
+      setTextField(form, 'Employment Category', pwd.employment_type || '');
+      setTextField(form, 'SSS NO', pwd.sss_id || '');
+      setTextField(form, 'GSIS NO', pwd.gsis_sss_no || '');
+      setTextField(form, 'PSN NO', pwd.psn_no || '');
+      setTextField(form, 'PhilHealth NO', pwd.philhealth_no || '');
+
+      setTextField(form, 'LAST NAMEFATHERS NAME', pwd.father_last_name || '');
+      setTextField(form, 'FIRST NAMEFATHERS NAME', pwd.father_first_name || '');
+      setTextField(form, 'MIDDLE NAMEFATHERS NAME', pwd.father_middle_name || '');
+      setTextField(form, 'LAST NAMEMOTHERS NAME', pwd.mother_last_name || '');
+      setTextField(form, 'FIRST NAMEMOTHERS NAME', pwd.mother_first_name || '');
+      setTextField(form, 'MIDDLE NAMEMOTHERS NAME', pwd.mother_middle_name || '');
+
+      const contacts = Array.isArray(pwd.contacts) ? pwd.contacts : [];
+      const primary = contacts.find(function (c) { return c && c.phone; }) || null;
+      const phone = primary && primary.phone ? primary.phone : '';
+      setTextField(form, 'Mobile No', phone);
+      setTextField(form, 'Landline No', phone);
+      setTextField(form, 'Email Address', primary && primary.email ? primary.email : '');
+
+      setCheckField(form, 'Male', (pwd.gender || '') === 'Male');
+      setCheckField(form, 'Female', (pwd.gender || '') === 'Female');
+      setCheckField(form, 'APPLICANT', true);
+
+      try { form.flatten(); } catch (error) {}
+      return pdfDoc.save();
     }
 
     function updateRowFromPayload(row, payloadData) {
@@ -382,16 +559,24 @@
       const statusFilter = document.getElementById('statusFilter').value;
       const selectedBarangay = barangayFilter.value;
       const selectedPurok = purokFilter.value;
+      const searchInput = document.getElementById('pwdSearchInput');
+      const searchRaw = (searchInput && searchInput.value) ? searchInput.value.trim().toLowerCase() : '';
       let visibleCount = 0;
 
       document.querySelectorAll('#pwdTable tbody tr').forEach(row => {
         const rowBarangay = row.dataset.barangay || '';
         const rowPurok = row.dataset.purok || '';
         const rowStatus = row.dataset.status || '';
+        const cells = row.querySelectorAll('td');
+        const nameText = cells[1] ? cells[1].textContent.toLowerCase() : '';
+        const matchesSearch = !searchRaw
+          || nameText.indexOf(searchRaw) !== -1
+          || rowBarangay.toLowerCase().indexOf(searchRaw) !== -1
+          || rowPurok.toLowerCase().indexOf(searchRaw) !== -1;
         const matchesBarangay = !selectedBarangay || rowBarangay === selectedBarangay;
         const matchesPurok = !selectedPurok || rowPurok === selectedPurok;
         const matchesStatus = !statusFilter || rowStatus === statusFilter;
-        const show = matchesBarangay && matchesPurok && matchesStatus;
+        const show = matchesBarangay && matchesPurok && matchesStatus && matchesSearch;
         row.style.display = show ? '' : 'none';
         if (show) visibleCount++;
       });
@@ -427,6 +612,11 @@
 
     purokFilter.addEventListener('change', filterTable);
 
+    const pwdSearchInput = document.getElementById('pwdSearchInput');
+    if (pwdSearchInput) {
+      pwdSearchInput.addEventListener('input', filterTable);
+    }
+
     document.getElementById('selectAll').addEventListener('change', function () {
       getVisibleRows().forEach(function (row) {
         const checkbox = row.querySelector('.rowCheckbox');
@@ -442,11 +632,151 @@
     });
 
     document.getElementById('sendSmsBtn').addEventListener('click', function () {
-      alert('SMS action is connected to the selected PWD records.');
+      const selected = Array.from(document.querySelectorAll('.rowCheckbox:checked'));
+      const recipientsList = document.getElementById('recipientsList');
+      recipientsList.innerHTML = '';
+
+      selected.forEach(function (checkbox) {
+        const row = checkbox.closest('tr');
+        const pwd = getPwdFromRow(row);
+        const contacts = Array.isArray(pwd.contacts) ? pwd.contacts : [];
+        const primary = contacts.find(c => c && c.phone) || {};
+        const phone = String(primary.phone || pwd.contact || '').trim();
+        if (!phone) return;
+        const fullName = [pwd.first_name, pwd.middle_name, pwd.last_name].filter(Boolean).join(' ').trim() || row.children[1].textContent.trim();
+        const div = document.createElement('div');
+        div.className = 'recipient-item';
+        div.dataset.phone = phone;
+        div.dataset.name = fullName;
+        div.dataset.firstName = pwd.first_name || '';
+        div.dataset.middleName = pwd.middle_name || '';
+        div.dataset.lastName = pwd.last_name || '';
+        div.dataset.barangay = pwd.barangay || '';
+        div.dataset.purok = pwd.purok || '';
+        div.dataset.recordId = String(pwd.id || checkbox.value || '');
+        div.innerHTML = '<strong>' + escapeHtml(fullName) + '</strong> <span class="text-muted">' + escapeHtml(phone) + '</span>';
+        recipientsList.appendChild(div);
+      });
+
+      if (!recipientsList.children.length) {
+        alert('No selected records have a mobile number.');
+        return;
+      }
+
+      openModal('smsModal');
     });
 
-    document.getElementById('viewHistoryBtn').addEventListener('click', function () {
-      alert('SMS history view is not wired yet.');
+    const smsMessage = document.getElementById('smsMessage');
+    if (smsMessage) {
+      smsMessage.addEventListener('input', function () {
+        document.getElementById('charCount').textContent = String(smsMessage.value.length);
+      });
+    }
+
+    document.getElementById('sendSmsModalBtn').addEventListener('click', async function () {
+      const btn = this;
+      const message = (document.getElementById('smsMessage').value || '').trim();
+      const recipients = Array.from(document.querySelectorAll('#recipientsList .recipient-item')).map(function (el) {
+        return {
+          phone: el.dataset.phone || '',
+          name: el.dataset.name || '',
+          first_name: el.dataset.firstName || '',
+          middle_name: el.dataset.middleName || '',
+          last_name: el.dataset.lastName || '',
+          barangay: el.dataset.barangay || '',
+          purok: el.dataset.purok || '',
+          record_id: el.dataset.recordId || '',
+          recipient_type: 'PWD'
+        };
+      });
+
+      if (!message) {
+        alert('Please enter a message.');
+        return;
+      }
+      if (!recipients.length) {
+        alert('No recipients selected.');
+        return;
+      }
+
+      const originalLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      try {
+        const response = await fetch('/send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recipients: recipients, message: message })
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload || payload.success !== true) {
+          alert((payload && (payload.error || payload.message)) ? (payload.error || payload.message) : 'Failed to send SMS.');
+          return;
+        }
+        alert('SMS has been sent successfully!');
+        document.getElementById('smsMessage').value = '';
+        document.getElementById('charCount').textContent = '0';
+        closeModal('smsModal');
+      } catch (error) {
+        alert('The SMS service is down at the moment, sorry. Please try again later.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
+    });
+
+    document.getElementById('viewHistoryBtn').addEventListener('click', async function () {
+      openModal('smsHistoryModal');
+      const tableBody = document.getElementById('smsHistoryTableBody');
+      tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Loading...</td></tr>';
+      try {
+        const response = await fetch('/sms-history?recipient_type=PWD&limit=200');
+        const payload = await response.json();
+        if (!response.ok || !payload || payload.success !== true || !Array.isArray(payload.data)) {
+          tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading SMS history</td></tr>';
+          return;
+        }
+        if (!payload.data.length) {
+          tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No SMS history found</td></tr>';
+          return;
+        }
+        tableBody.innerHTML = payload.data.map(function (record) {
+          const sentAt = record.sent_at ? new Date(String(record.sent_at).replace(' ', 'T')).toLocaleString() : 'N/A';
+          const fullName = [record.first_name, record.middle_name, record.last_name].filter(Boolean).join(' ').trim() || 'N/A';
+          const checked = record.received ? 'checked' : '';
+          return '<tr>'
+            + '<td>' + escapeHtml(sentAt) + '</td>'
+            + '<td>' + escapeHtml(record.phone_number || 'N/A') + '</td>'
+            + '<td>' + escapeHtml(fullName) + '</td>'
+            + '<td>' + escapeHtml(record.barangay || 'N/A') + '</td>'
+            + '<td>' + escapeHtml(record.purok || 'N/A') + '</td>'
+            + '<td>' + escapeHtml(record.message || 'N/A') + '</td>'
+            + '<td>' + escapeHtml(record.status || 'N/A') + '</td>'
+            + '<td class="text-center"><input type="checkbox" class="sms-received-checkbox" data-sms-id="' + escapeHtml(record._id || '') + '" ' + checked + '></td>'
+            + '</tr>';
+        }).join('');
+        document.querySelectorAll('.sms-received-checkbox').forEach(function (checkbox) {
+          checkbox.addEventListener('change', async function () {
+            const isChecked = checkbox.checked;
+            try {
+              const response = await fetch('/update-sms-received', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ smsId: checkbox.dataset.smsId, received: isChecked })
+              });
+              if (!response.ok) {
+                checkbox.checked = !isChecked;
+                alert('Failed to update SMS received status');
+              }
+            } catch (error) {
+              checkbox.checked = !isChecked;
+              alert('Failed to update SMS received status');
+            }
+          });
+        });
+      } catch (error) {
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading SMS history</td></tr>';
+      }
     });
 
     document.querySelectorAll('[data-close]').forEach(function (button) {
@@ -476,9 +806,28 @@
         if (viewPwdFrame) {
           viewPwdFrame.src = '/add_pwd?edit=' + encodeURIComponent(String(id)) + '&modal=1&view=1';
         }
+        currentViewPwdId = String(id);
+        currentViewPwdData = pwd;
 
         openModal('viewModal');
       });
+    });
+
+    document.getElementById('printApplicationBtn').addEventListener('click', async function () {
+      if (!currentViewPwdId) {
+        alert('Please open a PWD record before printing.');
+        return;
+      }
+      try {
+        const bytes = await buildPwdApplicationPdf(currentViewPwdData || { id: currentViewPwdId });
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+      } catch (error) {
+        console.error('PWD browser PDF generation failed:', error);
+        alert('Failed to generate application PDF in browser: ' + ((error && error.message) ? error.message : String(error)));
+      }
     });
 
     document.querySelectorAll('.edit-btn').forEach(function (button) {

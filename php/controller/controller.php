@@ -11,6 +11,7 @@ declare(strict_types=1);
 class Controller
 {
     private ?PDO $db;
+    private string $projectRoot;
     private string $allBarangaysGeojsonPath;
 
     /** @var array<int, array{name:string,lat:float,lon:float}>|null */
@@ -19,6 +20,7 @@ class Controller
     public function __construct(?PDO $db, string $projectRoot)
     {
         $this->db = $db;
+        $this->projectRoot = $projectRoot;
         $this->allBarangaysGeojsonPath = $projectRoot . DIRECTORY_SEPARATOR
             . 'files' . DIRECTORY_SEPARATOR
             . 'assets' . DIRECTORY_SEPARATOR
@@ -432,17 +434,8 @@ class Controller
 
     private function outputPdfFromTemplateWithText(string $templatePath, string $filename, callable $drawPage1): void
     {
-        $streamTemplate = static function () use ($templatePath, $filename): void {
-            header('X-PDF-Engine: php-fallback-template');
-            header('Content-Type: application/pdf');
-            header('Content-Disposition: inline; filename="' . rawurlencode($filename) . '"');
-            header('Content-Length: ' . (string) filesize($templatePath));
-            readfile($templatePath);
-            exit;
-        };
-
         if (!class_exists('setasign\\Fpdi\\Fpdi')) {
-            $streamTemplate();
+            throw new RuntimeException('FPDI is not available and Node PDF engine failed.');
         }
 
         try {
@@ -470,15 +463,13 @@ class Controller
             echo $bytes;
             exit;
         } catch (Throwable $e) {
-            // Some templates use compression features unsupported by the free FPDI parser.
-            // Fall back to serving the original template so the endpoint still returns a valid PDF.
-            $streamTemplate();
+            throw new RuntimeException('FPDI fallback failed: ' . $e->getMessage(), 0, $e);
         }
     }
 
     private function generatePdfViaNode(string $type, array $record, string $templatePath): ?string
     {
-        $scriptPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pdf' . DIRECTORY_SEPARATOR . 'generate_application_pdf.js';
+        $scriptPath = $this->projectRoot . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pdf' . DIRECTORY_SEPARATOR . 'generate_application_pdf.js';
         if (!file_exists($scriptPath)) {
             return null;
         }
@@ -491,35 +482,88 @@ class Controller
             return null;
         }
 
-        $cmd = 'node ' . escapeshellarg($scriptPath) . ' ' . escapeshellarg($type);
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
+        $nodeCandidates = [
+            getenv('NODE_BINARY') ?: null,
+            'node',
+            'nodejs',
+            'C:\\Program Files\\nodejs\\node.exe',
+            'C:\\Program Files (x86)\\nodejs\\node.exe',
         ];
+        $errors = [];
 
-        $projectRoot = dirname(__DIR__);
-        $process = @proc_open($cmd, $descriptors, $pipes, $projectRoot);
-        if (!is_resource($process)) {
-            return null;
+        foreach ($nodeCandidates as $nodeBinaryRaw) {
+            if (!is_string($nodeBinaryRaw) || trim($nodeBinaryRaw) === '') {
+                continue;
+            }
+            $nodeBinary = trim($nodeBinaryRaw);
+
+            $cmd = escapeshellarg($nodeBinary) . ' ' . escapeshellarg($scriptPath) . ' ' . escapeshellarg($type);
+            $descriptors = [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w'],
+            ];
+
+            $process = @proc_open($cmd, $descriptors, $pipes, $this->projectRoot);
+            if (is_resource($process)) {
+                fwrite($pipes[0], $payload);
+                fclose($pipes[0]);
+
+                $pdfBytes = stream_get_contents($pipes[1]);
+                fclose($pipes[1]);
+
+                $stderr = stream_get_contents($pipes[2]);
+                fclose($pipes[2]);
+
+                $exitCode = proc_close($process);
+                if ($exitCode === 0 && is_string($pdfBytes) && $pdfBytes !== '') {
+                    return $pdfBytes;
+                }
+                if (!empty($stderr)) {
+                    $errors[] = '[' . $nodeBinary . ' proc_open] ' . trim($stderr);
+                }
+            } else {
+                $errors[] = '[' . $nodeBinary . ' proc_open] unable to start process';
+            }
+
+            // Fallback when proc_open/pipe execution is restricted.
+            $tmpBase = tempnam(sys_get_temp_dir(), 'pdfbridge_');
+            if ($tmpBase !== false) {
+                $inputPath = $tmpBase . '.json';
+                $outputPath = $tmpBase . '.pdf';
+                @unlink($tmpBase);
+                @file_put_contents($inputPath, $payload);
+
+                $fileCmd = escapeshellarg($nodeBinary)
+                    . ' ' . escapeshellarg($scriptPath)
+                    . ' ' . escapeshellarg($type)
+                    . ' --input ' . escapeshellarg($inputPath)
+                    . ' --output ' . escapeshellarg($outputPath);
+                $fileOut = [];
+                $fileCode = 1;
+                @exec($fileCmd . ' 2>&1', $fileOut, $fileCode);
+                if ($fileCode === 0 && file_exists($outputPath)) {
+                    $bytes = @file_get_contents($outputPath);
+                    @unlink($inputPath);
+                    @unlink($outputPath);
+                    if (is_string($bytes) && $bytes !== '') {
+                        return $bytes;
+                    }
+                }
+                @unlink($inputPath);
+                @unlink($outputPath);
+                if (!empty($fileOut)) {
+                    $errors[] = '[' . $nodeBinary . ' file-mode] ' . trim(implode("\n", $fileOut));
+                } else {
+                    $errors[] = '[' . $nodeBinary . ' file-mode] failed with exit code ' . $fileCode;
+                }
+            }
         }
 
-        fwrite($pipes[0], $payload);
-        fclose($pipes[0]);
-
-        $pdfBytes = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
-
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
-
-        $exitCode = proc_close($process);
-        if ($exitCode === 0 && is_string($pdfBytes) && $pdfBytes !== '') {
-            return $pdfBytes;
-        }
-
-        if (!empty($stderr)) {
-            error_log('[PDF bridge] Node generator failed: ' . $stderr);
+        if (!empty($errors)) {
+            error_log('[PDF bridge] Node generator failed: ' . implode(' || ', $errors));
+        } else {
+            error_log('[PDF bridge] Node generator failed: no node candidates available.');
         }
         return null;
     }
@@ -1871,6 +1915,20 @@ class Controller
 
         $filters = ['s.barangay = ?', "s.status <> 'Archived'"];
         $params = [$barangay];
+        $month = isset($_GET['month']) ? (int) $_GET['month'] : 0;
+        $year = isset($_GET['year']) ? (int) $_GET['year'] : 0;
+
+        if ($month >= 1 && $month <= 12) {
+            $filters[] = 'MONTH(s.created_at) = ?';
+            $params[] = $month;
+            if ($year >= 2000) {
+                $filters[] = 'YEAR(s.created_at) = ?';
+                $params[] = $year;
+            }
+        } elseif ($year >= 2000) {
+            $filters[] = 'YEAR(s.created_at) = ?';
+            $params[] = $year;
+        }
 
         $sessionUser = $_SESSION['user'] ?? null;
         if (is_array($sessionUser) && (($sessionUser['role'] ?? '') === 'Barangay')) {
@@ -1913,6 +1971,20 @@ class Controller
 
         $filters = ['s.purok = ?', "s.status <> 'Archived'"];
         $params = [$purok];
+        $month = isset($_GET['month']) ? (int) $_GET['month'] : 0;
+        $year = isset($_GET['year']) ? (int) $_GET['year'] : 0;
+
+        if ($month >= 1 && $month <= 12) {
+            $filters[] = 'MONTH(s.created_at) = ?';
+            $params[] = $month;
+            if ($year >= 2000) {
+                $filters[] = 'YEAR(s.created_at) = ?';
+                $params[] = $year;
+            }
+        } elseif ($year >= 2000) {
+            $filters[] = 'YEAR(s.created_at) = ?';
+            $params[] = $year;
+        }
 
         $sessionUser = $_SESSION['user'] ?? null;
         if (is_array($sessionUser) && (($sessionUser['role'] ?? '') === 'Barangay')) {
@@ -1957,6 +2029,20 @@ class Controller
 
         $filters = ['p.barangay = ?', "p.status <> 'Archived'"];
         $params = [$barangay];
+        $month = isset($_GET['month']) ? (int) $_GET['month'] : 0;
+        $year = isset($_GET['year']) ? (int) $_GET['year'] : 0;
+
+        if ($month >= 1 && $month <= 12) {
+            $filters[] = 'MONTH(p.created_at) = ?';
+            $params[] = $month;
+            if ($year >= 2000) {
+                $filters[] = 'YEAR(p.created_at) = ?';
+                $params[] = $year;
+            }
+        } elseif ($year >= 2000) {
+            $filters[] = 'YEAR(p.created_at) = ?';
+            $params[] = $year;
+        }
 
         $sessionUser = $_SESSION['user'] ?? null;
         if (is_array($sessionUser) && (($sessionUser['role'] ?? '') === 'Barangay')) {
@@ -2002,6 +2088,20 @@ class Controller
 
         $filters = ['p.purok = ?', "p.status <> 'Archived'"];
         $params = [$purok];
+        $month = isset($_GET['month']) ? (int) $_GET['month'] : 0;
+        $year = isset($_GET['year']) ? (int) $_GET['year'] : 0;
+
+        if ($month >= 1 && $month <= 12) {
+            $filters[] = 'MONTH(p.created_at) = ?';
+            $params[] = $month;
+            if ($year >= 2000) {
+                $filters[] = 'YEAR(p.created_at) = ?';
+                $params[] = $year;
+            }
+        } elseif ($year >= 2000) {
+            $filters[] = 'YEAR(p.created_at) = ?';
+            $params[] = $year;
+        }
 
         $sessionUser = $_SESSION['user'] ?? null;
         if (is_array($sessionUser) && (($sessionUser['role'] ?? '') === 'Barangay')) {
@@ -2545,7 +2645,7 @@ class Controller
                 $this->jsonResponse(['success' => false, 'message' => 'PWD record not found'], 404);
             }
 
-            $templatePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'pdf' . DIRECTORY_SEPARATOR . 'PWD-APPLICATION-FORMFIELD.pdf';
+            $templatePath = $this->projectRoot . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'pdf' . DIRECTORY_SEPARATOR . 'PWD-APPLICATION-FORMFIELD.pdf';
             if (!file_exists($templatePath)) {
                 $this->jsonResponse(['success' => false, 'message' => 'PWD PDF template not found'], 404);
             }
@@ -2626,6 +2726,35 @@ class Controller
         }
     }
 
+    public function servePdfTemplate(): void
+    {
+        try {
+            $type = strtolower((string) ($_GET['type'] ?? ''));
+            $fileName = match ($type) {
+                'pwd' => 'PWD-APPLICATION-FORMFIELD.pdf',
+                'senior' => 'SENIOR-FORMFIELD.pdf',
+                default => '',
+            };
+
+            if ($fileName === '') {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid template type'], 400);
+            }
+
+            $path = $this->projectRoot . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'pdf' . DIRECTORY_SEPARATOR . $fileName;
+            if (!file_exists($path)) {
+                $this->jsonResponse(['success' => false, 'message' => 'Template not found'], 404);
+            }
+
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="' . rawurlencode($fileName) . '"');
+            header('Content-Length: ' . (string) filesize($path));
+            readfile($path);
+            exit;
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to serve template', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function generateSeniorApplicationPdf(): void
     {
         try {
@@ -2639,7 +2768,7 @@ class Controller
                 $this->jsonResponse(['success' => false, 'message' => 'Senior Citizen record not found'], 404);
             }
 
-            $templatePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'pdf' . DIRECTORY_SEPARATOR . 'SENIOR-FORMFIELD.pdf';
+            $templatePath = $this->projectRoot . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'pdf' . DIRECTORY_SEPARATOR . 'SENIOR-FORMFIELD.pdf';
             if (!file_exists($templatePath)) {
                 $this->jsonResponse(['success' => false, 'message' => 'Senior PDF template not found'], 404);
             }
@@ -2839,7 +2968,7 @@ class Controller
             $barangays = [];
         }
 
-        $this->render('staff/osca_dashboard', [
+        $this->render('staff/staff_senior', [
             'title' => 'OSCA Staff Dashboard',
             'user' => $_SESSION['user'] ?? null,
             'totalSeniors' => $totalSeniors,
@@ -2880,7 +3009,7 @@ class Controller
             $barangays = [];
         }
 
-        $this->render('staff/pdao_dashboard', [
+        $this->render('staff/staff_pwd', [
             'title' => 'PDAO Staff Dashboard',
             'user' => $_SESSION['user'] ?? null,
             'totalPwd' => $totalPwd,
@@ -3034,7 +3163,14 @@ class Controller
             }
 
             $sql = sprintf(
-                'SELECT %s AS name, COUNT(*) AS oscaCount FROM senior_citizens WHERE %s GROUP BY %s ORDER BY %s ASC',
+                'SELECT %s AS name,
+                        COUNT(*) AS total,
+                        SUM(CASE WHEN gender = \'Male\' THEN 1 ELSE 0 END) AS male,
+                        SUM(CASE WHEN gender = \'Female\' THEN 1 ELSE 0 END) AS female
+                 FROM senior_citizens
+                 WHERE %s
+                 GROUP BY %s
+                 ORDER BY %s ASC',
                 $groupField,
                 implode(' AND ', $filters),
                 $groupField,
@@ -3051,7 +3187,9 @@ class Controller
                 $data[] = [
                     'id' => $i++,
                     'name' => $row['name'],
-                    'oscaCount' => (int) $row['oscaCount'],
+                    'total' => (int) $row['total'],
+                    'male' => (int) $row['male'],
+                    'female' => (int) $row['female'],
                 ];
             }
 
@@ -3067,23 +3205,22 @@ class Controller
             $groupBy = (isset($_GET['groupBy']) && strtolower((string) $_GET['groupBy']) === 'purok') ? 'purok' : 'barangay';
             $groupField = $groupBy === 'purok' ? 'purok' : 'barangay';
 
-            $filters = ["status <> 'Archived'"];
+            $filters = ["status = 'Active'"];
             $params = [];
 
             $sessionUser = $_SESSION['user'] ?? null;
             if (is_array($sessionUser) && (($sessionUser['role'] ?? '') === 'Barangay')) {
                 $scope = $this->fetchBarangayScopeForSessionUser($sessionUser);
-                if ($scope === null) {
-                    $this->jsonResponse(['success' => false, 'message' => 'Barangay account has no assigned barangay.'], 403);
+                if ($scope) {
+                    $filters[] = 'barangay = ?';
+                    $params[] = $scope['barangay'];
                 }
-                $filters[] = 'barangay = ?';
-                $params[] = $scope['barangay'];
             }
 
             $sql = sprintf(
-                'SELECT %s AS name, COUNT(*) AS pdaoCount,
-                        SUM(CASE WHEN gender = \'Male\' THEN 1 ELSE 0 END) AS maleCount,
-                        SUM(CASE WHEN gender = \'Female\' THEN 1 ELSE 0 END) AS femaleCount
+                'SELECT %s AS name, COUNT(*) AS total,
+                        SUM(CASE WHEN gender = \'Male\' THEN 1 ELSE 0 END) AS male,
+                        SUM(CASE WHEN gender = \'Female\' THEN 1 ELSE 0 END) AS female
                  FROM pwd
                  WHERE %s
                  GROUP BY %s
@@ -3104,9 +3241,9 @@ class Controller
                 $data[] = [
                     'id' => $i++,
                     'name' => $row['name'],
-                    'pdaoCount' => (int) $row['pdaoCount'],
-                    'maleCount' => (int) $row['maleCount'],
-                    'femaleCount' => (int) $row['femaleCount'],
+                    'total' => (int) $row['total'],
+                    'male' => (int) $row['male'],
+                    'female' => (int) $row['female'],
                 ];
             }
 
@@ -3134,6 +3271,20 @@ class Controller
 
             if (($_GET['status'] ?? '') !== 'all') {
                 $filters[] = "status <> 'Archived'";
+            }
+
+            $month = isset($_GET['month']) ? (int) $_GET['month'] : 0;
+            $year = isset($_GET['year']) ? (int) $_GET['year'] : 0;
+            if ($month >= 1 && $month <= 12) {
+                $filters[] = 'MONTH(created_at) = ?';
+                $params[] = $month;
+                if ($year >= 2000) {
+                    $filters[] = 'YEAR(created_at) = ?';
+                    $params[] = $year;
+                }
+            } elseif ($year >= 2000) {
+                $filters[] = 'YEAR(created_at) = ?';
+                $params[] = $year;
             }
 
             $whereSql = count($filters) ? ('WHERE ' . implode(' AND ', $filters)) : '';

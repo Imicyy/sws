@@ -13,6 +13,12 @@ function readStdin() {
   });
 }
 
+function getArgValue(flag) {
+  const index = process.argv.indexOf(flag);
+  if (index === -1) return null;
+  return process.argv[index + 1] || null;
+}
+
 function setText(form, fieldName, value = '') {
   if (!fieldName) return;
   try {
@@ -51,6 +57,13 @@ function formatDate(value) {
 }
 
 function fillPwd(form, pwdRecord) {
+  const pick = (...values) => {
+    for (const value of values) {
+      if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+    }
+    return '';
+  };
+
   const civilStatusMap = {
     Single: 'Single',
     'Single but Head of the Family': 'Single',
@@ -104,45 +117,49 @@ function fillPwd(form, pwdRecord) {
     'Down Syndrome': 'Down Syndrome'
   };
 
-  setText(form, 'LAST NAME', pwdRecord.last_name || '');
-  setText(form, 'FIRST NAME', pwdRecord.first_name || '');
-  setText(form, 'MIDDLE NAME', pwdRecord.middle_name || 'N/A');
+  setText(form, 'LAST NAME', pick(pwdRecord.last_name, pwdRecord.lastName));
+  setText(form, 'FIRST NAME', pick(pwdRecord.first_name, pwdRecord.firstName));
+  setText(form, 'MIDDLE NAME', pick(pwdRecord.middle_name, pwdRecord.middleName, 'N/A'));
   setText(form, 'SUFFIX', '');
-  setText(form, 'Barangay', [pwdRecord.barangay, pwdRecord.purok].filter(Boolean).join(' / '));
-  setText(form, 'DATE OF BIRTH', formatDate(pwdRecord.birthday));
+  setText(form, 'Barangay', [pick(pwdRecord.barangay), pick(pwdRecord.purok)].filter(Boolean).join(' / '));
+  setText(form, 'DATE OF BIRTH', formatDate(pick(pwdRecord.birthday, pwdRecord.date_of_birth)));
 
-  setCheckbox(form, 'Female', pwdRecord.gender === 'Female');
-  setCheckbox(form, 'Male', pwdRecord.gender === 'Male');
-  setRadio(form, '7 CIVIL STATUS', civilStatusMap[pwdRecord.civil_status] || '');
+  const gender = pick(pwdRecord.gender);
+  setCheckbox(form, 'Female', gender === 'Female');
+  setCheckbox(form, 'Male', gender === 'Male');
+  setRadio(form, '7 CIVIL STATUS', civilStatusMap[pick(pwdRecord.civil_status, pwdRecord.marital_status)] || '');
 
-  const primaryContact = Array.isArray(pwdRecord.contacts) && pwdRecord.contacts.length > 0 ? pwdRecord.contacts[0] : null;
+  const contacts = Array.isArray(pwdRecord.contacts) ? pwdRecord.contacts : [];
+  const primaryContact = contacts.find((c) => c && c.type === 'primary' && c.phone)
+    || contacts.find((c) => c && c.phone)
+    || null;
   setText(form, 'Landline No', primaryContact?.phone || '');
   setText(form, 'Mobile No', primaryContact?.phone || '');
   setText(form, 'Email Address', primaryContact?.email || '');
 
-  const educationSelection = educationMap[pwdRecord.education_level] || { radio: 'Junior High School', checks: [] };
+  const educationSelection = educationMap[pick(pwdRecord.education_level)] || { radio: 'Junior High School', checks: [] };
   setRadio(form, '12 EDUCATIONAL ATTAINMENT', educationSelection.radio);
   ['Senior High School', 'College', 'Vocational', 'Post Graduate'].forEach((option) => {
     setCheckbox(form, option, educationSelection.checks.includes(option));
   });
 
-  setRadio(form, '13 STATUS OF EMPLOYMENT', employmentStatusMap[pwdRecord.employment_status] || '');
-  setRadio(form, '13 a CATEGORY OF EMPLOYMENT', pwdRecord.employment_category || '');
-  setText(form, 'Employment Category', pwdRecord.employment_type || '');
+  setRadio(form, '13 STATUS OF EMPLOYMENT', employmentStatusMap[pick(pwdRecord.employment_status)] || '');
+  setRadio(form, '13 a CATEGORY OF EMPLOYMENT', pick(pwdRecord.employment_category));
+  setText(form, 'Employment Category', pick(pwdRecord.employment_type));
 
-  setText(form, 'SSS NO', pwdRecord.sss_id || '');
-  setText(form, 'GSIS NO', pwdRecord.gsis_sss_no || '');
+  setText(form, 'SSS NO', pick(pwdRecord.sss_id));
+  setText(form, 'GSIS NO', pick(pwdRecord.gsis_sss_no));
   setText(form, 'PAGIBIG NO', '');
-  setText(form, 'PSN NO', pwdRecord.psn_no || '');
-  setText(form, 'PhilHealth NO', pwdRecord.philhealth_no || '');
+  setText(form, 'PSN NO', pick(pwdRecord.psn_no));
+  setText(form, 'PhilHealth NO', pick(pwdRecord.philhealth_no));
 
-  setText(form, 'LAST NAMEFATHERS NAME', pwdRecord.fatherLastName || '');
-  setText(form, 'FIRST NAMEFATHERS NAME', pwdRecord.fatherFirstName || '');
-  setText(form, 'MIDDLE NAMEFATHERS NAME', pwdRecord.fatherMiddleName || '');
+  setText(form, 'LAST NAMEFATHERS NAME', pick(pwdRecord.father_last_name, pwdRecord.fatherLastName));
+  setText(form, 'FIRST NAMEFATHERS NAME', pick(pwdRecord.father_first_name, pwdRecord.fatherFirstName));
+  setText(form, 'MIDDLE NAMEFATHERS NAME', pick(pwdRecord.father_middle_name, pwdRecord.fatherMiddleName));
 
-  setText(form, 'LAST NAMEMOTHERS NAME', pwdRecord.motherLastName || '');
-  setText(form, 'FIRST NAMEMOTHERS NAME', pwdRecord.motherFirstName || '');
-  setText(form, 'MIDDLE NAMEMOTHERS NAME', pwdRecord.motherMiddleName || '');
+  setText(form, 'LAST NAMEMOTHERS NAME', pick(pwdRecord.mother_last_name, pwdRecord.motherLastName));
+  setText(form, 'FIRST NAMEMOTHERS NAME', pick(pwdRecord.mother_first_name, pwdRecord.motherFirstName));
+  setText(form, 'MIDDLE NAMEMOTHERS NAME', pick(pwdRecord.mother_middle_name, pwdRecord.motherMiddleName));
 
   setCheckbox(form, 'APPLICANT', true);
   setCheckbox(form, 'GUARDIAN', false);
@@ -164,10 +181,10 @@ function fillPwd(form, pwdRecord) {
     });
   }
 
-  if (pwdRecord.disability_other_text || pwdRecord.cause_other_text) {
+  if (pick(pwdRecord.disability_other_text) || pick(pwdRecord.cause_other_text)) {
     const otherDetails = [
-      pwdRecord.disability_other_text ? `Disability: ${pwdRecord.disability_other_text}` : null,
-      pwdRecord.cause_other_text ? `Cause: ${pwdRecord.cause_other_text}` : null
+      pick(pwdRecord.disability_other_text) ? `Disability: ${pick(pwdRecord.disability_other_text)}` : null,
+      pick(pwdRecord.cause_other_text) ? `Cause: ${pick(pwdRecord.cause_other_text)}` : null
     ]
       .filter(Boolean)
       .join(' | ');
@@ -304,7 +321,9 @@ function fillSenior(form, seniorRecord) {
 (async () => {
   try {
     const type = (process.argv[2] || '').toLowerCase();
-    const raw = await readStdin();
+    const inputFile = getArgValue('--input');
+    const outputFile = getArgValue('--output');
+    const raw = inputFile ? fs.readFileSync(inputFile, 'utf8') : await readStdin();
     const payload = raw ? JSON.parse(raw) : {};
 
     const templatePath = payload.templatePath;
@@ -326,8 +345,12 @@ function fillSenior(form, seniorRecord) {
       form.flatten();
     } catch (_) {}
 
-    const bytes = await pdfDoc.save();
-    process.stdout.write(Buffer.from(bytes));
+    const bytes = Buffer.from(await pdfDoc.save());
+    if (outputFile) {
+      fs.writeFileSync(outputFile, bytes);
+    } else {
+      process.stdout.write(bytes);
+    }
   } catch (err) {
     process.stderr.write((err && err.message ? err.message : String(err)) + '\n');
     process.exit(1);

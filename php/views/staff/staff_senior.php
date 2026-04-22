@@ -450,6 +450,7 @@
         <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid #e5e7eb;">
           <button type="button" class="btn btn-secondary" id="viewPrevBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; display: none;">Back</button>
           <button type="button" class="btn btn-primary" id="viewNextBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; background: #0f766e; color: #ffffff; border: none;">Next</button>
+          <button type="button" class="btn btn-outline-primary" id="printApplicationBtn" style="min-width: 160px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700;">Print Application</button>
           <button type="button" class="btn btn-secondary" data-dismiss="modal" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">Close</button>
         </div>
       </div>
@@ -773,7 +774,59 @@
     </div>
   </div>
 
-  <script>
+  <div class="modal fade" id="assistanceModal" tabindex="-1" role="dialog" aria-labelledby="assistanceModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="assistanceModalTitle">Send SMS Assistance</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <div id="recipientsList" style="max-height: 180px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; margin-bottom: 10px;"></div>
+          <div class="form-group mb-2">
+            <label for="smsMessage">Message</label>
+            <textarea id="smsMessage" class="form-control" rows="4"></textarea>
+          </div>
+          <div class="text-muted" style="font-size: 12px;">Characters: <span id="charCount">0</span></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="sendSmsModalBtn">Send SMS</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="smsHistoryModal" tabindex="-1" role="dialog" aria-labelledby="smsHistoryTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="smsHistoryTitle">SMS History</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0">
+              <thead>
+                <tr>
+                  <th>Sent At</th><th>Phone</th><th>Name</th><th>Barangay</th><th>Purok</th><th>Message</th><th>Status</th><th>Received</th>
+                </tr>
+              </thead>
+              <tbody id="smsHistoryTableBody">
+                <tr><td colspan="8" class="text-center">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
     const barangays = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
     const barangayFilter = document.getElementById('barangayFilter');
     const purokFilter = document.getElementById('purokFilter');
@@ -811,6 +864,171 @@
       document.getElementById('sendSmsBtn').disabled = document.querySelectorAll('.rowCheckbox:checked').length === 0;
     }
 
+    let currentViewSeniorId = '';
+    let currentViewSeniorData = null;
+
+    function getSeniorFromRow(row) {
+      const viewBtn = row ? row.querySelector('.view-btn') : null;
+      if (!viewBtn) return {};
+      try {
+        return JSON.parse(viewBtn.dataset.senior || '{}');
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function getSeniorPhone(senior) {
+      const contacts = senior && senior.identifying_information && Array.isArray(senior.identifying_information.contacts)
+        ? senior.identifying_information.contacts
+        : (Array.isArray(senior.contacts) ? senior.contacts : []);
+      const primary = contacts.find(function (c) { return c && c.phone; }) || {};
+      return String(primary.phone || senior.contact || '').trim();
+    }
+
+    function setPdfText(form, field, value) {
+      try {
+        form.getTextField(field).setText(String(value || ''));
+      } catch (error) {}
+    }
+
+    function setPdfCheck(form, field, checked) {
+      try {
+        const cb = form.getCheckBox(field);
+        if (checked) cb.check();
+        else cb.uncheck();
+      } catch (error) {}
+    }
+
+    function formatMmDdYyyy(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      const yyyy = String(date.getFullYear());
+      return mm + '/' + dd + '/' + yyyy;
+    }
+
+    async function ensurePdfLibLoaded() {
+      if (window.PDFLib && window.PDFLib.PDFDocument) {
+        return;
+      }
+
+      const cdnUrls = [
+        'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js',
+        'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'
+      ];
+
+      for (const url of cdnUrls) {
+        try {
+          await new Promise(function (resolve, reject) {
+            const script = document.createElement('script');
+            script.src = url;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+          if (window.PDFLib && window.PDFLib.PDFDocument) {
+            return;
+          }
+        } catch (error) {}
+      }
+
+      throw new Error('Unable to load pdf-lib library.');
+    }
+
+    async function fetchTemplateBytes(pathCandidates) {
+      let lastError = 'Template not found.';
+      for (const candidate of pathCandidates) {
+        try {
+          const response = await fetch(candidate, { cache: 'no-store' });
+          if (!response.ok) {
+            lastError = 'HTTP ' + response.status + ' for ' + candidate;
+            continue;
+          }
+          return await response.arrayBuffer();
+        } catch (error) {
+          lastError = (error && error.message) ? error.message : String(error);
+        }
+      }
+      throw new Error(lastError);
+    }
+
+    async function buildSeniorApplicationPdf(senior) {
+      if (!senior) throw new Error('Missing Senior record');
+      await ensurePdfLibLoaded();
+      const info = senior.identifying_information || {};
+      const name = info.name || {};
+      const address = info.address || {};
+      const family = senior.family_composition || {};
+      const education = senior.education_hr_profile || {};
+      const contacts = Array.isArray(info.contacts) ? info.contacts : [];
+      const primary = contacts.find(function (c) { return c && c.phone; }) || null;
+
+      const templateBytes = await fetchTemplateBytes([
+        '/pdf-template/senior',
+        '/default/pdf/SENIOR-FORMFIELD.pdf',
+        'default/pdf/SENIOR-FORMFIELD.pdf',
+        '../default/pdf/SENIOR-FORMFIELD.pdf',
+        '../../default/pdf/SENIOR-FORMFIELD.pdf'
+      ]);
+      const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+      const form = pdfDoc.getForm();
+
+      setPdfText(form, 'LAST NAME', name.last_name || '');
+      setPdfText(form, 'FIRST NAME', name.first_name || '');
+      setPdfText(form, 'MIDDLE NAME', name.middle_name || '');
+      setPdfText(form, 'BARANGAY', address.barangay || '');
+      setPdfText(form, 'PUROK', address.purok || '');
+      setPdfText(form, 'PLACE OF BIRTH', Array.isArray(info.place_of_birth) ? info.place_of_birth.join(', ') : (info.place_of_birth || ''));
+      setPdfText(form, 'MARITAL STATUS', info.marital_status || '');
+      setPdfText(form, 'GENDER', info.gender || '');
+      setPdfText(form, 'CONTACT', primary && primary.phone ? primary.phone : '');
+      setPdfText(form, 'EMAIL', primary && primary.email ? primary.email : '');
+      setPdfText(form, 'OSCA ID', info.osca_id_number || '');
+      setPdfText(form, 'GSIS/SSS', info.gsis_sss || '');
+      setPdfText(form, 'TIN', info.tin || '');
+      setPdfText(form, 'PHILHEALTH', info.philhealth || '');
+      setPdfText(form, 'OTHER ID', info.other_govt_id || '');
+      setPdfText(form, 'SERVICE BUSINESS EMPLOYMENT', info.service_business_employment || '');
+      setPdfText(form, 'CURRENT PENSION', info.current_pension || '');
+      setPdfText(form, 'NAME OF SPOUSE', family.spouse && family.spouse.name ? family.spouse.name : '');
+
+      const father = family.father || {};
+      const mother = family.mother || {};
+      setPdfText(form, 'FATHER FIRST NAME', father.first_name || '');
+      setPdfText(form, 'FATHER LAST NAME', father.last_name || '');
+      setPdfText(form, 'FATHER MIDDLE NAME', father.middle_name || '');
+      setPdfText(form, 'FATHER EXTENSION', father.extension || '');
+      setPdfText(form, 'MOTHER FIRST NAME', mother.first_name || '');
+      setPdfText(form, 'MOTHER LAST NAME', mother.last_name || '');
+      setPdfText(form, 'MOTHER MIDDLE NAME', mother.middle_name || '');
+
+      const dob = formatMmDdYyyy(info.date_of_birth || '');
+      setPdfText(form, 'BIRTHDATE', dob);
+      setPdfText(form, 'Text Field129', dob);
+      setPdfText(form, 'Text Field128', dob);
+      setPdfText(form, 'Text Field127', dob);
+
+      setPdfCheck(form, 'TRAVEL YES', (info.capability_to_travel || '') === 'Yes');
+      setPdfCheck(form, 'TRAVEL NO', (info.capability_to_travel || '') === 'No');
+
+      const levels = Array.isArray(education.educational_attainment) ? education.educational_attainment : [];
+      setPdfCheck(form, 'ELEMENTARY LEVEL', levels.some(function (e) { return String(e).includes('Elementary Level'); }));
+      setPdfCheck(form, 'ELEMENTARY GRADUATE', levels.some(function (e) { return String(e).includes('Elementary Graduate'); }));
+      setPdfCheck(form, 'HIGHSCHOOL LEVEL', levels.some(function (e) { return String(e).includes('High School Level'); }));
+      setPdfCheck(form, 'HIGHSCHOOL GRADUATE', levels.some(function (e) { return String(e).includes('High School Graduate'); }));
+      setPdfCheck(form, 'COLLEGE LEVEL', levels.some(function (e) { return String(e).includes('College Level'); }));
+      setPdfCheck(form, 'COLLEGE GRADUATE', levels.some(function (e) { return String(e).includes('College Graduate'); }));
+      setPdfCheck(form, 'POST GRADUATE', levels.some(function (e) { return String(e).includes('Post Graduate'); }));
+      setPdfCheck(form, 'VOCATIONAL', levels.some(function (e) { return String(e).includes('Vocational'); }));
+      setPdfCheck(form, 'NOT ATTENDED SCHOOL', levels.some(function (e) { return String(e).includes('Not Attended'); }));
+
+      try { form.flatten(); } catch (error) {}
+      return pdfDoc.save();
+    }
+
     barangayFilter.addEventListener('change', function () {
       const selected = this.value;
       purokFilter.innerHTML = '<option value="">First select a Barangay</option>';
@@ -846,11 +1064,147 @@
     });
 
     document.getElementById('sendSmsBtn').addEventListener('click', function () {
-      alert('SMS action is connected to the selected senior records.');
+      const selected = Array.from(document.querySelectorAll('.rowCheckbox:checked'));
+      const recipientsList = document.getElementById('recipientsList');
+      recipientsList.innerHTML = '';
+
+      selected.forEach(function (checkbox) {
+        const row = checkbox.closest('tr');
+        const senior = getSeniorFromRow(row);
+        const phone = getSeniorPhone(senior);
+        if (!phone) return;
+        const fullName = [senior.first_name, senior.middle_name, senior.last_name, senior.extension].filter(Boolean).join(' ').trim() || row.children[1].textContent.trim();
+        const item = document.createElement('div');
+        item.className = 'recipient-item';
+        item.dataset.phone = phone;
+        item.dataset.name = fullName;
+        item.dataset.firstName = senior.first_name || '';
+        item.dataset.middleName = senior.middle_name || '';
+        item.dataset.lastName = senior.last_name || '';
+        item.dataset.barangay = senior.barangay || '';
+        item.dataset.purok = senior.purok || '';
+        item.dataset.recordId = String(senior.id || checkbox.value || '');
+        item.innerHTML = '<strong>' + fullName + '</strong> <span class="text-muted">' + phone + '</span>';
+        recipientsList.appendChild(item);
+      });
+
+      if (!recipientsList.children.length) {
+        alert('No selected records have a mobile number.');
+        return;
+      }
+
+      $('#assistanceModal').modal('show');
     });
 
-    document.getElementById('viewHistoryBtn').addEventListener('click', function () {
-      alert('SMS history view is not wired yet.');
+    const smsMessage = document.getElementById('smsMessage');
+    if (smsMessage) {
+      smsMessage.addEventListener('input', function () {
+        document.getElementById('charCount').textContent = String(smsMessage.value.length);
+      });
+    }
+
+    document.getElementById('sendSmsModalBtn').addEventListener('click', async function () {
+      const btn = this;
+      const message = (document.getElementById('smsMessage').value || '').trim();
+      const recipients = Array.from(document.querySelectorAll('#recipientsList .recipient-item')).map(function (el) {
+        return {
+          phone: el.dataset.phone || '',
+          name: el.dataset.name || '',
+          first_name: el.dataset.firstName || '',
+          middle_name: el.dataset.middleName || '',
+          last_name: el.dataset.lastName || '',
+          barangay: el.dataset.barangay || '',
+          purok: el.dataset.purok || '',
+          record_id: el.dataset.recordId || '',
+          recipient_type: 'Senior'
+        };
+      });
+
+      if (!message) {
+        alert('Please enter a message.');
+        return;
+      }
+      if (!recipients.length) {
+        alert('No recipients selected.');
+        return;
+      }
+
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      try {
+        const response = await fetch('/send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recipients: recipients, message: message })
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload || payload.success !== true) {
+          alert((payload && (payload.error || payload.message)) ? (payload.error || payload.message) : 'Failed to send SMS.');
+          return;
+        }
+        alert('SMS has been sent successfully!');
+        document.getElementById('smsMessage').value = '';
+        document.getElementById('charCount').textContent = '0';
+        $('#assistanceModal').modal('hide');
+      } catch (error) {
+        alert('The SMS service is down at the moment, sorry. Please try again later.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    });
+
+    document.getElementById('viewHistoryBtn').addEventListener('click', async function () {
+      $('#smsHistoryModal').modal('show');
+      const tableBody = document.getElementById('smsHistoryTableBody');
+      tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Loading...</td></tr>';
+      try {
+        const response = await fetch('/sms-history?recipient_type=Senior&limit=200');
+        const payload = await response.json();
+        if (!response.ok || !payload || payload.success !== true || !Array.isArray(payload.data)) {
+          tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading SMS history</td></tr>';
+          return;
+        }
+        if (!payload.data.length) {
+          tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No SMS history found</td></tr>';
+          return;
+        }
+        tableBody.innerHTML = payload.data.map(function (record) {
+          const sentAt = record.sent_at ? new Date(String(record.sent_at).replace(' ', 'T')).toLocaleString() : 'N/A';
+          const fullName = [record.first_name, record.middle_name, record.last_name].filter(Boolean).join(' ').trim() || 'N/A';
+          const checked = record.received ? 'checked' : '';
+          return '<tr>'
+            + '<td>' + sentAt + '</td>'
+            + '<td>' + (record.phone_number || 'N/A') + '</td>'
+            + '<td>' + fullName + '</td>'
+            + '<td>' + (record.barangay || 'N/A') + '</td>'
+            + '<td>' + (record.purok || 'N/A') + '</td>'
+            + '<td>' + (record.message || 'N/A') + '</td>'
+            + '<td>' + (record.status || 'N/A') + '</td>'
+            + '<td class="text-center"><input type="checkbox" class="sms-received-checkbox" data-sms-id="' + (record._id || '') + '" ' + checked + '></td>'
+            + '</tr>';
+        }).join('');
+        document.querySelectorAll('.sms-received-checkbox').forEach(function (checkbox) {
+          checkbox.addEventListener('change', async function () {
+            const desired = checkbox.checked;
+            try {
+              const response = await fetch('/update-sms-received', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ smsId: checkbox.dataset.smsId, received: desired })
+              });
+              if (!response.ok) {
+                checkbox.checked = !desired;
+              }
+            } catch (error) {
+              checkbox.checked = !desired;
+            }
+          });
+        });
+      } catch (error) {
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading SMS history</td></tr>';
+      }
     });
 
     // Multi-step form functions
@@ -1563,6 +1917,8 @@
 
       viewRenderContacts(contacts);
       viewRenderChildren(children);
+      currentViewSeniorId = seniorRecordId ? String(seniorRecordId) : '';
+      currentViewSeniorData = senior;
       loadSeniorEditLogs(seniorRecordId);
 
       $('#viewSeniorModal').modal('show');
@@ -1642,6 +1998,23 @@
             });
           }
         });
+      }
+    });
+
+    document.getElementById('printApplicationBtn').addEventListener('click', async function () {
+      if (!currentViewSeniorId) {
+        alert('Please open a Senior Citizen record before printing.');
+        return;
+      }
+      try {
+        const bytes = await buildSeniorApplicationPdf(currentViewSeniorData);
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+      } catch (error) {
+        console.error('Senior browser PDF generation failed:', error);
+        alert('Failed to generate application PDF in browser: ' + ((error && error.message) ? error.message : String(error)));
       }
     });
 
