@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" type="image/png" href="/php/assets/images/logo-ebmag.png">
   <title>Social Welfare System - Office of Senior Citizen Affairs Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <style>
@@ -10,7 +11,7 @@
     * { box-sizing: border-box; }
     html, body { width: 100%; min-height: 100%; }
     .layout { display: flex; align-items: stretch; min-height: 100vh; width: 100%; }
-    .sidebar { flex: 0 0 260px; width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; overflow-y: auto; }
+    .sidebar { flex: 0 0 260px; width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; margin-top: 16px; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
@@ -100,7 +101,7 @@
     .edit-log-muted { color: #6b7280; font-size: 12px; }
     @media (max-width: 980px) {
       .layout { flex-direction: column; }
-      .sidebar { flex: none; width: 100%; }
+      .sidebar { flex: none; width: 100%; position: static; height: auto; max-height: none; }
       .cards { grid-template-columns: 1fr; }
     }
   </style>
@@ -118,7 +119,16 @@
     <main class="main">
       <div class="top">
         <h1 class="h4 mb-0">Office of Senior Citizen Affairs Dashboard</h1>
-        <div class="top-actions">
+        <div class="top-actions" style="display:flex;align-items:center;gap:12px;">
+          <div style="position:relative;">
+            <button id="notifBellSenior" class="header-action" style="background:transparent;border:0;cursor:pointer;padding:8px;border-radius:8px;">
+              🔔 <span id="notifBadgeSenior" style="background:#dc2626;color:#fff;border-radius:10px;padding:2px 6px;font-size:12px;display:none;margin-left:6px;">0</span>
+            </button>
+            <div id="notifDropdownSenior" style="display:none;position:absolute;right:0;top:44px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);width:360px;max-height:320px;overflow:auto;padding:8px;z-index:2000;">
+              <div style="font-weight:700;padding:8px;border-bottom:1px solid #f3f4f6;">Notifications</div>
+              <div id="notifListSenior" style="padding:8px;font-size:13px;color:#374151;"></div>
+            </div>
+          </div>
           <a class="header-action" href="/add_senior" id="addSeniorBtn" target="_blank">
             <i class="feather icon-user-plus"></i>
             <span>Add Senior</span>
@@ -207,6 +217,11 @@
               <?php endforeach; ?>
             </tbody>
           </table>
+        </div>
+
+        <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <small id="seniorPaginationInfo">Showing 0-0 of 0 records</small>
+          <div id="seniorPaginationControls" class="btn-group btn-group-sm" style="display: flex; gap: 4px;"></div>
         </div>
 
         <div class="action-bar">
@@ -858,10 +873,99 @@
         entryCount.textContent = visibleCount;
       }
       updateActions();
+      updateSeniorPagination();
     }
 
     function updateActions() {
       document.getElementById('sendSmsBtn').disabled = document.querySelectorAll('.rowCheckbox:checked').length === 0;
+    }
+
+    // Pagination variables
+    let seniorCurrentPage = 1;
+    const seniorItemsPerPage = 10;
+
+    function getSeniorVisibleRows() {
+      return Array.from(document.querySelectorAll('#seniorTable tbody tr')).filter(row => row.style.display !== 'none');
+    }
+
+    function updateSeniorPagination() {
+      const visibleRows = getSeniorVisibleRows();
+      const totalItems = visibleRows.length;
+      const totalPages = Math.ceil(totalItems / seniorItemsPerPage);
+      
+      // Reset to first page if current page is out of bounds
+      if (seniorCurrentPage > totalPages && totalPages > 0) {
+        seniorCurrentPage = totalPages;
+      } else if (totalPages === 0) {
+        seniorCurrentPage = 1;
+      }
+      
+      // Update pagination info
+      const startItem = totalItems === 0 ? 0 : (seniorCurrentPage - 1) * seniorItemsPerPage + 1;
+      const endItem = Math.min(seniorCurrentPage * seniorItemsPerPage, totalItems);
+      document.getElementById('seniorPaginationInfo').textContent = `Showing ${startItem}-${endItem} of ${totalItems} records`;
+      
+      // Show/hide rows based on current page
+      visibleRows.forEach((row, index) => {
+        const rowPage = Math.floor(index / seniorItemsPerPage) + 1;
+        row.style.display = rowPage === seniorCurrentPage ? '' : 'none';
+      });
+      
+      // Update pagination controls
+      renderSeniorPaginationControls(totalPages);
+    }
+
+    function renderSeniorPaginationControls(totalPages) {
+      const controls = document.getElementById('seniorPaginationControls');
+      controls.innerHTML = '';
+      
+      if (totalPages <= 1) return;
+      
+      // Previous button
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'btn btn-sm btn-outline-secondary';
+      prevBtn.textContent = 'Previous';
+      prevBtn.disabled = seniorCurrentPage === 1;
+      prevBtn.onclick = () => {
+        if (seniorCurrentPage > 1) {
+          seniorCurrentPage--;
+          updateSeniorPagination();
+        }
+      };
+      controls.appendChild(prevBtn);
+      
+      // Page numbers
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, seniorCurrentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `btn btn-sm ${i === seniorCurrentPage ? 'btn-primary' : 'btn-outline-secondary'}`;
+        pageBtn.textContent = i;
+        pageBtn.onclick = () => {
+          seniorCurrentPage = i;
+          updateSeniorPagination();
+        };
+        controls.appendChild(pageBtn);
+      }
+      
+      // Next button
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'btn btn-sm btn-outline-secondary';
+      nextBtn.textContent = 'Next';
+      nextBtn.disabled = seniorCurrentPage === totalPages;
+      nextBtn.onclick = () => {
+        if (seniorCurrentPage < totalPages) {
+          seniorCurrentPage++;
+          updateSeniorPagination();
+        }
+      };
+      controls.appendChild(nextBtn);
     }
 
     let currentViewSeniorId = '';
@@ -2207,10 +2311,182 @@
     if (editNextBtnEl) {
       editNextBtnEl.addEventListener('click', handleEditNextClick);
     }
+
+    // Initialize pagination
+    updateSeniorPagination();
+  </script>
+
+  <!-- Socket.IO client and room join for staff pages -->
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script>
+    (function () {
+      try {
+        const host = window.location.hostname || 'localhost';
+        const proto = window.location.protocol === 'https:' ? 'https' : 'http';
+        // Try multiple candidate endpoints: same-origin, 3000, then 8080
+        (function () {
+          const portsToTry = [null, '3000', '8080'];
+          let connected = false;
+          function tryPort(index) {
+            if (connected) return;
+            if (index >= portsToTry.length) {
+              console.warn('Socket.IO: unable to connect to any candidate ports');
+              return;
+            }
+            const port = portsToTry[index];
+            let socket;
+            try {
+              if (port === null) {
+                socket = io({ transports: ['websocket', 'polling'], timeout: 5000 });
+              } else {
+                const url = proto + '://' + host + ':' + port;
+                socket = io(url, { transports: ['websocket', 'polling'], timeout: 5000 });
+              }
+            } catch (err) {
+              console.warn('Socket.IO instantiation failed for port', port, err);
+              return tryPort(index + 1);
+            }
+
+            socket.on('connect', function () {
+              connected = true;
+              console.debug('socket connected', socket.id, 'via port', port || '(same origin)');
+              try { socket.emit('join-room', 'staff'); } catch (e) {}
+              window._socket = socket;
+            });
+
+            socket.on('connect_error', function (err) {
+              console.debug('connect_error on port', port, err && err.message);
+              try { socket.close && socket.close(); } catch (e) {}
+              if (!connected) tryPort(index + 1);
+            });
+
+            socket.on('disconnect', function (reason) {
+              console.debug('socket disconnected', reason);
+            });
+
+              socket.on('receive-alert', function (data) {
+                try {
+                  console.info('receive-alert', data);
+                  const title = data && data.subject ? data.subject : ((data && data.from) ? ('Alert from ' + data.from) : 'Alert');
+                  const message = data && data.message ? data.message : 'You have a new notification.';
+                  if (window.Swal && typeof Swal.fire === 'function') {
+                    Swal.fire({ title: title, text: String(message), icon: 'info', toast: true, position: 'top-end', timer: 8000 });
+                  }
+                  try { if (typeof window.loadNotificationsSenior === 'function') window.loadNotificationsSenior(); } catch (e) { console.warn(e); }
+                } catch (err) { console.warn('alert handler error', err); }
+              });
+          }
+          tryPort(0);
+        })();
+      } catch (error) {
+        console.warn('Socket initialization failed', error);
+      }
+    })();
   </script>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // UI helper for senior page notifications
+    (function () {
+      const badge = document.getElementById('notifBadgeSenior');
+      const list = document.getElementById('notifListSenior');
+      const dropdown = document.getElementById('notifDropdownSenior');
+      const bell = document.getElementById('notifBellSenior');
+      let notifications = [];
+      function escapeHtml(text) {
+        return String(text == null ? '' : text).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function formatDate(value) {
+        if (!value) return new Date().toLocaleString();
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? new Date().toLocaleString() : parsed.toLocaleString();
+      }
+      async function markNotificationRead(notificationId) {
+        try {
+          await fetch('/api/notifications/mark-read', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notification_id: notificationId })
+          });
+        } catch (error) {
+          console.warn('Failed to mark notification as read', error);
+        }
+      }
+      function renderNotifications() {
+        if (!list) return;
+        const unreadCount = notifications.filter(n => !n.is_read).length;
+        if (badge) {
+          badge.style.display = unreadCount > 0 ? '' : 'none';
+          badge.textContent = String(unreadCount);
+        }
+        if (notifications.length === 0) {
+          list.innerHTML = '<div style="padding:8px;color:#6b7280;">No notifications yet.</div>';
+          return;
+        }
+        list.innerHTML = '';
+        notifications.forEach(function (notif) {
+          const item = document.createElement('div');
+          item.style.padding = '10px';
+          item.style.borderBottom = '1px solid #f3f4f6';
+          item.style.cursor = 'pointer';
+          item.style.background = notif.is_read ? '#fff' : '#f8fafc';
+          item.innerHTML =
+            '<div style="display:flex;justify-content:space-between;gap:8px;">' +
+              '<div style="font-weight:700;">' + escapeHtml(notif.subject || notif.from || 'Alert') + '</div>' +
+              (notif.is_read ? '' : '<span style="font-size:11px;color:#0f766e;font-weight:700;">NEW</span>') +
+            '</div>' +
+            '<div style="font-size:13px;margin-top:4px;">' + escapeHtml(notif.message || '') + '</div>' +
+            '<div style="font-size:12px;color:#6b7280;margin-top:6px;">' + escapeHtml(formatDate(notif.created_at)) + '</div>';
+          item.addEventListener('click', async function () {
+            if (!notif.is_read) {
+              await markNotificationRead(notif.id);
+              notif.is_read = true;
+              renderNotifications();
+            }
+          });
+          list.appendChild(item);
+        });
+      }
+      window.loadNotificationsSenior = async function () {
+        try {
+          const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+          const json = await res.json();
+          notifications = (json && json.success && Array.isArray(json.data)) ? json.data : [];
+          renderNotifications();
+        } catch (error) {
+          console.warn('Failed to load notifications', error);
+        }
+      };
+      async function markVisibleNotificationsRead() {
+        const unread = notifications.filter(n => !n.is_read && n.id);
+        if (unread.length === 0) return;
+        await Promise.all(unread.map(n => markNotificationRead(n.id)));
+        notifications = notifications.map(n => ({ ...n, is_read: true }));
+        renderNotifications();
+      }
+      if (bell) {
+        bell.addEventListener('click', async function (e) {
+          e.stopPropagation();
+          if (!dropdown) return;
+          dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+          if (dropdown.style.display === 'block') {
+            await window.loadNotificationsSenior();
+            await markVisibleNotificationsRead();
+          }
+        });
+        document.addEventListener('click', function () { if (dropdown) dropdown.style.display = 'none'; });
+      }
+      window.loadNotificationsSenior();
+      setInterval(window.loadNotificationsSenior, 10000);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) window.loadNotificationsSenior();
+      });
+    })();
+  </script>
 </body>
 </html>

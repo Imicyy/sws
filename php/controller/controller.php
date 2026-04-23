@@ -2566,6 +2566,19 @@ class Controller
         ]);
     }
 
+    public function renderRegister(): void
+    {
+        try {
+            $barangayList = $this->queryAll('SELECT id, barangay FROM barangays ORDER BY barangay ASC');
+        } catch (Throwable $e) {
+            $barangayList = [];
+        }
+
+        $this->render('auth/register', [
+            'barangayList' => $barangayList,
+        ]);
+    }
+
     public function renderSeniorForm(): void
     {
         try {
@@ -3023,21 +3036,318 @@ class Controller
         $this->render('admin/alert', ['title' => 'Admin Alert', 'user' => $_SESSION['user'] ?? null]);
     }
 
+    private function ensureNotificationsTables(): void
+    {
+        $this->execute(
+            'CREATE TABLE IF NOT EXISTS notifications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                target_role VARCHAR(32) NOT NULL,
+                target_user_id INT NULL,
+                target_barangay VARCHAR(190) NULL,
+                target_staff_classification VARCHAR(32) NULL,
+                subject VARCHAR(255) NULL,
+                message TEXT NOT NULL,
+                created_by_user_id INT NULL,
+                created_by_name VARCHAR(190) NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_target_role (target_role),
+                INDEX idx_target_user_id (target_user_id),
+                INDEX idx_target_barangay (target_barangay),
+                INDEX idx_target_staff_classification (target_staff_classification)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        $this->execute(
+            'CREATE TABLE IF NOT EXISTS notification_reads (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                notification_id INT NOT NULL,
+                user_id INT NOT NULL,
+                read_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_notification_user (notification_id, user_id),
+                INDEX idx_user_id (user_id),
+                CONSTRAINT fk_notification_reads_notification
+                    FOREIGN KEY (notification_id) REFERENCES notifications(id)
+                    ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+    }
+
+    private function normalizeSelectionValues(mixed $values): array
+    {
+        if (!is_array($values)) {
+            return [];
+        }
+        $normalized = [];
+        foreach ($values as $value) {
+            $v = trim((string) $value);
+            if ($v !== '') {
+                $normalized[] = $v;
+            }
+        }
+        return array_values(array_unique($normalized));
+    }
+
+    private function insertNotificationRow(
+        string $targetRole,
+        ?int $targetUserId,
+        ?string $targetBarangay,
+        ?string $targetStaffClassification,
+        ?string $subject,
+        string $message,
+        ?int $createdByUserId,
+        ?string $createdByName
+    ): void {
+        $this->execute(
+            'INSERT INTO notifications
+                (target_role, target_user_id, target_barangay, target_staff_classification, subject, message, created_by_user_id, created_by_name)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                $targetRole,
+                $targetUserId,
+                $targetBarangay,
+                $targetStaffClassification,
+                $subject,
+                $message,
+                $createdByUserId,
+                $createdByName,
+            ]
+        );
+    }
+
     public function sendAlert(): void
     {
         $body = $this->input();
         $message = trim((string) ($body['message'] ?? ''));
         $room = trim((string) ($body['room'] ?? ''));
+        $subject = trim((string) ($body['subject'] ?? ''));
+        $staffTargets = $this->normalizeSelectionValues($body['staffTargets'] ?? []);
+        $barangayTargets = $this->normalizeSelectionValues($body['barangayTargets'] ?? []);
 
         if ($message === '' || $room === '') {
             $this->jsonResponse(['success' => false, 'error' => 'Message and room are required'], 400);
         }
 
-        if (!in_array($room, ['staff', 'youth', 'barangay'], true)) {
-            $this->jsonResponse(['success' => false, 'error' => "Invalid room. Must be 'staff', 'youth', or 'barangay'"], 400);
+        if (!in_array($room, ['staff', 'barangay'], true)) {
+            $this->jsonResponse(['success' => false, 'error' => "Invalid room. Must be 'staff' or 'barangay'"], 400);
         }
 
-        $this->jsonResponse(['success' => true, 'message' => 'Alert accepted (socket broadcast migration pending)']);
+        try {
+            $this->ensureNotificationsTables();
+            $sessionUser = $_SESSION['user'] ?? null;
+            $createdByUserId = is_array($sessionUser) && isset($sessionUser['id']) ? (int) $sessionUser['id'] : null;
+            $createdByName = is_array($sessionUser) ? (string) ($sessionUser['name'] ?? $sessionUser['email'] ?? 'Admin') : 'Admin';
+            $subject = $subject !== '' ? $subject : null;
+
+            $inserted = 0;
+
+            if ($room === 'staff') {
+                $targetUserIds = [];
+                $targetClassifications = [];
+                $sendToAllStaff = empty($staffTargets);
+
+                foreach ($staffTargets as $target) {
+                    if ($target === '__all_staff__') {
+                        $sendToAllStaff = true;
+                        continue;
+                    }
+                    if ($target === '__all_pdao__') {
+                        $targetClassifications['PDAO'] = true;
+                        continue;
+                    }
+                    if ($target === '__all_osca__') {
+                        $targetClassifications['OSCA'] = true;
+                        continue;
+                    }
+                    if (ctype_digit($target)) {
+                        $targetUserIds[(int) $target] = true;
+                    }
+                }
+
+                // If target tokens were provided but none mapped to a valid selector,
+                // fall back to all staff so alerts are not silently dropped.
+                if (!$sendToAllStaff && count($targetUserIds) === 0 && count($targetClassifications) === 0) {
+                    $sendToAllStaff = true;
+                }
+
+                if ($sendToAllStaff) {
+                    $this->insertNotificationRow('staff', null, null, null, $subject, $message, $createdByUserId, $createdByName);
+                    $inserted += 1;
+                } else {
+                    foreach (array_keys($targetClassifications) as $classification) {
+                        $this->insertNotificationRow('staff', null, null, $classification, $subject, $message, $createdByUserId, $createdByName);
+                        $inserted += 1;
+                    }
+                    foreach (array_keys($targetUserIds) as $userId) {
+                        $this->insertNotificationRow('staff', $userId, null, null, $subject, $message, $createdByUserId, $createdByName);
+                        $inserted += 1;
+                    }
+                }
+            }
+
+            if ($room === 'barangay') {
+                $sendToAllBarangays = empty($barangayTargets);
+                $targetBarangays = [];
+                foreach ($barangayTargets as $target) {
+                    if ($target === '__all_barangay__') {
+                        $sendToAllBarangays = true;
+                        continue;
+                    }
+                    $targetBarangays[$target] = true;
+                }
+
+                // If tokens exist but no concrete barangay parsed, send to all barangays.
+                if (!$sendToAllBarangays && count($targetBarangays) === 0) {
+                    $sendToAllBarangays = true;
+                }
+
+                if ($sendToAllBarangays) {
+                    $this->insertNotificationRow('barangay', null, null, null, $subject, $message, $createdByUserId, $createdByName);
+                    $inserted += 1;
+                } else {
+                    foreach (array_keys($targetBarangays) as $barangayName) {
+                        $this->insertNotificationRow('barangay', null, $barangayName, null, $subject, $message, $createdByUserId, $createdByName);
+                        $inserted += 1;
+                    }
+                }
+            }
+
+            if ($inserted <= 0) {
+                $this->jsonResponse([
+                    'success' => false,
+                    'error' => 'No recipients resolved for this alert.',
+                ], 400);
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Alert sent successfully.',
+                'notifications_created' => $inserted,
+            ]);
+        } catch (Throwable $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => 'Failed to save alert notification.',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getNotifications(): void
+    {
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (!is_array($sessionUser)) {
+            $this->jsonResponse(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $this->ensureNotificationsTables();
+            $userId = (int) ($sessionUser['id'] ?? 0);
+            $role = strtolower((string) ($sessionUser['role'] ?? ''));
+            $isBarangay = $role === 'barangay';
+            $targetRole = $isBarangay ? 'barangay' : 'staff';
+
+            $params = [$userId, $targetRole];
+            $filters = ['n.target_role = ?'];
+            if ($isBarangay) {
+                $scope = $this->fetchBarangayScopeForSessionUser($sessionUser);
+                if ($scope === null || trim((string) ($scope['barangay'] ?? '')) === '') {
+                    $this->jsonResponse(['success' => true, 'data' => []]);
+                }
+                $barangayName = trim((string) $scope['barangay']);
+                $filters[] = '(n.target_user_id IS NULL OR n.target_user_id = ?)';
+                $params[] = $userId;
+                $filters[] = '(n.target_barangay IS NULL OR n.target_barangay = ?)';
+                $params[] = $barangayName;
+            } else {
+                $staffClassification = strtoupper(trim((string) ($sessionUser['staff_classification'] ?? '')));
+                $filters[] = '(n.target_user_id IS NULL OR n.target_user_id = ?)';
+                $params[] = $userId;
+                if ($staffClassification !== '') {
+                    $filters[] = '(n.target_staff_classification IS NULL OR UPPER(n.target_staff_classification) = ?)';
+                    $params[] = $staffClassification;
+                } else {
+                    $filters[] = 'n.target_staff_classification IS NULL';
+                }
+            }
+
+            $sql = 'SELECT
+                        n.id,
+                        n.subject,
+                        n.message,
+                        n.created_by_name,
+                        n.created_at,
+                        CASE WHEN nr.id IS NULL THEN 0 ELSE 1 END AS is_read
+                    FROM notifications n
+                    LEFT JOIN notification_reads nr
+                        ON nr.notification_id = n.id AND nr.user_id = ?
+                    WHERE ' . implode(' AND ', $filters) . '
+                    ORDER BY n.created_at DESC
+                    LIMIT 100';
+
+            $rows = $this->queryAll($sql, $params);
+            $data = [];
+            foreach ($rows as $row) {
+                $data[] = [
+                    'id' => (int) ($row['id'] ?? 0),
+                    'subject' => (string) ($row['subject'] ?? ''),
+                    'message' => (string) ($row['message'] ?? ''),
+                    'from' => (string) ($row['created_by_name'] ?? 'Admin'),
+                    'created_at' => (string) ($row['created_at'] ?? ''),
+                    'is_read' => (int) ($row['is_read'] ?? 0) === 1,
+                ];
+            }
+
+            $this->jsonResponse(['success' => true, 'data' => $data]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to load notifications'], 500);
+        }
+    }
+
+    public function markNotificationRead(): void
+    {
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (!is_array($sessionUser)) {
+            $this->jsonResponse(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $body = $this->input();
+        $notificationId = isset($body['notification_id']) ? (int) $body['notification_id'] : 0;
+        $markAll = !empty($body['all']);
+        $userId = (int) ($sessionUser['id'] ?? 0);
+
+        if ($userId <= 0) {
+            $this->jsonResponse(['success' => false, 'message' => 'Invalid user'], 400);
+        }
+
+        try {
+            $this->ensureNotificationsTables();
+            if ($markAll) {
+                $list = $this->queryAll('SELECT id FROM notifications ORDER BY id DESC LIMIT 500');
+                foreach ($list as $row) {
+                    $nid = (int) ($row['id'] ?? 0);
+                    if ($nid <= 0) {
+                        continue;
+                    }
+                    $this->execute(
+                        'INSERT IGNORE INTO notification_reads (notification_id, user_id, read_at) VALUES (?, ?, NOW())',
+                        [$nid, $userId]
+                    );
+                }
+                $this->jsonResponse(['success' => true]);
+            }
+
+            if ($notificationId <= 0) {
+                $this->jsonResponse(['success' => false, 'message' => 'notification_id is required'], 400);
+            }
+
+            $this->execute(
+                'INSERT IGNORE INTO notification_reads (notification_id, user_id, read_at) VALUES (?, ?, NOW())',
+                [$notificationId, $userId]
+            );
+            $this->jsonResponse(['success' => true]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to mark notification as read'], 500);
+        }
     }
 
     public function renderBarangay(): void
@@ -3056,6 +3366,33 @@ class Controller
         $scope = $this->fetchBarangayScopeForSessionUser($sessionUser);
         $this->render('barangay/dashboard', [
             'title' => 'Barangay Dashboard',
+            'user' => $sessionUser,
+            'assignedBarangayName' => $scope['barangay'] ?? '',
+        ]);
+    }
+
+    public function renderBarangaySeniorDashboard(): void
+    {
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (!is_array($sessionUser)) {
+            $this->redirect('/');
+        }
+
+        if (($sessionUser['role'] ?? '') !== 'Barangay') {
+            http_response_code(403);
+            echo 'Forbidden';
+            exit;
+        }
+
+        $scope = $this->fetchBarangayScopeForSessionUser($sessionUser);
+        if ($scope === null) {
+            http_response_code(403);
+            echo 'This account is not linked to a barangay. Contact an administrator.';
+            exit;
+        }
+
+        $this->render('barangay/senior_dashboard', [
+            'title' => 'Barangay — Senior Citizen Analytics',
             'user' => $sessionUser,
             'assignedBarangayName' => $scope['barangay'] ?? '',
         ]);
@@ -3094,11 +3431,18 @@ class Controller
             [$scope['barangay']]
         );
 
+        $barangays = $this->fetchBarangays();
+        $puroks = [];
+        if (is_array($barangays) && isset($barangays[$scope['barangay']])) {
+            $puroks = $barangays[$scope['barangay']];
+        }
+
         $this->render('barangay/senior_list', [
             'title' => 'Barangay Senior',
             'user' => $sessionUser,
             'assignedBarangayName' => $scope['barangay'],
             'seniors' => $rows,
+            'puroks' => $puroks,
         ]);
     }
 
@@ -3135,11 +3479,18 @@ class Controller
             [$scope['barangay']]
         );
 
+        $barangays = $this->fetchBarangays();
+        $puroks = [];
+        if (is_array($barangays) && isset($barangays[$scope['barangay']])) {
+            $puroks = $barangays[$scope['barangay']];
+        }
+
         $this->render('barangay/pwd_list', [
             'title' => 'Barangay PWD',
             'user' => $sessionUser,
             'assignedBarangayName' => $scope['barangay'],
             'pwds' => $rows,
+            'puroks' => $puroks,
         ]);
     }
 
@@ -3422,5 +3773,98 @@ class Controller
             'success' => false,
             'message' => $methodName . ' is not yet ported to PHP.',
         ], 501);
+    }
+
+    public function getUserEditLogs(): void
+    {
+        try {
+            $user = $_GET['user'] ?? '';
+            $hours = isset($_GET['hours']) ? (int) $_GET['hours'] : 24;
+            
+            if (empty($user)) {
+                $this->jsonResponse(['success' => false, 'message' => 'User identifier is required'], 400);
+            }
+
+            // Calculate the timestamp for the last X hours
+            $since = date('Y-m-d H:i:s', strtotime("-{$hours} hours"));
+
+            // Get PWD edit logs
+            $pwdLogs = $this->queryAll(
+                'SELECT \'pwd\' AS record_type, l.id, l.pwd_id AS record_id, l.field, l.old_value, l.new_value, l.edited_by, l.edited_at,
+                        TRIM(CONCAT(IFNULL(p.first_name, ""), " ", IFNULL(p.middle_name, ""), " ", IFNULL(p.last_name, ""))) AS record_name
+                 FROM pwd_edit_logs l
+                 LEFT JOIN pwd p ON p.id = l.pwd_id
+                 WHERE l.edited_by = ? AND l.edited_at >= ?
+                 ORDER BY l.edited_at DESC',
+                [$user, $since]
+            );
+
+            // Get Senior edit logs
+            $seniorLogs = $this->queryAll(
+                'SELECT \'senior\' AS record_type, l.id, l.senior_id AS record_id, l.field, l.old_value, l.new_value, l.edited_by, l.edited_at,
+                        TRIM(CONCAT(IFNULL(s.first_name, ""), " ", IFNULL(s.middle_name, ""), " ", IFNULL(s.last_name, ""))) AS record_name
+                 FROM senior_edit_logs l
+                 LEFT JOIN senior_citizens s ON s.id = l.senior_id
+                 WHERE l.edited_by = ? AND l.edited_at >= ?
+                 ORDER BY l.edited_at DESC',
+                [$user, $since]
+            );
+
+            // Combine and sort by edited_at
+            $allLogs = array_merge($pwdLogs, $seniorLogs);
+            usort($allLogs, function($a, $b) {
+                return strtotime($b['edited_at']) - strtotime($a['edited_at']);
+            });
+
+            $this->jsonResponse(['success' => true, 'logs' => $allLogs]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to fetch user edit logs'], 500);
+        }
+    }
+
+    public function getUserActivities(): void
+    {
+        try {
+            $user = $_GET['user'] ?? '';
+            $hours = isset($_GET['hours']) ? (int) $_GET['hours'] : 24;
+            
+            if (empty($user)) {
+                $this->jsonResponse(['success' => false, 'message' => 'User identifier is required'], 400);
+            }
+
+            // Calculate the timestamp for the last X hours
+            $since = date('Y-m-d H:i:s', strtotime("-{$hours} hours"));
+
+            try {
+                // Try to get activities by user email first
+                $activities = $this->queryAll(
+                    'SELECT ua.id, ua.user_id, ua.activity_type, ua.activity_description, ua.created_at, u.email, u.name
+                     FROM user_activities ua
+                     LEFT JOIN users u ON u.id = ua.user_id
+                     WHERE u.email = ? AND ua.created_at >= ?
+                     ORDER BY ua.created_at DESC',
+                    [$user, $since]
+                );
+
+                // If no activities found by email, try by user_id (for login logs)
+                if (empty($activities) && is_numeric($user)) {
+                    $activities = $this->queryAll(
+                        'SELECT ua.id, ua.user_id, ua.activity_type, ua.activity_description, ua.created_at, u.email, u.name
+                         FROM user_activities ua
+                         LEFT JOIN users u ON u.id = ua.user_id
+                         WHERE ua.user_id = ? AND ua.created_at >= ?
+                         ORDER BY ua.created_at DESC',
+                        [(int)$user, $since]
+                    );
+                }
+            } catch (Throwable $e) {
+                // If table doesn't exist yet, return empty array
+                $activities = [];
+            }
+
+            $this->jsonResponse(['success' => true, 'activities' => $activities]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to fetch user activities'], 500);
+        }
     }
 }

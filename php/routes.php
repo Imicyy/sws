@@ -22,8 +22,8 @@ $router->add('GET', '/', static function () {
     View::render('auth/login', []);
 });
 
-$router->add('GET', '/register', static function () {
-    View::render('auth/register', []);
+$router->add('GET', '/register', static function () use ($controller) {
+    $controller->renderRegister();
 });
 
 $router->add('POST', '/create-user', static function () use ($controller) {
@@ -157,6 +157,12 @@ $router->add('GET', '/admin-alert', static function () use ($controller) {
 $router->add('POST', '/send-alert', static function () use ($controller) {
     $controller->sendAlert();
 }, [$requireAuth]);
+$router->add('GET', '/api/notifications', static function () use ($controller) {
+    $controller->getNotifications();
+}, [$requireAuth]);
+$router->add('POST', '/api/notifications/mark-read', static function () use ($controller) {
+    $controller->markNotificationRead();
+}, [$requireAuth]);
 
 $router->add('POST', '/add-data', static function () use ($controller) {
     $controller->createResident();
@@ -235,3 +241,10 @@ $router->add('GET', '/barangay-senior', static function () use ($controller) {
 $router->add('GET', '/barangay-pwd', static function () use ($controller) {
     $controller->renderBarangayPwd();
 }, [$requireAuth]);
+
+$router->add('GET', '/api/user-edit-logs', static function () use ($controller) {
+    $controller->getUserEditLogs();
+});
+$router->add('GET', '/api/user-activities', static function () use ($controller) {
+    $controller->getUserActivities();
+});

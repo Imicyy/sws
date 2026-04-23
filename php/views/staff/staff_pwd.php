@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" type="image/png" href="/php/assets/images/logo-ebmag.png">
   <title>Social Welfare System - PDAO Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <style>
@@ -10,7 +11,7 @@
     * { box-sizing: border-box; }
     html, body { width: 100%; min-height: 100%; }
     .layout { display: flex; align-items: stretch; min-height: 100vh; width: 100%; }
-    .sidebar { flex: 0 0 260px; width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; overflow-y: auto; }
+    .sidebar { flex: 0 0 260px; width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; margin-top: 16px; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
@@ -164,7 +165,7 @@
     }
     @media (max-width: 980px) {
       .layout { flex-direction: column; }
-      .sidebar { flex: none; width: 100%; }
+      .sidebar { flex: none; width: 100%; position: static; height: auto; max-height: none; }
       .cards { grid-template-columns: 1fr; }
     }
   </style>
@@ -172,11 +173,21 @@
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <div class="brand">ENRIQUE B. MAGALONA</div>
-      <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">PDAO Department</span></div>
-      <div class="nav-title">Navigation</div>
-      <a class="nav-link active" href="/pdao-dashboard">Dashboard</a>
-      <a class="nav-link" href="/logout">Logout</a>
+      <?php if (isset($user) && is_array($user) && (($user['role'] ?? '') === 'Barangay')): ?>
+        <div class="brand">ENRIQUE B. MAGALONA</div>
+        <div class="nav-title">Navigation</div>
+        <a class="nav-link active" href="/barangay">Person With Disability Analytics</a>
+        <a class="nav-link" href="/barangay-senior-dashboard">Senior Citizen Analytics</a>
+        <a class="nav-link" href="/barangay-pwd">Person With Disability List</a>
+        <a class="nav-link" href="/barangay-senior">Senior Citizens List</a>
+        <a class="nav-link" href="/logout">Logout</a>
+      <?php else: ?>
+        <div class="brand">ENRIQUE B. MAGALONA</div>
+        <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">PDAO Department</span></div>
+        <div class="nav-title">Navigation</div>
+        <a class="nav-link active" href="/pdao-dashboard">Dashboard</a>
+        <a class="nav-link" href="/logout">Logout</a>
+      <?php endif; ?>
     </aside>
 
     <main class="main">
@@ -185,6 +196,15 @@
           <h1 class="h4 mb-0">PDAO Dashboard</h1>
         </div>
         <div class="top-right">
+          <div class="notif-container" style="display:flex;align-items:center;margin-right:12px;">
+            <button id="notifBell" class="btn" style="position:relative;padding:8px 10px;border-radius:8px;">
+              🔔 <span id="notifBadge" style="position:absolute;top:0;right:0;background:#dc2626;color:#fff;border-radius:10px;padding:2px 6px;font-size:12px;display:none;">0</span>
+            </button>
+            <div id="notifDropdown" style="display:none;position:absolute;right:20px;top:60px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);width:320px;max-height:300px;overflow:auto;padding:8px;z-index:2000;">
+              <div style="font-weight:700;padding:8px;border-bottom:1px solid #f3f4f6;">Notifications</div>
+              <div id="notifList" style="padding:8px;font-size:13px;color:#374151;"></div>
+            </div>
+          </div>
           <button type="button" class="add-pwd-btn" onclick="window.location.href = window.location.origin + '/add_pwd'">Add PWD</button>
           <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
         </div>
@@ -243,7 +263,7 @@
                 $status = (string) ($pwd['status'] ?? 'Active');
                 $statusClass = $status === 'Archived' ? 'status-archived' : 'status-active';
               ?>
-                <tr data-barangay="<?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?>" data-purok="<?= htmlspecialchars($purok, ENT_QUOTES, 'UTF-8') ?>" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" data-pwd='<?= htmlspecialchars(json_encode($pwd, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'>
+                <tr class="pwd-row" data-barangay="<?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?>" data-purok="<?= htmlspecialchars($purok, ENT_QUOTES, 'UTF-8') ?>" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" data-pwd='<?= htmlspecialchars(json_encode($pwd, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'>
                   <td><input type="checkbox" class="rowCheckbox" value="<?= (int) ($pwd['id'] ?? 0) ?>"></td>
                   <td><?= htmlspecialchars($fullName !== '' ? $fullName : 'Unnamed record', ENT_QUOTES, 'UTF-8') ?></td>
                   <td><?= isset($pwd['age']) && $pwd['age'] !== null ? (int) $pwd['age'] : 'N/A' ?></td>
@@ -261,6 +281,11 @@
               <?php endforeach; ?>
             </tbody>
           </table>
+        </div>
+
+        <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <small id="pwdPaginationInfo">Showing 0-0 of 0 records</small>
+          <div id="pwdPaginationControls" class="btn-group btn-group-sm" style="display: flex; gap: 4px;"></div>
         </div>
 
         <div class="action-bar">
@@ -586,10 +611,99 @@
         entryCountEl.textContent = visibleCount;
       }
       updateActions();
+      updatePwdPagination();
     }
 
     function updateActions() {
       document.getElementById('sendSmsBtn').disabled = document.querySelectorAll('.rowCheckbox:checked').length === 0;
+    }
+
+    // Pagination variables
+    let pwdCurrentPage = 1;
+    const pwdItemsPerPage = 10;
+
+    function getPwdVisibleRows() {
+      return Array.from(document.querySelectorAll('#pwdTable tbody .pwd-row')).filter(row => row.style.display !== 'none');
+    }
+
+    function updatePwdPagination() {
+      const visibleRows = getPwdVisibleRows();
+      const totalItems = visibleRows.length;
+      const totalPages = Math.ceil(totalItems / pwdItemsPerPage);
+      
+      // Reset to first page if current page is out of bounds
+      if (pwdCurrentPage > totalPages && totalPages > 0) {
+        pwdCurrentPage = totalPages;
+      } else if (totalPages === 0) {
+        pwdCurrentPage = 1;
+      }
+      
+      // Update pagination info
+      const startItem = totalItems === 0 ? 0 : (pwdCurrentPage - 1) * pwdItemsPerPage + 1;
+      const endItem = Math.min(pwdCurrentPage * pwdItemsPerPage, totalItems);
+      document.getElementById('pwdPaginationInfo').textContent = `Showing ${startItem}-${endItem} of ${totalItems} records`;
+      
+      // Show/hide rows based on current page
+      visibleRows.forEach((row, index) => {
+        const rowPage = Math.floor(index / pwdItemsPerPage) + 1;
+        row.style.display = rowPage === pwdCurrentPage ? '' : 'none';
+      });
+      
+      // Update pagination controls
+      renderPwdPaginationControls(totalPages);
+    }
+
+    function renderPwdPaginationControls(totalPages) {
+      const controls = document.getElementById('pwdPaginationControls');
+      controls.innerHTML = '';
+      
+      if (totalPages <= 1) return;
+      
+      // Previous button
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'btn btn-sm btn-outline-secondary';
+      prevBtn.textContent = 'Previous';
+      prevBtn.disabled = pwdCurrentPage === 1;
+      prevBtn.onclick = () => {
+        if (pwdCurrentPage > 1) {
+          pwdCurrentPage--;
+          updatePwdPagination();
+        }
+      };
+      controls.appendChild(prevBtn);
+      
+      // Page numbers
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, pwdCurrentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `btn btn-sm ${i === pwdCurrentPage ? 'btn-primary' : 'btn-outline-secondary'}`;
+        pageBtn.textContent = i;
+        pageBtn.onclick = () => {
+          pwdCurrentPage = i;
+          updatePwdPagination();
+        };
+        controls.appendChild(pageBtn);
+      }
+      
+      // Next button
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'btn btn-sm btn-outline-secondary';
+      nextBtn.textContent = 'Next';
+      nextBtn.disabled = pwdCurrentPage === totalPages;
+      nextBtn.onclick = () => {
+        if (pwdCurrentPage < totalPages) {
+          pwdCurrentPage++;
+          updatePwdPagination();
+        }
+      };
+      controls.appendChild(nextBtn);
     }
 
     barangayFilter.addEventListener('change', function () {
@@ -910,6 +1024,125 @@
         }
       });
     });
+
+    // Initialize pagination
+    updatePwdPagination();
+  </script>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script>
+    (function () {
+      const badge = document.getElementById('notifBadge');
+      const list = document.getElementById('notifList');
+      const dropdown = document.getElementById('notifDropdown');
+      const bell = document.getElementById('notifBell');
+      let notifications = [];
+      function escapeHtml(text) {
+        return String(text == null ? '' : text).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function formatDate(value) {
+        if (!value) return new Date().toLocaleString();
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? new Date().toLocaleString() : parsed.toLocaleString();
+      }
+      async function markNotificationRead(notificationId) {
+        try {
+          await fetch('/api/notifications/mark-read', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notification_id: notificationId })
+          });
+        } catch (error) {
+          console.warn('Failed to mark notification as read', error);
+        }
+      }
+      function renderNotifications() {
+        if (!list) return;
+        const unreadCount = notifications.filter(n => !n.is_read).length;
+        if (badge) {
+          badge.style.display = unreadCount > 0 ? '' : 'none';
+          badge.textContent = String(unreadCount);
+        }
+        if (notifications.length === 0) {
+          list.innerHTML = '<div style="padding:8px;color:#6b7280;">No notifications yet.</div>';
+          return;
+        }
+        list.innerHTML = '';
+        notifications.forEach(function (notif) {
+          const item = document.createElement('div');
+          item.style.padding = '10px';
+          item.style.borderBottom = '1px solid #f3f4f6';
+          item.style.cursor = 'pointer';
+          item.style.background = notif.is_read ? '#fff' : '#f8fafc';
+          item.innerHTML =
+            '<div style="display:flex;justify-content:space-between;gap:8px;">' +
+              '<div style="font-weight:700;">' + escapeHtml(notif.subject || notif.from || 'Alert') + '</div>' +
+              (notif.is_read ? '' : '<span style="font-size:11px;color:#0f766e;font-weight:700;">NEW</span>') +
+            '</div>' +
+            '<div style="font-size:13px;margin-top:4px;">' + escapeHtml(notif.message || '') + '</div>' +
+            '<div style="font-size:12px;color:#6b7280;margin-top:6px;">' + escapeHtml(formatDate(notif.created_at)) + '</div>';
+          item.addEventListener('click', async function () {
+            if (!notif.is_read) {
+              await markNotificationRead(notif.id);
+              notif.is_read = true;
+              renderNotifications();
+            }
+          });
+          list.appendChild(item);
+        });
+      }
+      async function loadNotifications() {
+        try {
+          const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+          const json = await res.json();
+          notifications = (json && json.success && Array.isArray(json.data)) ? json.data : [];
+          renderNotifications();
+        } catch (error) {
+          console.warn('Failed to load notifications', error);
+        }
+      }
+      async function markVisibleNotificationsRead() {
+        const unread = notifications.filter(n => !n.is_read && n.id);
+        if (unread.length === 0) return;
+        await Promise.all(unread.map(n => markNotificationRead(n.id)));
+        notifications = notifications.map(n => ({ ...n, is_read: true }));
+        renderNotifications();
+      }
+
+      if (bell) {
+        bell.addEventListener('click', async function (e) {
+          e.stopPropagation();
+          if (!dropdown) return;
+          dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+          if (dropdown.style.display === 'block') {
+            await loadNotifications();
+            await markVisibleNotificationsRead();
+          }
+        });
+        document.addEventListener('click', function () { if (dropdown) dropdown.style.display = 'none'; });
+      }
+
+      // Try connecting to socket on same origin, 3000, then 8080
+      const host = window.location.hostname || 'localhost';
+      const proto = window.location.protocol === 'https:' ? 'https' : 'http';
+      const ports = [null, '3000', '8080'];
+      (function tryConnect(i) {
+        if (i >= ports.length) return;
+        try {
+          const s = ports[i] === null ? io({ transports: ['websocket','polling'], timeout: 4000 }) : io(proto + '://' + host + ':' + ports[i], { transports: ['websocket','polling'], timeout: 4000 });
+          s.on('connect', function () { window._socket = s; console.debug('notif socket connected', s.id); });
+          s.on('connect_error', function () { tryConnect(i+1); });
+          s.on('receive-alert', function () { loadNotifications(); });
+        } catch (e) { tryConnect(i+1); }
+      })(0);
+      loadNotifications();
+      setInterval(loadNotifications, 10000);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) loadNotifications();
+      });
+    })();
   </script>
 </body>
 </html>

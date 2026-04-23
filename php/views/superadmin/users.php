@@ -3,13 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/php/assets/images/logo-ebmag.png">
   <title><?= htmlspecialchars((string)($title ?? 'Superadmin Users'), ENT_QUOTES, 'UTF-8') ?></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <link rel="stylesheet" type="text/css" href="/files/assets/css/user.css">
   <style>
-    body { background: #f4f7fb; }
-    .page-wrap { max-width: 1280px; margin: 24px auto; padding: 0 16px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f4f7fb; display: flex; }
+    
+    /* Sidebar Styles */
+    .sidebar { 
+      width: 260px; 
+      background: #0f766e; 
+      color: #fff; 
+      min-height: 100vh; 
+      padding: 20px 0; 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      overflow-y: auto; 
+    }
+    .sidebar-header { 
+      padding: 0 20px 24px; 
+      border-bottom: 1px solid rgba(255,255,255,0.1); 
+      margin-bottom: 20px; 
+    }
+    .sidebar-header h2 { 
+      font-size: 18px; 
+      font-weight: 600; 
+      white-space: nowrap; 
+    }
+    .sidebar-nav { 
+      list-style: none; 
+    }
+    .sidebar-nav li { 
+      margin: 0; 
+    }
+    .sidebar-nav a { 
+      display: block; 
+      padding: 12px 20px; 
+      color: rgba(255,255,255,0.8); 
+      text-decoration: none; 
+      transition: all 0.3s ease; 
+      border-left: 3px solid transparent; 
+    }
+    .sidebar-nav a:hover { 
+      background: rgba(255,255,255,0.1); 
+      color: #fff; 
+      border-left-color: #fff; 
+    }
+    .sidebar-nav a.active { 
+      background: #0f766e; 
+      color: #fff; 
+      border-left-color: #fbbf24; 
+    }
+    .sidebar-nav-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      padding: 16px 20px 8px;
+      letter-spacing: 0.5px;
+    }
+    .user-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      padding: 0 20px;
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+    
+    /* Main Content */
+    .main-content { 
+      margin-left: 260px; 
+      flex: 1; 
+      padding: 24px; 
+    }
+    
+    .page-wrap { max-width: 100%; }
     .card-shell { background: #fff; border-radius: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.08); padding: 20px; }
     .table thead th { border-top: 0; background: #f8fafc; }
     .modal { display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.45); }
@@ -19,6 +92,22 @@
   </style>
 </head>
 <body>
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="user-name"><?= htmlspecialchars((string)($user['name'] ?? 'Super Admin'), ENT_QUOTES, 'UTF-8') ?></div>
+      <div class="sidebar-nav-label">Navigation</div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="/index-superadmin" class="<?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">Dashboard</a></li>
+      <li><a href="/superadmin-users" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-users') !== false ? 'active' : '' ?>">User Management</a></li>
+      <li><a href="/superadmin-logs" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-logs') !== false ? 'active' : '' ?>">System Logs</a></li>
+      <li style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;"><a href="/logout">Logout</a></li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
   <div class="page-wrap">
     <div class="card-shell">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -278,5 +367,7 @@
       applyTable();
     })();
   </script>
+  </div>
+  </div>
 </body>
 </html>

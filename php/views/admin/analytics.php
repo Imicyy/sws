@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" type="image/png" href="/php/assets/images/logo-ebmag.png">
   <title>OSCA Admin Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/files/assets/css/admin.css">
@@ -10,7 +11,7 @@
   <style>
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; }
+    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
@@ -55,6 +56,7 @@
     .muted { color: #6b7280; }
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; max-height: none; }
       .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .table-responsive { overflow-x: auto; }
       table { min-width: 600px; }
