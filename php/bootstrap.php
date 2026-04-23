@@ -53,3 +53,20 @@ if (!$dotenvLoaded && file_exists($envPath)) {
         }
     }
 }
+
+/**
+ * Base URL path to this app entrypoint directory (e.g. "/sws/Final_Caps/php").
+ * Useful when the project is hosted under a subfolder in XAMPP.
+ */
+function app_base_path(): string
+{
+    $scriptName = (string) ($_SERVER['SCRIPT_NAME'] ?? '/');
+    $dir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+    return $dir === '' ? '' : $dir;
+}
+
+/** Build a URL path to `php/assets/...` */
+function asset_url(string $relativePath): string
+{
+    return app_base_path() . '/assets/' . ltrim($relativePath, '/');
+}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/png" href="/php/assets/images/logo-ebmag.png">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Barangay — Person With Disability Analytics</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -436,6 +436,9 @@
             await markVisibleNotificationsRead();
           }
         });
+        if (dropdown) {
+          dropdown.addEventListener('click', function (e) { e.stopPropagation(); });
+        }
         document.addEventListener('click', function () { if (dropdown) dropdown.style.display = 'none'; });
       }
       const host = window.location.hostname || 'localhost';

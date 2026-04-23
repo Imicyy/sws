@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/png" href="/php/assets/images/logo-ebmag.png">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Social Welfare System - Office of Senior Citizen Affairs Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <style>
@@ -129,6 +129,10 @@
               <div id="notifListSenior" style="padding:8px;font-size:13px;color:#374151;"></div>
             </div>
           </div>
+          <button type="button" class="header-action" id="birthdaysBtnSenior" style="background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;">
+            <span>🎂 Birthdays</span>
+            <span id="birthdaysBadgeSenior" style="display:none;background:#0f766e;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700;">0</span>
+          </button>
           <a class="header-action" href="/add_senior" id="addSeniorBtn" target="_blank">
             <i class="feather icon-user-plus"></i>
             <span>Add Senior</span>
@@ -1578,7 +1582,11 @@
 
     function viewFormatDateTime(value) {
       if (!value) return 'N/A';
-      const date = new Date(value.replace(' ', 'T'));
+      const raw = String(value).trim();
+      const iso = raw.includes('T') ? raw : raw.replace(' ', 'T');
+      const hasTz = /([zZ]|[+\-]\d\d:\d\d)$/.test(iso);
+      // DB DATETIME/TIMESTAMP without TZ: treat as UTC to avoid browser-local misparse.
+      const date = new Date(hasTz ? iso : (iso + 'Z'));
       if (isNaN(date.getTime())) return escapeHtml(String(value));
       return date.toLocaleString();
     }
@@ -1620,6 +1628,19 @@
         </div>`;
     }
 
+    function viewRenderSubmittedMetaFromRecord(senior) {
+      const meta = document.getElementById('viewSeniorMeta');
+      if (!meta) return;
+
+      const submittedBy = (senior && (senior.created_by || senior.createdBy)) ? String(senior.created_by || senior.createdBy) : 'Unknown';
+      const submittedAtRaw = (senior && (senior.created_at || senior.createdAt)) ? String(senior.created_at || senior.createdAt) : '';
+      const submittedAt = submittedAtRaw ? viewFormatDateTime(submittedAtRaw) : 'N/A';
+
+      meta.innerHTML =
+        '<div style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#f9fafb;"><strong style="color:#0f766e;">Submitted by:</strong> ' + escapeHtml(submittedBy) + '</div>' +
+        '<div style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#f9fafb;"><strong style="color:#0f766e;">Submitted at:</strong> ' + escapeHtml(submittedAt) + '</div>';
+    }
+
     function loadSeniorEditLogs(residentId) {
       const container = document.getElementById('viewEditLogsContainer');
       if (!container) return;
@@ -1641,7 +1662,8 @@
           });
         })
         .then(function (data) {
-          viewRenderEditLogs(data.data || []);
+          const logs = data.data || [];
+          viewRenderEditLogs(logs);
         })
         .catch(function (error) {
           container.innerHTML = '<div class="edit-log-muted">' + escapeHtml(error.message || 'Failed to load edit logs.') + '</div>';
@@ -2023,6 +2045,7 @@
       viewRenderChildren(children);
       currentViewSeniorId = seniorRecordId ? String(seniorRecordId) : '';
       currentViewSeniorData = senior;
+      viewRenderSubmittedMetaFromRecord(senior);
       loadSeniorEditLogs(seniorRecordId);
 
       $('#viewSeniorModal').modal('show');
@@ -2384,6 +2407,53 @@
     })();
   </script>
 
+  <div class="modal fade" id="birthdaysSeniorModal" tabindex="-1" role="dialog" aria-labelledby="birthdaysSeniorModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 980px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="birthdaysSeniorModalTitle">Senior Birthdays</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto; padding: 20px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+            <input id="bdaySearchSenior" class="form-control" placeholder="Search name/barangay/purok…" style="max-width:320px;">
+            <select id="bdayRangeSenior" class="form-control" style="max-width:220px;">
+              <option value="today">Today's birthdays</option>
+              <option value="month" selected>This month's birthdays</option>
+            </select>
+            <select id="bdayBarangaySenior" class="form-control" style="max-width:260px;">
+              <option value="">All Barangays</option>
+              <?php foreach (($barangays ?? []) as $brgy => $puroks): ?>
+                <option value="<?= htmlspecialchars($brgy, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($brgy, ENT_QUOTES, 'UTF-8') ?></option>
+              <?php endforeach; ?>
+            </select>
+            <input id="bdayPurokSenior" class="form-control" placeholder="Purok (optional)" style="max-width:220px;">
+          </div>
+
+          <div style="overflow:auto;border:1px solid #e5e7eb;border-radius:10px;">
+            <table class="table table-sm mb-0">
+              <thead style="background:#f9fafb;">
+                <tr>
+                  <th>Name</th>
+                  <th>Birthday</th>
+                  <th>Barangay</th>
+                  <th>Purok</th>
+                </tr>
+              </thead>
+              <tbody id="birthdaysSeniorTableBody">
+                <tr><td colspan="4" class="text-center">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <small id="birthdaysSeniorCount" style="display:block;margin-top:8px;color:#6b7280;">0 results</small>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -2479,6 +2549,9 @@
             await markVisibleNotificationsRead();
           }
         });
+        if (dropdown) {
+          dropdown.addEventListener('click', function (e) { e.stopPropagation(); });
+        }
         document.addEventListener('click', function () { if (dropdown) dropdown.style.display = 'none'; });
       }
       window.loadNotificationsSenior();
@@ -2486,6 +2559,97 @@
       document.addEventListener('visibilitychange', function () {
         if (!document.hidden) window.loadNotificationsSenior();
       });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      const btn = document.getElementById('birthdaysBtnSenior');
+      const badge = document.getElementById('birthdaysBadgeSenior');
+      const body = document.getElementById('birthdaysSeniorTableBody');
+      const countEl = document.getElementById('birthdaysSeniorCount');
+      const qEl = document.getElementById('bdaySearchSenior');
+      const rangeEl = document.getElementById('bdayRangeSenior');
+      const brgyEl = document.getElementById('bdayBarangaySenior');
+      const purokEl = document.getElementById('bdayPurokSenior');
+      let cache = [];
+
+      function escapeHtmlLocal(text) {
+        return String(text == null ? '' : text).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function render() {
+        if (!body) return;
+        const q = (qEl && qEl.value ? qEl.value : '').trim().toLowerCase();
+        const brgy = brgyEl ? brgyEl.value : '';
+        const purokQ = (purokEl && purokEl.value ? purokEl.value : '').trim().toLowerCase();
+        const filtered = cache.filter(function (row) {
+          const name = String(row.full_name || '').toLowerCase();
+          const barangay = String(row.barangay || '');
+          const purok = String(row.purok || '');
+          const matchesQ = !q || name.includes(q) || barangay.toLowerCase().includes(q) || purok.toLowerCase().includes(q);
+          const matchesBrgy = !brgy || barangay === brgy;
+          const matchesPurok = !purokQ || purok.toLowerCase().includes(purokQ);
+          return matchesQ && matchesBrgy && matchesPurok;
+        });
+
+        if (!filtered.length) {
+          body.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No birthdays found.</td></tr>';
+        } else {
+          body.innerHTML = filtered.map(function (row) {
+            return '<tr>'
+              + '<td>' + escapeHtmlLocal(row.full_name || 'N/A') + '</td>'
+              + '<td>' + escapeHtmlLocal(row.birth_date || 'N/A') + '</td>'
+              + '<td>' + escapeHtmlLocal(row.barangay || 'N/A') + '</td>'
+              + '<td>' + escapeHtmlLocal(row.purok || 'N/A') + '</td>'
+              + '</tr>';
+          }).join('');
+        }
+        if (countEl) countEl.textContent = filtered.length + ' results';
+      }
+
+      async function load(range) {
+        if (!body) return;
+        body.innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
+        try {
+          const res = await fetch('/api/birthdays?type=senior&range=' + encodeURIComponent(range || 'month'), { credentials: 'same-origin' });
+          const json = await res.json();
+          cache = (json && json.success && Array.isArray(json.data)) ? json.data : [];
+          render();
+        } catch (e) {
+          cache = [];
+          body.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Failed to load birthdays.</td></tr>';
+          if (countEl) countEl.textContent = '0 results';
+        }
+      }
+
+      async function updateBadge() {
+        try {
+          const res = await fetch('/api/birthdays?type=senior&range=today', { credentials: 'same-origin' });
+          const json = await res.json();
+          const todayCount = (json && json.success && Array.isArray(json.data)) ? json.data.length : 0;
+          if (badge) {
+            badge.style.display = todayCount > 0 ? '' : 'none';
+            badge.textContent = String(todayCount);
+          }
+        } catch (e) {
+          if (badge) badge.style.display = 'none';
+        }
+      }
+
+      if (btn) {
+        btn.addEventListener('click', async function () {
+          $('#birthdaysSeniorModal').modal('show');
+          await load(rangeEl ? rangeEl.value : 'month');
+        });
+      }
+      if (rangeEl) rangeEl.addEventListener('change', function () { load(rangeEl.value); });
+      if (qEl) qEl.addEventListener('input', render);
+      if (brgyEl) brgyEl.addEventListener('change', render);
+      if (purokEl) purokEl.addEventListener('input', render);
+      updateBadge();
     })();
   </script>
 </body>

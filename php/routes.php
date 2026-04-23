@@ -164,6 +164,10 @@ $router->add('POST', '/api/notifications/mark-read', static function () use ($co
     $controller->markNotificationRead();
 }, [$requireAuth]);
 
+$router->add('GET', '/api/birthdays', static function () use ($controller) {
+    $controller->getBirthdays();
+}, [$requireAuth]);
+
 $router->add('POST', '/add-data', static function () use ($controller) {
     $controller->createResident();
 });

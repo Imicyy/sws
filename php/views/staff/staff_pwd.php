@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/png" href="/php/assets/images/logo-ebmag.png">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Social Welfare System - PDAO Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <style>
@@ -205,6 +205,9 @@
               <div id="notifList" style="padding:8px;font-size:13px;color:#374151;"></div>
             </div>
           </div>
+          <button type="button" class="btn-sm" id="birthdaysBtn" style="border:1px solid #d1d5db;border-radius:8px;padding:9px 12px;background:#fff;font-weight:700;">
+            🎂 Birthdays <span id="birthdaysBadge" style="display:none;margin-left:6px;background:#0f766e;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;">0</span>
+          </button>
           <button type="button" class="add-pwd-btn" onclick="window.location.href = window.location.origin + '/add_pwd'">Add PWD</button>
           <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
         </div>
@@ -299,7 +302,10 @@
   <div id="viewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
     <div class="modal-card edit-frame">
       <div class="modal-header">
-        <h3 id="viewModalTitle">View PWD Record</h3>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <h3 id="viewModalTitle" style="margin:0;">View PWD Record</h3>
+          <div id="pwdSubmittedMeta" style="font-size:12px;color:#6b7280;">Submitted by: <span id="pwdSubmittedBy">—</span> • Submitted at: <span id="pwdSubmittedAt">—</span></div>
+        </div>
         <button type="button" class="modal-close" data-close="viewModal">&times;</button>
       </div>
       <div class="modal-body edit-frame-body">
@@ -372,6 +378,50 @@
     </div>
   </div>
 
+  <div id="birthdaysModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="birthdaysModalTitle">
+    <div class="modal-card" style="width:min(980px,100%);">
+      <div class="modal-header">
+        <h3 id="birthdaysModalTitle">PWD Birthdays</h3>
+        <button type="button" class="modal-close" data-close="birthdaysModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <input id="bdaySearch" class="toolbar-search" placeholder="Search name/barangay/purok…" style="max-width:320px;">
+          <select id="bdayRange" style="padding:8px;border:1px solid #d1d5db;border-radius:8px;">
+            <option value="today">Today's birthdays</option>
+            <option value="month" selected>This month's birthdays</option>
+          </select>
+          <select id="bdayBarangay" style="padding:8px;border:1px solid #d1d5db;border-radius:8px;">
+            <option value="">All Barangays</option>
+            <?php foreach (($barangays ?? []) as $brgy => $puroks): ?>
+              <option value="<?= htmlspecialchars($brgy, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($brgy, ENT_QUOTES, 'UTF-8') ?></option>
+            <?php endforeach; ?>
+          </select>
+          <input id="bdayPurok" placeholder="Purok (optional)" style="padding:8px;border:1px solid #d1d5db;border-radius:8px;min-width:180px;">
+        </div>
+        <div style="overflow:auto;border:1px solid #e5e7eb;border-radius:10px;">
+          <table class="table table-sm mb-0">
+            <thead style="background:#f9fafb;">
+              <tr>
+                <th style="white-space:nowrap;">Name</th>
+                <th style="white-space:nowrap;">Birthday</th>
+                <th style="white-space:nowrap;">Barangay</th>
+                <th style="white-space:nowrap;">Purok</th>
+              </tr>
+            </thead>
+            <tbody id="birthdaysTableBody">
+              <tr><td colspan="4" class="text-center">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <small id="birthdaysCount" style="display:block;margin-top:8px;color:#6b7280;">0 results</small>
+      </div>
+      <div class="modal-actions">
+        <button type="button" data-close="birthdaysModal">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script>
     const barangays = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
@@ -418,6 +468,18 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    function parseDbDateTimeToLocalString(value) {
+      if (!value) return 'N/A';
+      const raw = String(value).trim();
+      if (!raw) return 'N/A';
+      // DB returns "YYYY-MM-DD HH:MM:SS" (no timezone). Treat as UTC then display locally.
+      const iso = raw.includes('T') ? raw : raw.replace(' ', 'T');
+      const hasTz = /([zZ]|[+\-]\d\d:\d\d)$/.test(iso);
+      const date = new Date(hasTz ? iso : (iso + 'Z'));
+      if (Number.isNaN(date.getTime())) return raw;
+      return date.toLocaleString();
     }
 
     function asDateMmDdYyyy(value) {
@@ -923,6 +985,16 @@
         currentViewPwdId = String(id);
         currentViewPwdData = pwd;
 
+        (function renderSubmitMetaFromRecord() {
+          const byEl = document.getElementById('pwdSubmittedBy');
+          const atEl = document.getElementById('pwdSubmittedAt');
+          const by = pwd.created_by || pwd.createdBy || pwd.submitted_by || pwd.submittedBy || pwd.added_by || pwd.addedBy || 'Unknown';
+          const atRaw = pwd.created_at || pwd.createdAt || pwd.submitted_at || pwd.submittedAt || '';
+          const at = parseDbDateTimeToLocalString(atRaw);
+          if (byEl) byEl.textContent = String(by || 'Unknown');
+          if (atEl) atEl.textContent = at || 'N/A';
+        })();
+
         openModal('viewModal');
       });
     });
@@ -1027,6 +1099,89 @@
 
     // Initialize pagination
     updatePwdPagination();
+
+    // Birthdays (PWD)
+    const birthdaysBtn = document.getElementById('birthdaysBtn');
+    const birthdaysBadge = document.getElementById('birthdaysBadge');
+    const birthdaysBody = document.getElementById('birthdaysTableBody');
+    const birthdaysCount = document.getElementById('birthdaysCount');
+    const bdaySearch = document.getElementById('bdaySearch');
+    const bdayRange = document.getElementById('bdayRange');
+    const bdayBarangay = document.getElementById('bdayBarangay');
+    const bdayPurok = document.getElementById('bdayPurok');
+    let birthdaysCache = [];
+
+    function renderBirthdaysTable() {
+      if (!birthdaysBody) return;
+      const q = (bdaySearch && bdaySearch.value ? bdaySearch.value : '').trim().toLowerCase();
+      const brgy = bdayBarangay ? bdayBarangay.value : '';
+      const purokQ = (bdayPurok && bdayPurok.value ? bdayPurok.value : '').trim().toLowerCase();
+      const filtered = birthdaysCache.filter(function (row) {
+        const name = String(row.full_name || '').toLowerCase();
+        const barangay = String(row.barangay || '');
+        const purok = String(row.purok || '');
+        const matchesQ = !q || name.includes(q) || barangay.toLowerCase().includes(q) || purok.toLowerCase().includes(q);
+        const matchesBrgy = !brgy || barangay === brgy;
+        const matchesPurok = !purokQ || purok.toLowerCase().includes(purokQ);
+        return matchesQ && matchesBrgy && matchesPurok;
+      });
+
+      if (!filtered.length) {
+        birthdaysBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No birthdays found.</td></tr>';
+      } else {
+        birthdaysBody.innerHTML = filtered.map(function (row) {
+          return '<tr>'
+            + '<td>' + escapeHtml(row.full_name || 'N/A') + '</td>'
+            + '<td>' + escapeHtml(row.birth_date || 'N/A') + '</td>'
+            + '<td>' + escapeHtml(row.barangay || 'N/A') + '</td>'
+            + '<td>' + escapeHtml(row.purok || 'N/A') + '</td>'
+            + '</tr>';
+        }).join('');
+      }
+      if (birthdaysCount) birthdaysCount.textContent = filtered.length + ' results';
+    }
+
+    async function loadBirthdays(range) {
+      if (!birthdaysBody) return;
+      birthdaysBody.innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
+      try {
+        const res = await fetch('/api/birthdays?type=pwd&range=' + encodeURIComponent(range || 'month'), { credentials: 'same-origin' });
+        const json = await res.json();
+        birthdaysCache = (json && json.success && Array.isArray(json.data)) ? json.data : [];
+        renderBirthdaysTable();
+      } catch (e) {
+        birthdaysCache = [];
+        birthdaysBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Failed to load birthdays.</td></tr>';
+        if (birthdaysCount) birthdaysCount.textContent = '0 results';
+      }
+    }
+
+    async function updateBirthdaysBadge() {
+      try {
+        const res = await fetch('/api/birthdays?type=pwd&range=today', { credentials: 'same-origin' });
+        const json = await res.json();
+        const todayCount = (json && json.success && Array.isArray(json.data)) ? json.data.length : 0;
+        if (birthdaysBadge) {
+          birthdaysBadge.style.display = todayCount > 0 ? '' : 'none';
+          birthdaysBadge.textContent = String(todayCount);
+        }
+      } catch (e) {
+        if (birthdaysBadge) birthdaysBadge.style.display = 'none';
+      }
+    }
+
+    if (birthdaysBtn) {
+      birthdaysBtn.addEventListener('click', async function () {
+        openModal('birthdaysModal');
+        const range = bdayRange ? bdayRange.value : 'month';
+        await loadBirthdays(range);
+      });
+    }
+    if (bdayRange) bdayRange.addEventListener('change', function () { loadBirthdays(bdayRange.value); });
+    if (bdaySearch) bdaySearch.addEventListener('input', renderBirthdaysTable);
+    if (bdayBarangay) bdayBarangay.addEventListener('change', renderBirthdaysTable);
+    if (bdayPurok) bdayPurok.addEventListener('input', renderBirthdaysTable);
+    updateBirthdaysBadge();
   </script>
   <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
   <script>
@@ -1121,6 +1276,9 @@
             await markVisibleNotificationsRead();
           }
         });
+        if (dropdown) {
+          dropdown.addEventListener('click', function (e) { e.stopPropagation(); });
+        }
         document.addEventListener('click', function () { if (dropdown) dropdown.style.display = 'none'; });
       }
 

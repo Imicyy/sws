@@ -1155,6 +1155,18 @@ class Controller
                 $employmentType = null;
             }
 
+            $sessionUser = $_SESSION['user'] ?? null;
+            $creatorEmailOrName = is_array($sessionUser)
+                ? (string) ($sessionUser['email'] ?? $sessionUser['name'] ?? 'Unknown')
+                : 'Unknown';
+
+            // Ensure `created_by` column exists (older schemas won't have it).
+            try {
+                $this->execute('ALTER TABLE pwd ADD COLUMN created_by VARCHAR(190) NULL');
+            } catch (Throwable $e) {
+                // Ignore if column already exists or ALTER is not permitted.
+            }
+
             $stmt = $this->db->prepare(
                 'INSERT INTO pwd (
                     first_name, middle_name, last_name,
@@ -1165,7 +1177,7 @@ class Controller
                     motherLastName, motherFirstName, motherMiddleName,
                     sss_id, gsis_sss_no, psn_no, philhealth_no,
                     education_level, employment_status, employment_category, employment_type,
-                    disability_other_text, cause_other_text, status, archive_reason
+                    disability_other_text, cause_other_text, created_by, status, archive_reason
                  ) VALUES (
                     ?, ?, ?,
                     ?, ?,
@@ -1175,7 +1187,7 @@ class Controller
                     ?, ?, ?,
                     ?, ?, ?, ?,
                     ?, ?, ?, ?,
-                    ?, ?, "Active", NULL
+                    ?, ?, ?, "Active", NULL
                  )'
             );
 
@@ -1208,6 +1220,7 @@ class Controller
                 $employmentType,
                 $body['disability_other_text'] ?? null,
                 $body['cause_other_text'] ?? null,
+                $creatorEmailOrName,
             ]);
 
             $pwdId = (int) $this->db->lastInsertId();
@@ -1460,15 +1473,29 @@ class Controller
                 $this->jsonResponse(['success' => false, 'isDuplicate' => true, 'message' => 'Duplicate senior citizen record found'], 400);
             }
 
+            $sessionUser = $_SESSION['user'] ?? null;
+            $creatorEmailOrName = is_array($sessionUser)
+                ? (string) ($sessionUser['email'] ?? $sessionUser['name'] ?? 'Unknown')
+                : 'Unknown';
+
+            // Ensure `created_by` column exists (older schemas won't have it).
+            try {
+                $this->execute('ALTER TABLE senior_citizens ADD COLUMN created_by VARCHAR(190) NULL');
+            } catch (Throwable $e) {
+                // Ignore if column already exists or ALTER is not permitted.
+            }
+
             $stmt = $this->db->prepare(
                 'INSERT INTO senior_citizens (
                     reference_code,last_name,first_name,middle_name,extension,barangay,purok,date_of_birth,age,place_of_birth,
                     marital_status,gender,osca_id_number,gsis_sss,philhealth,sc_association_org_id_no,tin,other_govt_id,
                     service_business_employment,current_pension,capability_to_travel,spouse_name,
                     father_last_name,father_first_name,father_middle_name,father_extension,
-                    mother_last_name,mother_first_name,mother_middle_name,community_service_other_text,status,archive_reason,edited_by,edited_at
+                    mother_last_name,mother_first_name,mother_middle_name,community_service_other_text,
+                    created_by,status,archive_reason,edited_by,edited_at
                  ) VALUES (
-                    NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,?,?,?,?,?,?,?,?,?,?,?,?,"Active",NULL,NULL,NULL
+                    NULL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,?,?,?,?,?,?,?,?,?,?,?,?,
+                    ?,"Active",NULL,NULL,NULL
                  )'
             );
 
@@ -1501,9 +1528,11 @@ class Controller
                 $body['mother_first_name'] ?? $body['family_composition']['mother']['first_name'] ?? null,
                 $body['mother_middle_name'] ?? $body['family_composition']['mother']['middle_name'] ?? null,
                 $body['community_service_other_text'] ?? null,
+                $creatorEmailOrName,
             ]);
 
             $seniorId = (int) $this->db->lastInsertId();
+
             $contacts = $body['contacts'] ?? $body['identifying_information']['contacts'] ?? [];
             if (is_array($contacts)) {
                 foreach ($contacts as $contact) {
@@ -2946,7 +2975,7 @@ class Controller
             }
 
             $basicRows = $this->queryAll(
-                'SELECT id, last_name, first_name, middle_name, extension, barangay, purok, age, gender, status, created_at
+                'SELECT id, last_name, first_name, middle_name, extension, barangay, purok, age, gender, status, created_at, created_by
                  FROM senior_citizens ' . $where . ' ORDER BY created_at DESC'
             );
 
@@ -2967,6 +2996,7 @@ class Controller
                 $full['gender'] = $row['gender'] ?? null;
                 $full['status'] = $row['status'] ?? null;
                 $full['created_at'] = $row['created_at'] ?? null;
+                $full['created_by'] = $row['created_by'] ?? null;
                 return $full;
             }, $basicRows)));
 
@@ -3008,7 +3038,7 @@ class Controller
             }
 
             $pwds = $this->queryAll(
-                'SELECT id, last_name, first_name, middle_name, barangay, purok, age, gender, status, created_at
+                'SELECT id, last_name, first_name, middle_name, barangay, purok, age, gender, status, created_at, created_by
                  FROM pwd ' . $where . ' ORDER BY created_at DESC'
             );
             $totalPwd = count($pwds);
@@ -3241,7 +3271,7 @@ class Controller
 
         try {
             $this->ensureNotificationsTables();
-            $userId = (int) ($sessionUser['id'] ?? 0);
+            $userId = (int) ($sessionUser['id'] ?? ($sessionUser['_id'] ?? 0));
             $role = strtolower((string) ($sessionUser['role'] ?? ''));
             $isBarangay = $role === 'barangay';
             $targetRole = $isBarangay ? 'barangay' : 'staff';
@@ -3313,7 +3343,7 @@ class Controller
         $body = $this->input();
         $notificationId = isset($body['notification_id']) ? (int) $body['notification_id'] : 0;
         $markAll = !empty($body['all']);
-        $userId = (int) ($sessionUser['id'] ?? 0);
+        $userId = (int) ($sessionUser['id'] ?? ($sessionUser['_id'] ?? 0));
 
         if ($userId <= 0) {
             $this->jsonResponse(['success' => false, 'message' => 'Invalid user'], 400);
@@ -3347,6 +3377,84 @@ class Controller
             $this->jsonResponse(['success' => true]);
         } catch (Throwable $e) {
             $this->jsonResponse(['success' => false, 'message' => 'Failed to mark notification as read'], 500);
+        }
+    }
+
+    public function getBirthdays(): void
+    {
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (!is_array($sessionUser)) {
+            $this->jsonResponse(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $type = strtolower(trim((string) ($_GET['type'] ?? 'pwd'))); // pwd | senior
+            $range = strtolower(trim((string) ($_GET['range'] ?? 'month'))); // today | month
+            if ($type !== 'pwd' && $type !== 'senior') {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid type'], 400);
+            }
+            if ($range !== 'today' && $range !== 'month') {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid range'], 400);
+            }
+
+            $role = strtolower((string) ($sessionUser['role'] ?? ''));
+            $isBarangay = $role === 'barangay';
+            $barangayScope = null;
+            if ($isBarangay) {
+                $scope = $this->fetchBarangayScopeForSessionUser($sessionUser);
+                $barangayScope = is_array($scope) ? trim((string) ($scope['barangay'] ?? '')) : '';
+                if ($barangayScope === '') {
+                    $this->jsonResponse(['success' => true, 'data' => []]);
+                }
+            }
+
+            $now = new DateTimeImmutable('now');
+            $month = (int) $now->format('n');
+            $day = (int) $now->format('j');
+
+            $filters = ["status <> 'Archived'"];
+            $params = [];
+            if ($barangayScope !== null) {
+                $filters[] = 'barangay = ?';
+                $params[] = $barangayScope;
+            }
+
+            if ($type === 'pwd') {
+                $dateCol = 'birthday';
+                $sql = 'SELECT id, first_name, middle_name, last_name, barangay, purok, birthday AS birth_date
+                        FROM pwd WHERE ' . implode(' AND ', $filters);
+            } else {
+                $dateCol = 'date_of_birth';
+                $sql = 'SELECT id, first_name, middle_name, last_name, barangay, purok, date_of_birth AS birth_date
+                        FROM senior_citizens WHERE ' . implode(' AND ', $filters);
+            }
+
+            if ($range === 'today') {
+                $sql .= " AND MONTH($dateCol) = ? AND DAY($dateCol) = ?";
+                $params[] = $month;
+                $params[] = $day;
+            } else {
+                $sql .= " AND MONTH($dateCol) = ?";
+                $params[] = $month;
+            }
+
+            $sql .= " ORDER BY DAY($dateCol) ASC, last_name ASC, first_name ASC LIMIT 500";
+            $rows = $this->queryAll($sql, $params);
+
+            $data = array_map(static function (array $r): array {
+                $fullName = trim((string) ($r['first_name'] ?? '') . ' ' . (string) ($r['middle_name'] ?? '') . ' ' . (string) ($r['last_name'] ?? ''));
+                return [
+                    'id' => (int) ($r['id'] ?? 0),
+                    'full_name' => $fullName !== '' ? $fullName : 'Unnamed record',
+                    'barangay' => (string) ($r['barangay'] ?? ''),
+                    'purok' => (string) ($r['purok'] ?? ''),
+                    'birth_date' => (string) ($r['birth_date'] ?? ''),
+                ];
+            }, $rows);
+
+            $this->jsonResponse(['success' => true, 'data' => $data]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to load birthdays'], 500);
         }
     }
 
