@@ -2434,6 +2434,7 @@
             <table class="table table-sm mb-0">
               <thead style="background:#f9fafb;">
                 <tr>
+                  <th style="width:34px;"><input type="checkbox" id="bdaySeniorSelectAll"></th>
                   <th>Name</th>
                   <th>Birthday</th>
                   <th>Barangay</th>
@@ -2441,13 +2442,15 @@
                 </tr>
               </thead>
               <tbody id="birthdaysSeniorTableBody">
-                <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                <tr><td colspan="5" class="text-center">Loading...</td></tr>
               </tbody>
             </table>
           </div>
           <small id="birthdaysSeniorCount" style="display:block;margin-top:8px;color:#6b7280;">0 results</small>
         </div>
         <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="bdaySeniorSendSmsBtn" disabled>Send SMS</button>
+          <button type="button" class="btn btn-outline-primary" id="bdaySeniorViewHistoryBtn">View SMS History</button>
           <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
         </div>
       </div>
@@ -2572,6 +2575,10 @@
       const rangeEl = document.getElementById('bdayRangeSenior');
       const brgyEl = document.getElementById('bdayBarangaySenior');
       const purokEl = document.getElementById('bdayPurokSenior');
+      const selectAllEl = document.getElementById('bdaySeniorSelectAll');
+      const sendSmsBtnEl = document.getElementById('bdaySeniorSendSmsBtn');
+      const viewHistoryBtnEl = document.getElementById('bdaySeniorViewHistoryBtn');
+      const birthdayGreetingMessage = 'Happy Birthday! Greetings from Mayor Matthew Louis P. Malacon and Vice Mayor Marvin M. Malacon.';
       let cache = [];
 
       function escapeHtmlLocal(text) {
@@ -2596,10 +2603,11 @@
         });
 
         if (!filtered.length) {
-          body.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No birthdays found.</td></tr>';
+          body.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No birthdays found.</td></tr>';
         } else {
           body.innerHTML = filtered.map(function (row) {
             return '<tr>'
+              + '<td><input type="checkbox" class="bday-senior-row" value="' + escapeHtmlLocal(row.id || '') + '"></td>'
               + '<td>' + escapeHtmlLocal(row.full_name || 'N/A') + '</td>'
               + '<td>' + escapeHtmlLocal(row.birth_date || 'N/A') + '</td>'
               + '<td>' + escapeHtmlLocal(row.barangay || 'N/A') + '</td>'
@@ -2608,6 +2616,16 @@
           }).join('');
         }
         if (countEl) countEl.textContent = filtered.length + ' results';
+        if (selectAllEl) selectAllEl.checked = false;
+        if (sendSmsBtnEl) sendSmsBtnEl.disabled = true;
+        body.querySelectorAll('.bday-senior-row').forEach(function (cb) {
+          cb.addEventListener('change', function () {
+            const all = body.querySelectorAll('.bday-senior-row');
+            const checked = body.querySelectorAll('.bday-senior-row:checked');
+            if (selectAllEl) selectAllEl.checked = all.length > 0 && checked.length === all.length;
+            if (sendSmsBtnEl) sendSmsBtnEl.disabled = checked.length === 0;
+          });
+        });
       }
 
       async function load(range) {
@@ -2620,8 +2638,9 @@
           render();
         } catch (e) {
           cache = [];
-          body.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Failed to load birthdays.</td></tr>';
+          body.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load birthdays.</td></tr>';
           if (countEl) countEl.textContent = '0 results';
+          if (sendSmsBtnEl) sendSmsBtnEl.disabled = true;
         }
       }
 
@@ -2649,6 +2668,63 @@
       if (qEl) qEl.addEventListener('input', render);
       if (brgyEl) brgyEl.addEventListener('change', render);
       if (purokEl) purokEl.addEventListener('input', render);
+      if (selectAllEl) {
+        selectAllEl.addEventListener('change', function () {
+          body.querySelectorAll('.bday-senior-row').forEach(function (cb) {
+            cb.checked = selectAllEl.checked;
+          });
+          if (sendSmsBtnEl) {
+            sendSmsBtnEl.disabled = body.querySelectorAll('.bday-senior-row:checked').length === 0;
+          }
+        });
+      }
+      if (sendSmsBtnEl) {
+        sendSmsBtnEl.addEventListener('click', function () {
+          const selected = Array.from(body.querySelectorAll('.bday-senior-row:checked'));
+          const recipientsList = document.getElementById('recipientsList');
+          recipientsList.innerHTML = '';
+
+          selected.forEach(function (cb) {
+            const row = cache.find(function (r) { return String(r.id || '') === String(cb.value || ''); }) || null;
+            if (!row) return;
+            const phone = String(row.mobile_number || '').trim();
+            if (!phone) return;
+            const fullName = String(row.full_name || 'N/A');
+            const item = document.createElement('div');
+            item.className = 'recipient-item';
+            item.dataset.phone = phone;
+            item.dataset.name = fullName;
+            item.dataset.firstName = row.first_name || '';
+            item.dataset.middleName = row.middle_name || '';
+            item.dataset.lastName = row.last_name || '';
+            item.dataset.barangay = row.barangay || '';
+            item.dataset.purok = row.purok || '';
+            item.dataset.recordId = String(row.id || '');
+            item.innerHTML = '<strong>' + escapeHtmlLocal(fullName) + '</strong> <span class="text-muted">' + escapeHtmlLocal(phone) + '</span>';
+            recipientsList.appendChild(item);
+          });
+
+          if (!recipientsList.children.length) {
+            alert('No selected birthday records have a mobile number.');
+            return;
+          }
+
+          const smsMessageEl = document.getElementById('smsMessage');
+          const charCountEl = document.getElementById('charCount');
+          if (smsMessageEl) smsMessageEl.value = birthdayGreetingMessage;
+          if (charCountEl) charCountEl.textContent = String(birthdayGreetingMessage.length);
+
+          $('#birthdaysSeniorModal').modal('hide');
+          $('#assistanceModal').modal('show');
+        });
+      }
+      if (viewHistoryBtnEl) {
+        viewHistoryBtnEl.addEventListener('click', function () {
+          $('#birthdaysSeniorModal').modal('hide');
+          const historyBtn = document.getElementById('viewHistoryBtn');
+          if (historyBtn) historyBtn.click();
+        });
+      }
       updateBadge();
     })();
   </script>

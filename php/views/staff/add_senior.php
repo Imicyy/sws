@@ -1,3 +1,9 @@
+<?php
+$editSenior = is_array($editSenior ?? null) ? $editSenior : null;
+$isEditMode = !empty($isEditMode);
+$isModal = isset($_GET['modal']) && $_GET['modal'] === '1';
+$isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -411,18 +417,21 @@
     }
   </style>
 </head>
-<body>
+<body class="<?= $isModal ? 'modal-mode' : '' ?><?= $isViewMode ? ' view-mode' : '' ?>">
   <div class="page-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <a class="topbar-btn" href="/osca-dashboard">← Back to Dashboard</a>
+        <?php if (!$isModal): ?>
+          <a class="topbar-btn" href="/osca-dashboard">← Back to Dashboard</a>
+        <?php endif; ?>
         <div>
-          <h1 class="topbar-title" id="formTitle">Senior Citizen FORM</h1>
+          <h1 class="topbar-title" id="formTitle"><?= $isViewMode ? 'View Senior Citizen FORM' : ($isEditMode ? 'Edit Senior Citizen FORM' : 'Senior Citizen FORM') ?></h1>
         </div>
       </div>
     </div>
 
-    <form id="housingForm" class="form-panel" action="/add-data" method="post">
+    <form id="housingForm" class="form-panel" action="<?= $isEditMode ? '/update-senior' : '/add-data' ?>" method="post">
+      <input type="hidden" id="residentId" name="residentId" value="<?= (int) (($editSenior['_id'] ?? 0)) ?>">
       <div class="progress-bar">
         <div class="step active"><span>Personal Information</span></div>
         <div class="step"><span>Contact Information</span></div>
@@ -604,6 +613,10 @@
 
   <script>
     const puroks = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
+    const isEditMode = <?= $isEditMode ? 'true' : 'false' ?>;
+    const isModal = <?= $isModal ? 'true' : 'false' ?>;
+    const isViewMode = <?= $isViewMode ? 'true' : 'false' ?>;
+    const editSenior = <?= json_encode($editSenior, JSON_UNESCAPED_UNICODE) ?>;
 
     function updatePurokOptions() {
       const barangay = document.getElementById('barangay').value;
@@ -734,6 +747,36 @@
         const formData = new FormData(form);
 
         const requestData = {
+          residentId: isEditMode ? Number(document.getElementById('residentId')?.value || 0) : undefined,
+          first_name: formData.get('first_name'),
+          middle_name: formData.get('middle_name'),
+          last_name: formData.get('last_name'),
+          barangay: formData.get('barangay'),
+          purok: formData.get('purok'),
+          birthday: formData.get('birthday'),
+          age: parseInt(formData.get('age'), 10),
+          place_of_birth: formData.get('place_of_birth'),
+          marital_status: formData.get('civil_status'),
+          gender: formData.get('gender'),
+          osca_id_number: formData.get('osca_id'),
+          gsis_sss: formData.get('gsis_id') || formData.get('sss_id') || formData.get('gsis_sss_no'),
+          philhealth: formData.get('philhealth_id') || formData.get('philhealth_no'),
+          tin: formData.get('tin_no'),
+          other_govt_id: formData.get('other_id') || formData.get('other_govt_id'),
+          service_business_employment: formData.get('service'),
+          current_pension: formData.get('pension'),
+          capability_to_travel: formData.get('capability_to_travel') === 'Yes' ? 'Yes' : 'No',
+          spouse_name: formData.get('spouse_name') || undefined,
+          father_last_name: formData.get('fatherLastName'),
+          father_first_name: formData.get('fatherFirstName'),
+          father_middle_name: formData.get('fatherMiddleName'),
+          father_extension: formData.get('fatherExtension') || undefined,
+          mother_last_name: formData.get('motherLastName'),
+          mother_first_name: formData.get('motherFirstName'),
+          mother_middle_name: formData.get('motherMiddleName'),
+          educational_attainment: formData.get('educational_attainment') ? [formData.get('educational_attainment')] : [],
+          community_service: Array.from(document.querySelectorAll('#service input[name="community_service[]"]:checked')).map(function (el) { return el.value; }),
+          community_service_other_text: document.getElementById('community-service-other-text')?.value || undefined,
           identifying_information: {
             name: {
               first_name: formData.get('first_name'),
@@ -794,9 +837,7 @@
             }),
             skill_other_text: document.getElementById('skill-other-text')?.value || undefined
           },
-          community_service: Array.from(document.querySelectorAll('#service input[name="community_service[]"]:checked')).map(function (el) {
-            return el.value;
-          }),
+          community_service: Array.from(document.querySelectorAll('#service input[name="community_service[]"]:checked')).map(function (el) { return el.value; }),
           community_service_other_text: document.getElementById('community-service-other-text')?.value || undefined
         };
 
@@ -840,6 +881,10 @@
             throw data;
           }
 
+          if (isEditMode && isModal && window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'senior-edit-saved', data: data.data || null }, window.location.origin);
+            return;
+          }
           form.reset();
           window.location.href = '/osca-dashboard?refresh=' + Date.now();
         } catch (error) {
@@ -929,6 +974,15 @@
       }
 
       function moveStep(delta) {
+        if (isViewMode && delta > 0 && wizardIndex >= fieldsets.length - 1) {
+          if (isModal && window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'senior-view-close' }, window.location.origin);
+            return;
+          }
+          window.history.back();
+          return;
+        }
+
         if (delta > 0) {
           const currentFieldset = fieldsets[wizardIndex];
           const requiredFields = currentFieldset ? Array.from(currentFieldset.querySelectorAll('[required]')) : [];
@@ -1165,6 +1219,137 @@
           input.value = digitsOnly;
         });
       });
+
+      function setInputValue(id, value) {
+        const el = document.getElementById(id);
+        if (!el || value === undefined || value === null) return;
+        el.value = String(value);
+      }
+
+      function setCheckboxValues(name, values) {
+        if (!Array.isArray(values)) return;
+        const set = new Set(values.map(function (v) { return String(v); }));
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function (cb) {
+          cb.checked = set.has(cb.value);
+        });
+      }
+
+      function createContactEntry(contact, idx) {
+        if (idx > 0) addContactEntry();
+        const entries = document.querySelectorAll('.contact-entry');
+        const entry = entries[idx];
+        if (!entry) return;
+        const typeEl = entry.querySelector('.contact-type');
+        const nameEl = entry.querySelector('input[name$="[name]"]');
+        const relEl = entry.querySelector('input[name$="[relationship]"]');
+        const phoneEl = entry.querySelector('input[name$="[phone]"]');
+        const emailEl = entry.querySelector('input[name$="[email]"]');
+        if (typeEl) typeEl.value = contact.type || 'primary';
+        if (nameEl) nameEl.value = contact.name || '';
+        if (relEl) relEl.value = contact.relationship || '';
+        if (phoneEl) phoneEl.value = contact.phone || '';
+        if (emailEl) emailEl.value = contact.email || '';
+      }
+
+      function createChildEntry(child, idx) {
+        if (idx > 0) addChildEntry();
+        const entries = document.querySelectorAll('.child-entry');
+        const entry = entries[idx];
+        if (!entry) return;
+        const fullName = entry.querySelector('input[name="childFullName[]"]');
+        const occupation = entry.querySelector('input[name="childOccupation[]"]');
+        const age = entry.querySelector('input[name="childAge[]"]');
+        const status = entry.querySelector('select[name="childWorkingStatus[]"]');
+        const income = entry.querySelector('input[name="childIncome[]"]');
+        if (fullName) fullName.value = child.full_name || '';
+        if (occupation) occupation.value = child.occupation || '';
+        if (age) age.value = child.age || '';
+        if (status) {
+          status.value = child.working_status || 'not_working';
+          toggleIncomeField(status);
+        }
+        if (income) income.value = child.income || '';
+      }
+
+      function applyEditSeniorData() {
+        if (!isEditMode || !editSenior || typeof editSenior !== 'object') return;
+        const info = editSenior.identifying_information || {};
+        const name = info.name || {};
+        const address = info.address || {};
+        const family = editSenior.family_composition || {};
+        const father = family.father || {};
+        const mother = family.mother || {};
+
+        setInputValue('residentId', editSenior._id || '');
+        setInputValue('first_name', name.first_name || '');
+        setInputValue('middle_name', name.middle_name || '');
+        setInputValue('last_name', name.last_name || '');
+        setInputValue('barangay', address.barangay || '');
+        if (address.barangay) updatePurokOptions();
+        setInputValue('purok', address.purok || '');
+        setInputValue('gender', info.gender || '');
+        setInputValue('birthday', info.date_of_birth ? String(info.date_of_birth).slice(0, 10) : '');
+        setInputValue('age', info.age || '');
+        setInputValue('religion', info.religion || '');
+        setInputValue('pension', info.current_pension || '');
+        setInputValue('service', info.service_business_employment || '');
+        setInputValue('capability_to_travel', info.capability_to_travel || '');
+        setInputValue('place_of_birth', Array.isArray(info.place_of_birth) ? (info.place_of_birth[0] || '') : (info.place_of_birth || ''));
+        setInputValue('civil_status', info.marital_status || '');
+        setInputValue('spouse_name', (family.spouse && family.spouse.name) || '');
+        setInputValue('fatherLastName', father.last_name || '');
+        setInputValue('fatherFirstName', father.first_name || '');
+        setInputValue('fatherMiddleName', father.middle_name || '');
+        setInputValue('fatherExtension', father.extension || '');
+        setInputValue('motherLastName', mother.last_name || '');
+        setInputValue('motherFirstName', mother.first_name || '');
+        setInputValue('motherMiddleName', mother.middle_name || '');
+        setInputValue('osca_id', info.osca_id_number || '');
+        setInputValue('gsis_id', info.gsis_sss || '');
+        setInputValue('philhealth_id', info.philhealth || '');
+        setInputValue('tin_no', info.tin || '');
+        setInputValue('other_id', info.other_govt_id || '');
+
+        const educational = editSenior.education_hr_profile || {};
+        setInputValue('educational_attainment', Array.isArray(educational.educational_attainment) ? (educational.educational_attainment[0] || '') : (educational.educational_attainment || ''));
+        setCheckboxValues('skills[]', educational.skills || []);
+        setInputValue('skill-other-text', educational.skill_other_text || '');
+        setCheckboxValues('community_service[]', editSenior.community_service || []);
+        setInputValue('community-service-other-text', editSenior.community_service_other_text || '');
+
+        const contacts = Array.isArray(info.contacts) ? info.contacts : [];
+        if (contacts.length) {
+          const first = document.querySelector('.contact-entry');
+          if (first) first.remove();
+          contacts.forEach(function (contact, idx) { createContactEntry(contact, idx); });
+        }
+
+        const children = Array.isArray(family.children) ? family.children : [];
+        if (children.length) {
+          const firstChild = document.querySelector('.child-entry');
+          if (firstChild) firstChild.remove();
+          children.forEach(function (child, idx) { createChildEntry(child, idx); });
+        }
+
+        toggleSpouseInput();
+      }
+
+      function applyViewMode() {
+        if (!isViewMode) return;
+        document.querySelectorAll('input, select, textarea, button').forEach(function (el) {
+          if (el.id === 'prevBtn' || el.id === 'nextBtn') return;
+          if (el.type === 'checkbox' || el.type === 'radio') {
+            el.disabled = true;
+          } else {
+            el.readOnly = true;
+            el.disabled = true;
+          }
+        });
+        if (nextBtnNav) nextBtnNav.textContent = 'Close';
+      }
+
+      applyEditSeniorData();
+      applyViewMode();
 
       renderStep(0);
     });

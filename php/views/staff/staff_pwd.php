@@ -51,12 +51,26 @@
     .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
     .status-active { background: #dbeafe; color: #1e40af; }
     .status-archived { background: #f3f4f6; color: #374151; }
-    .actions { display: flex; gap: 8px; }
-    .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 4px; border: 1px solid #d1d5db; background: none; cursor: pointer; }
-    .btn-view { color: #2563eb; }
-    .btn-edit { color: #4f46e5; }
-    .btn-archive { color: #dc2626; }
-    .btn-sm:hover { background: #f3f4f6; }
+    .actions { display: flex; gap: 8px; align-items: center; }
+    .action {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #374151;
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    }
+    .action:hover { background: #f3f4f6; transform: translateY(-1px); }
+    .action svg { width: 16px; height: 16px; }
+    .action.view-btn { color: #0f766e; }
+    .action.action-edit { color: #2563eb; }
+    .action.action-archive { color: #dc2626; }
+    .actions .action:focus { outline: 2px solid rgba(15, 118, 110, 0.25); outline-offset: 2px; }
     .table-toolbar { margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .table-toolbar .toolbar-search { flex: 1 1 200px; max-width: 320px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
     .btn-print-app { background: #0f766e; color: #fff; border-color: #0f766e; }
@@ -173,21 +187,11 @@
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <?php if (isset($user) && is_array($user) && (($user['role'] ?? '') === 'Barangay')): ?>
-        <div class="brand">ENRIQUE B. MAGALONA</div>
-        <div class="nav-title">Navigation</div>
-        <a class="nav-link active" href="/barangay">Person With Disability Analytics</a>
-        <a class="nav-link" href="/barangay-senior-dashboard">Senior Citizen Analytics</a>
-        <a class="nav-link" href="/barangay-pwd">Person With Disability List</a>
-        <a class="nav-link" href="/barangay-senior">Senior Citizens List</a>
-        <a class="nav-link" href="/logout">Logout</a>
-      <?php else: ?>
-        <div class="brand">ENRIQUE B. MAGALONA</div>
-        <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">PDAO Department</span></div>
-        <div class="nav-title">Navigation</div>
-        <a class="nav-link active" href="/pdao-dashboard">Dashboard</a>
-        <a class="nav-link" href="/logout">Logout</a>
-      <?php endif; ?>
+      <div class="brand">ENRIQUE B. MAGALONA</div>
+      <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">PDAO Department</span></div>
+      <div class="nav-title">Navigation</div>
+      <a class="nav-link active" href="/pdao-dashboard">Dashboard</a>
+      <a class="nav-link" href="/logout">Logout</a>
     </aside>
 
     <main class="main">
@@ -209,7 +213,7 @@
             🎂 Birthdays <span id="birthdaysBadge" style="display:none;margin-left:6px;background:#0f766e;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;">0</span>
           </button>
           <button type="button" class="add-pwd-btn" onclick="window.location.href = window.location.origin + '/add_pwd'">Add PWD</button>
-          <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
+          <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['name'] ?? ($user['role'] ?? 'Staff')), ENT_QUOTES, 'UTF-8') ?></div>
         </div>
       </div>
 
@@ -275,9 +279,22 @@
                   <td><span class="status-badge <?= $statusClass ?>"><?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?></span></td>
                   <td>
                     <div class="actions">
-                      <button type="button" class="btn-sm btn-view view-btn" title="View">View</button>
-                      <button type="button" class="btn-sm btn-edit edit-btn" title="Edit">Edit</button>
-                      <button type="button" class="btn-sm btn-archive archive-btn" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars(($status === 'Archived') ? 'Unarchive' : 'Archive', ENT_QUOTES, 'UTF-8') ?>"><?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?></button>
+                      <button type="button" class="action view-btn" title="View" aria-label="View">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                      <button type="button" class="action action-edit edit-btn" title="Edit" aria-label="Edit">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button type="button" class="action action-archive archive-btn" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars(($status === 'Archived') ? 'Unarchive' : 'Archive', ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= htmlspecialchars(($status === 'Archived') ? 'Unarchive' : 'Archive', ENT_QUOTES, 'UTF-8') ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -403,6 +420,7 @@
           <table class="table table-sm mb-0">
             <thead style="background:#f9fafb;">
               <tr>
+                <th style="white-space:nowrap;width:34px;"><input type="checkbox" id="birthdaysSelectAll"></th>
                 <th style="white-space:nowrap;">Name</th>
                 <th style="white-space:nowrap;">Birthday</th>
                 <th style="white-space:nowrap;">Barangay</th>
@@ -410,19 +428,22 @@
               </tr>
             </thead>
             <tbody id="birthdaysTableBody">
-              <tr><td colspan="4" class="text-center">Loading...</td></tr>
+              <tr><td colspan="5" class="text-center">Loading...</td></tr>
             </tbody>
           </table>
         </div>
         <small id="birthdaysCount" style="display:block;margin-top:8px;color:#6b7280;">0 results</small>
       </div>
       <div class="modal-actions">
+        <button type="button" id="birthdaysSendSmsBtn" class="primary">Send SMS</button>
+        <button type="button" id="birthdaysViewHistoryBtn">View SMS History</button>
         <button type="button" data-close="birthdaysModal">Close</button>
       </div>
     </div>
   </div>
 
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     const barangays = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
     const barangayFilter = document.getElementById('barangayFilter');
@@ -631,8 +652,8 @@
       const archiveBtn = row.querySelector('.archive-btn');
       if (archiveBtn) {
         archiveBtn.dataset.status = status;
-        archiveBtn.textContent = status === 'Archived' ? 'Unarchive' : 'Archive';
         archiveBtn.title = status === 'Archived' ? 'Unarchive' : 'Archive';
+        archiveBtn.setAttribute('aria-label', status === 'Archived' ? 'Unarchive' : 'Archive');
       }
 
       filterTable();
@@ -1057,18 +1078,29 @@
         const pwd = getPwdFromRow(row);
         const isArchived = (button.dataset.status || pwd.status || '') === 'Archived';
         const endpoint = isArchived ? '/unarchive-pwd' : '/archive-pwd';
+        const actionLabel = isArchived ? 'unarchive' : 'archive';
 
         let reason = '';
-        if (!isArchived) {
-          reason = window.prompt('Enter archive reason (optional):', '') || '';
-        }
-
-        const confirmationText = isArchived
-          ? 'Unarchive this PWD record?'
-          : 'Archive this PWD record?';
-
-        if (!window.confirm(confirmationText)) {
-          return;
+        if (window.Swal && typeof Swal.fire === 'function') {
+          const result = await Swal.fire({
+            title: isArchived ? 'Unarchive PWD record?' : 'Archive PWD record?',
+            input: 'textarea',
+            inputLabel: isArchived ? 'Reason for unarchiving (optional)' : 'Reason for archiving (optional)',
+            inputPlaceholder: isArchived ? 'Reason for unarchiving' : 'Reason for archiving',
+            showCancelButton: true,
+            confirmButtonText: isArchived ? 'Unarchive' : 'Archive',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#0f766e'
+          });
+          if (!result.isConfirmed) return;
+          reason = String(result.value || '').trim();
+        } else {
+          reason = window.prompt(
+            isArchived ? 'Enter unarchive reason (optional):' : 'Enter archive reason (optional):',
+            ''
+          ) || '';
+          const confirmationText = isArchived ? 'Unarchive this PWD record?' : 'Archive this PWD record?';
+          if (!window.confirm(confirmationText)) return;
         }
 
         try {
@@ -1085,14 +1117,25 @@
           });
           const payload = await response.json();
           if (!response.ok || !payload || payload.success === false) {
-            alert((payload && payload.message) ? payload.message : 'Failed to update archive status.');
-            return;
+            throw new Error((payload && payload.message) ? payload.message : 'Failed to update archive status.');
           }
 
           updateRowFromPayload(row, payload.data || {});
-          alert(payload.message || 'Record status updated.');
+          if (window.Swal && typeof Swal.fire === 'function') {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: payload.message || ('Record ' + actionLabel + 'd successfully')
+            });
+          } else {
+            alert(payload.message || 'Record status updated.');
+          }
         } catch (error) {
-          alert('Network error while updating archive status.');
+          if (window.Swal && typeof Swal.fire === 'function') {
+            Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Network error while updating archive status.' });
+          } else {
+            alert(error.message || 'Network error while updating archive status.');
+          }
         }
       });
     });
@@ -1109,7 +1152,27 @@
     const bdayRange = document.getElementById('bdayRange');
     const bdayBarangay = document.getElementById('bdayBarangay');
     const bdayPurok = document.getElementById('bdayPurok');
+    const birthdaysSelectAll = document.getElementById('birthdaysSelectAll');
+    const birthdaysSendSmsBtn = document.getElementById('birthdaysSendSmsBtn');
+    const birthdaysViewHistoryBtn = document.getElementById('birthdaysViewHistoryBtn');
+    const birthdayGreetingMessage = 'Happy Birthday! Greetings from Mayor Matthew Louis P. Malacon and Vice Mayor Marvin M. Malacon.';
     let birthdaysCache = [];
+
+    function getPwdRecordById(recordId) {
+      if (!recordId) return null;
+      const selector = '#pwdTable tbody .rowCheckbox[value="' + String(recordId).replace(/"/g, '\\"') + '"]';
+      const checkbox = document.querySelector(selector);
+      if (!checkbox) return null;
+      const row = checkbox.closest('tr');
+      return row ? getPwdFromRow(row) : null;
+    }
+
+    function getBirthdayRowById(recordId) {
+      const targetId = String(recordId || '');
+      return birthdaysCache.find(function (row) {
+        return String(row.id || '') === targetId;
+      }) || null;
+    }
 
     function renderBirthdaysTable() {
       if (!birthdaysBody) return;
@@ -1127,10 +1190,11 @@
       });
 
       if (!filtered.length) {
-        birthdaysBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No birthdays found.</td></tr>';
+        birthdaysBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No birthdays found.</td></tr>';
       } else {
         birthdaysBody.innerHTML = filtered.map(function (row) {
           return '<tr>'
+            + '<td><input type="checkbox" class="birthday-row-checkbox" value="' + escapeHtml(row.id || '') + '"></td>'
             + '<td>' + escapeHtml(row.full_name || 'N/A') + '</td>'
             + '<td>' + escapeHtml(row.birth_date || 'N/A') + '</td>'
             + '<td>' + escapeHtml(row.barangay || 'N/A') + '</td>'
@@ -1139,6 +1203,25 @@
         }).join('');
       }
       if (birthdaysCount) birthdaysCount.textContent = filtered.length + ' results';
+      const rowChecks = birthdaysBody.querySelectorAll('.birthday-row-checkbox');
+      rowChecks.forEach(function (cb) {
+        cb.addEventListener('change', function () {
+          if (birthdaysSelectAll) {
+            const all = birthdaysBody.querySelectorAll('.birthday-row-checkbox');
+            const checked = birthdaysBody.querySelectorAll('.birthday-row-checkbox:checked');
+            birthdaysSelectAll.checked = all.length > 0 && all.length === checked.length;
+          }
+          if (birthdaysSendSmsBtn) {
+            birthdaysSendSmsBtn.disabled = birthdaysBody.querySelectorAll('.birthday-row-checkbox:checked').length === 0;
+          }
+        });
+      });
+      if (birthdaysSelectAll) {
+        birthdaysSelectAll.checked = false;
+      }
+      if (birthdaysSendSmsBtn) {
+        birthdaysSendSmsBtn.disabled = true;
+      }
     }
 
     async function loadBirthdays(range) {
@@ -1151,8 +1234,9 @@
         renderBirthdaysTable();
       } catch (e) {
         birthdaysCache = [];
-        birthdaysBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Failed to load birthdays.</td></tr>';
+        birthdaysBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load birthdays.</td></tr>';
         if (birthdaysCount) birthdaysCount.textContent = '0 results';
+        if (birthdaysSendSmsBtn) birthdaysSendSmsBtn.disabled = true;
       }
     }
 
@@ -1181,6 +1265,71 @@
     if (bdaySearch) bdaySearch.addEventListener('input', renderBirthdaysTable);
     if (bdayBarangay) bdayBarangay.addEventListener('change', renderBirthdaysTable);
     if (bdayPurok) bdayPurok.addEventListener('input', renderBirthdaysTable);
+    if (birthdaysSelectAll) {
+      birthdaysSelectAll.addEventListener('change', function () {
+        birthdaysBody.querySelectorAll('.birthday-row-checkbox').forEach(function (cb) {
+          cb.checked = birthdaysSelectAll.checked;
+        });
+        if (birthdaysSendSmsBtn) {
+          birthdaysSendSmsBtn.disabled = birthdaysBody.querySelectorAll('.birthday-row-checkbox:checked').length === 0;
+        }
+      });
+    }
+    if (birthdaysSendSmsBtn) {
+      birthdaysSendSmsBtn.addEventListener('click', function () {
+        const selected = Array.from(birthdaysBody.querySelectorAll('.birthday-row-checkbox:checked'));
+        const recipientsList = document.getElementById('recipientsList');
+        recipientsList.innerHTML = '';
+
+        selected.forEach(function (checkbox) {
+          const birthdayRow = getBirthdayRowById(checkbox.value);
+          const pwd = getPwdRecordById(checkbox.value);
+          const contacts = Array.isArray(pwd && pwd.contacts) ? pwd.contacts : [];
+          const primary = contacts.find(function (c) { return c && c.phone; }) || {};
+          const phone = String((birthdayRow && birthdayRow.mobile_number) || primary.phone || (pwd && pwd.contact) || '').trim();
+          if (!phone) return;
+          const fullName = (birthdayRow && birthdayRow.full_name)
+            ? String(birthdayRow.full_name)
+            : ([pwd && pwd.first_name, pwd && pwd.middle_name, pwd && pwd.last_name].filter(Boolean).join(' ').trim() || 'N/A');
+          const div = document.createElement('div');
+          div.className = 'recipient-item';
+          div.dataset.phone = phone;
+          div.dataset.name = fullName;
+          div.dataset.firstName = (birthdayRow && birthdayRow.first_name) || (pwd && pwd.first_name) || '';
+          div.dataset.middleName = (birthdayRow && birthdayRow.middle_name) || (pwd && pwd.middle_name) || '';
+          div.dataset.lastName = (birthdayRow && birthdayRow.last_name) || (pwd && pwd.last_name) || '';
+          div.dataset.barangay = (birthdayRow && birthdayRow.barangay) || (pwd && pwd.barangay) || '';
+          div.dataset.purok = (birthdayRow && birthdayRow.purok) || (pwd && pwd.purok) || '';
+          div.dataset.recordId = String((birthdayRow && birthdayRow.id) || (pwd && pwd.id) || checkbox.value || '');
+          div.innerHTML = '<strong>' + escapeHtml(fullName) + '</strong> <span class="text-muted">' + escapeHtml(phone) + '</span>';
+          recipientsList.appendChild(div);
+        });
+
+        if (!recipientsList.children.length) {
+          alert('No selected birthday records have a mobile number.');
+          return;
+        }
+
+        const smsMessageEl = document.getElementById('smsMessage');
+        const charCountEl = document.getElementById('charCount');
+        if (smsMessageEl) {
+          smsMessageEl.value = birthdayGreetingMessage;
+        }
+        if (charCountEl) {
+          charCountEl.textContent = String(birthdayGreetingMessage.length);
+        }
+
+        closeModal('birthdaysModal');
+        openModal('smsModal');
+      });
+    }
+    if (birthdaysViewHistoryBtn) {
+      birthdaysViewHistoryBtn.addEventListener('click', function () {
+        closeModal('birthdaysModal');
+        const btn = document.getElementById('viewHistoryBtn');
+        if (btn) btn.click();
+      });
+    }
     updateBirthdaysBadge();
   </script>
   <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>

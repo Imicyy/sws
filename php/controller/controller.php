@@ -2528,6 +2528,20 @@ class Controller
 
     public function renderAddSenior(): void
     {
+        $editSenior = null;
+        $isEditMode = false;
+
+        $editId = isset($_GET['edit']) ? (int) $_GET['edit'] : 0;
+        if ($editId > 0) {
+            try {
+                $editSenior = $this->getSeniorByIdWithRelations($editId);
+                $isEditMode = $editSenior !== null;
+            } catch (Throwable $e) {
+                $editSenior = null;
+                $isEditMode = false;
+            }
+        }
+
         try {
             $barangays = $this->fetchBarangays();
         } catch (Throwable $e) {
@@ -2535,9 +2549,11 @@ class Controller
         }
 
         $this->render('staff/add_senior', [
-            'title' => 'Add Senior',
+            'title' => $isEditMode ? 'Edit Senior' : 'Add Senior',
             'user' => $_SESSION['user'] ?? null,
             'barangays' => $barangays,
+            'isEditMode' => $isEditMode,
+            'editSenior' => $editSenior,
         ]);
     }
 
@@ -2963,6 +2979,14 @@ class Controller
 
     public function renderOscaDashboard(): void
     {
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (!is_array($sessionUser)) {
+            $this->redirect('/');
+        }
+        if (($sessionUser['role'] ?? '') === 'Barangay') {
+            $this->redirect('/barangay-senior-dashboard');
+        }
+
         $seniors = [];
         $totalSeniors = 0;
 
@@ -3022,6 +3046,14 @@ class Controller
 
     public function renderPdaoDashboard(): void
     {
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (!is_array($sessionUser)) {
+            $this->redirect('/');
+        }
+        if (($sessionUser['role'] ?? '') === 'Barangay') {
+            $this->redirect('/barangay');
+        }
+
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Pragma: no-cache');
         header('Expires: 0');
@@ -3421,12 +3453,44 @@ class Controller
 
             if ($type === 'pwd') {
                 $dateCol = 'birthday';
-                $sql = 'SELECT id, first_name, middle_name, last_name, barangay, purok, birthday AS birth_date
-                        FROM pwd WHERE ' . implode(' AND ', $filters);
+                $sql = 'SELECT
+                            p.id,
+                            p.first_name,
+                            p.middle_name,
+                            p.last_name,
+                            p.barangay,
+                            p.purok,
+                            p.birthday AS birth_date,
+                            (
+                                SELECT pc.phone
+                                FROM pwd_contacts pc
+                                WHERE pc.pwd_id = p.id
+                                  AND pc.phone IS NOT NULL
+                                  AND TRIM(pc.phone) <> ""
+                                ORDER BY CASE WHEN pc.type = "primary" THEN 0 ELSE 1 END, pc.id ASC
+                                LIMIT 1
+                            ) AS mobile_number
+                        FROM pwd p WHERE ' . implode(' AND ', $filters);
             } else {
                 $dateCol = 'date_of_birth';
-                $sql = 'SELECT id, first_name, middle_name, last_name, barangay, purok, date_of_birth AS birth_date
-                        FROM senior_citizens WHERE ' . implode(' AND ', $filters);
+                $sql = 'SELECT
+                            s.id,
+                            s.first_name,
+                            s.middle_name,
+                            s.last_name,
+                            s.barangay,
+                            s.purok,
+                            s.date_of_birth AS birth_date,
+                            (
+                                SELECT sc.phone
+                                FROM senior_contacts sc
+                                WHERE sc.senior_id = s.id
+                                  AND sc.phone IS NOT NULL
+                                  AND TRIM(sc.phone) <> ""
+                                ORDER BY CASE WHEN sc.type = "primary" THEN 0 ELSE 1 END, sc.id ASC
+                                LIMIT 1
+                            ) AS mobile_number
+                        FROM senior_citizens s WHERE ' . implode(' AND ', $filters);
             }
 
             if ($range === 'today') {
@@ -3446,9 +3510,13 @@ class Controller
                 return [
                     'id' => (int) ($r['id'] ?? 0),
                     'full_name' => $fullName !== '' ? $fullName : 'Unnamed record',
+                    'first_name' => (string) ($r['first_name'] ?? ''),
+                    'middle_name' => (string) ($r['middle_name'] ?? ''),
+                    'last_name' => (string) ($r['last_name'] ?? ''),
                     'barangay' => (string) ($r['barangay'] ?? ''),
                     'purok' => (string) ($r['purok'] ?? ''),
                     'birth_date' => (string) ($r['birth_date'] ?? ''),
+                    'mobile_number' => (string) ($r['mobile_number'] ?? ''),
                 ];
             }, $rows);
 
@@ -3526,17 +3594,25 @@ class Controller
             exit;
         }
 
-        $statusSql = "WHERE status <> 'Archived' AND barangay = ?";
-        if (isset($_GET['status']) && $_GET['status'] === 'archived') {
-            $statusSql = "WHERE status = 'Archived' AND barangay = ?";
-        } elseif (isset($_GET['status']) && $_GET['status'] === 'all') {
-            $statusSql = 'WHERE barangay = ?';
+        $filters = ['barangay = ?'];
+        $params = [(string) $scope['barangay']];
+        $status = strtolower(trim((string) ($_GET['status'] ?? '')));
+        if ($status === 'archived') {
+            $filters[] = 'status = "Archived"';
+        } elseif ($status !== 'all') {
+            $filters[] = 'status <> "Archived"';
+        }
+
+        $purok = trim((string) ($_GET['purok'] ?? ''));
+        if ($purok !== '') {
+            $filters[] = 'purok = ?';
+            $params[] = $purok;
         }
 
         $rows = $this->queryAll(
-            'SELECT id, last_name, first_name, middle_name, extension, barangay, purok, age, gender, status, created_at
-             FROM senior_citizens ' . $statusSql . ' ORDER BY created_at DESC',
-            [$scope['barangay']]
+            'SELECT id, last_name, first_name, middle_name, extension, barangay, purok, age, gender, status, created_at, created_by
+             FROM senior_citizens WHERE ' . implode(' AND ', $filters) . ' ORDER BY created_at DESC',
+            $params
         );
 
         $barangays = $this->fetchBarangays();
@@ -3574,17 +3650,25 @@ class Controller
             exit;
         }
 
-        $statusSql = "WHERE status <> 'Archived' AND barangay = ?";
-        if (isset($_GET['status']) && $_GET['status'] === 'archived') {
-            $statusSql = "WHERE status = 'Archived' AND barangay = ?";
-        } elseif (isset($_GET['status']) && $_GET['status'] === 'all') {
-            $statusSql = 'WHERE barangay = ?';
+        $filters = ['barangay = ?'];
+        $params = [(string) $scope['barangay']];
+        $status = strtolower(trim((string) ($_GET['status'] ?? '')));
+        if ($status === 'archived') {
+            $filters[] = 'status = "Archived"';
+        } elseif ($status !== 'all') {
+            $filters[] = 'status <> "Archived"';
+        }
+
+        $purok = trim((string) ($_GET['purok'] ?? ''));
+        if ($purok !== '') {
+            $filters[] = 'purok = ?';
+            $params[] = $purok;
         }
 
         $rows = $this->queryAll(
-            'SELECT id, last_name, first_name, middle_name, barangay, purok, age, gender, status, created_at
-             FROM pwd ' . $statusSql . ' ORDER BY created_at DESC',
-            [$scope['barangay']]
+            'SELECT id, last_name, first_name, middle_name, barangay, purok, age, gender, status, created_at, created_by
+             FROM pwd WHERE ' . implode(' AND ', $filters) . ' ORDER BY created_at DESC',
+            $params
         );
 
         $barangays = $this->fetchBarangays();
