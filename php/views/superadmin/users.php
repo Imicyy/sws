@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <link rel="stylesheet" type="text/css" href="/files/assets/css/user.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #f4f7fb; display: flex; }
@@ -15,18 +16,20 @@
     /* Sidebar Styles */
     .sidebar { 
       width: 260px; 
-      background: #0f766e; 
-      color: #fff; 
+      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+      color: #1e3a8a; 
       min-height: 100vh; 
       padding: 20px 0; 
       position: fixed; 
       left: 0; 
       top: 0; 
-      overflow-y: auto; 
+      overflow-y: auto;
+      border-right: 1px solid #dbe5f3;
+      box-shadow: 10px 0 24px rgba(37, 99, 235, 0.08);
     }
     .sidebar-header { 
       padding: 0 20px 24px; 
-      border-bottom: 1px solid rgba(255,255,255,0.1); 
+      border-bottom: 1px solid rgba(59,130,246,0.18); 
       margin-bottom: 20px; 
     }
     .sidebar-header h2 { 
@@ -43,25 +46,29 @@
     .sidebar-nav a { 
       display: block; 
       padding: 12px 20px; 
-      color: rgba(255,255,255,0.8); 
+      color: #1e3a8a; 
       text-decoration: none; 
       transition: all 0.3s ease; 
-      border-left: 3px solid transparent; 
+      border-left: 3px solid transparent;
+      border-radius: 10px;
+      margin: 0 10px 6px;
+      font-weight: 600;
     }
     .sidebar-nav a:hover { 
-      background: rgba(255,255,255,0.1); 
-      color: #fff; 
-      border-left-color: #fff; 
+      background: #dbeafe;
+      color: #1e3a8a; 
+      border-left-color: #3b82f6; 
     }
     .sidebar-nav a.active { 
-      background: #0f766e; 
+      background: linear-gradient(135deg, #60a5fa, #3b82f6); 
       color: #fff; 
-      border-left-color: #fbbf24; 
+      border-left-color: #facc15;
+      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
     }
     .sidebar-nav-label {
       font-size: 12px;
       font-weight: 600;
-      color: rgba(255,255,255,0.6);
+      color: #64748b;
       text-transform: uppercase;
       padding: 16px 20px 8px;
       letter-spacing: 0.5px;
@@ -69,10 +76,15 @@
     .user-name {
       font-size: 14px;
       font-weight: 600;
-      color: #fff;
+      color: #1e3a8a;
       padding: 0 20px;
       margin-bottom: 8px;
       word-break: break-word;
+    }
+    .sidebar-nav .nav-logout {
+      margin-top: 24px;
+      border-top: 1px solid rgba(59,130,246,0.18);
+      padding-top: 16px;
     }
     
     /* Main Content */
@@ -102,7 +114,7 @@
       <li><a href="/index-superadmin" class="<?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">Dashboard</a></li>
       <li><a href="/superadmin-users" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-users') !== false ? 'active' : '' ?>">User Management</a></li>
       <li><a href="/superadmin-logs" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-logs') !== false ? 'active' : '' ?>">System Logs</a></li>
-      <li style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;"><a href="/logout">Logout</a></li>
+      <li class="nav-logout"><a href="/logout">Logout</a></li>
     </ul>
   </div>
 

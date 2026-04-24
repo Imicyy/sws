@@ -7,6 +7,7 @@
   <title>OSCA Admin Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/files/assets/css/admin.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
@@ -118,7 +119,7 @@
       <section class="panel">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                  <a href="/Maps" class="btn btn-info" style="font-weight:600; border-radius:8px;">&#128506; Senior Map</a>
+                  <a href="/Maps" target="_blank" rel="noopener noreferrer" class="btn btn-info" style="font-weight:600; border-radius:8px;">&#128506; Senior Map</a>
                   <h2 class="h6 mb-0" style="margin-bottom:0;">Barangay Senior Citizen Table</h2>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
@@ -282,6 +283,11 @@ function monthName(monthNum) {
   return months[(monthNum || 1) - 1] || '';
 }
 
+function toNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
 function populateYearDropdown() {
   const yearSelect = document.getElementById('reportYear');
   const currentYear = new Date().getFullYear();
@@ -310,18 +316,19 @@ function buildOscaReportHtml(reportTitle, scopeName, rows) {
   const bodyRows = safeRows.length ? safeRows.map((r) => `
     <tr>
       <td><strong>${escapeHtml(r.barangay || 'Unknown')}</strong></td>
-      <td>${Number(r.male || 0).toLocaleString()}</td>
-      <td>${Number(r.female || 0).toLocaleString()}</td>
-      <td><span class="badge badge-primary">${Number(r.total || 0).toLocaleString()}</span></td>
+      <td>${toNumber(r.male).toLocaleString()}</td>
+      <td>${toNumber(r.female).toLocaleString()}</td>
+      <td>${toNumber(r.total).toLocaleString()}</td>
     </tr>
   `).join('') : '<tr><td colspan="4" class="text-center">No data available.</td></tr>';
 
   const totals = safeRows.reduce((acc, r) => {
-    acc.total += Number(r.total || 0);
-    acc.male += Number(r.male || 0);
-    acc.female += Number(r.female || 0);
+    acc.total += toNumber(r.total);
+    acc.male += toNumber(r.male);
+    acc.female += toNumber(r.female);
     return acc;
   }, { total: 0, male: 0, female: 0 });
+  const barangayCount = safeRows.length;
 
   const displayScope = scopeName && scopeName.trim() !== '' ? scopeName : 'All Barangays';
 
@@ -333,22 +340,62 @@ function buildOscaReportHtml(reportTitle, scopeName, rows) {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
   <style>
-    body { padding: 22px; font-family: Arial, sans-serif; color: #1f2937; }
-    .print-button-container { text-align: center; margin-bottom: 14px; padding: 10px; background: #f8fafc; border-radius: 6px; }
+    @page { size: A4 landscape; margin: 8mm; }
+    body { margin: 0; padding: 12px 16px; font-family: Arial, sans-serif; color: #1f2937; font-size: 14px; }
+    .print-button-container { text-align: center; margin-bottom: 12px; padding: 10px; background: #f8fafc; border-radius: 6px; }
     .print-button-container button { background: #0d6efd; color: #fff; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; }
-    .header-wrapper { position: relative; min-height: 120px; margin-bottom: 10px; }
-    .logo-left { position: absolute; top: 0; left: 0; width: 88px; }
-    .logo-right { position: absolute; top: 0; right: 0; width: 108px; }
-    .main-header { text-align: center; padding-top: 6px; }
+    .container { max-width: 100%; width: 100%; padding: 0; }
+    .header-wrapper { position: relative; min-height: 100px; margin-bottom: 8px; }
+    .logo-left { position: absolute; top: 0; left: 0; width: 72px; }
+    .logo-right { position: absolute; top: 0; right: 0; width: 90px; }
+    .main-header { text-align: center; padding-top: 4px; }
     .main-header h4, .main-header h2, .main-header p { margin: 0; }
-    .title-section { text-align: center; margin: 12px 0 14px; }
+    .title-section { text-align: center; margin: 8px 0 10px; }
     .title-section h5, .title-section h4 { margin: 0; }
-    .title-section .as-of { margin-top: 8px; font-size: 13px; }
-    .table th { background: #d1d5db; color: #111827; }
-    .summary-box { margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
-    .summary-box h5 { margin-bottom: 6px; }
+    .title-section .as-of { margin-top: 5px; font-size: 13px; }
+    .table { margin-bottom: 6px; font-size: 13px; table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; }
+    .table thead th {
+      background: #d1d5db;
+      color: #1f2937;
+      font-weight: 700;
+      text-align: center;
+      border: 1px solid #eef2f7 !important;
+      padding: 6px 10px;
+    }
+    .table tbody td {
+      background: #f3f4f6;
+      border: 1px solid #eef2f7 !important;
+      vertical-align: middle;
+      padding: 6px 10px;
+      color: #1f2937;
+    }
+    .table tfoot td {
+      background: #e5e7eb;
+      border: 1px solid #eef2f7 !important;
+      vertical-align: middle;
+      padding: 6px 10px;
+      color: #1f2937;
+    }
+    .table tbody td:first-child,
+    .table tfoot td:first-child { font-weight: 600; }
+    .total-row td { font-weight: 700; }
+    .summary-box { margin-top: 6px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+    .summary-box h5 { margin-bottom: 4px; }
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; }
     .summary-box p { margin: 2px 0; font-weight: 600; }
-    @media print { .print-button-container { display: none; } body { padding: 0; } }
+    .summary-box .right-col { text-align: right; }
+    @media print {
+      .print-button-container { display: none; }
+      body { padding: 0; font-size: 12px; }
+      .header-wrapper { min-height: 88px; margin-bottom: 6px; }
+      .logo-left { width: 62px; }
+      .logo-right { width: 80px; }
+      .title-section { margin: 6px 0 8px; }
+      .title-section .as-of { margin-top: 4px; }
+      .table { font-size: 12px; }
+      .table thead th, .table tbody td, .table tfoot td { padding: 5px 8px; }
+      .summary-box { margin-top: 4px; padding-top: 6px; }
+    }
   </style>
 </head>
 <body>
@@ -382,14 +429,28 @@ function buildOscaReportHtml(reportTitle, scopeName, rows) {
         </tr>
       </thead>
       <tbody>${bodyRows}</tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td>TOTAL</td>
+          <td>${totals.male.toLocaleString()}</td>
+          <td>${totals.female.toLocaleString()}</td>
+          <td>${totals.total.toLocaleString()}</td>
+        </tr>
+      </tfoot>
     </table>
 
     <div class="summary-box">
       <h5>Report Summary</h5>
-      <p>Barangay: ${escapeHtml(displayScope)}</p>
-      <p>Total Senior Citizens: ${totals.total.toLocaleString()}</p>
-      <p>Total Male: ${totals.male.toLocaleString()}</p>
-      <p>Total Female: ${totals.female.toLocaleString()}</p>
+      <div class="summary-grid">
+        <div>
+          <p>Total Senior Citizens: ${totals.total.toLocaleString()}</p>
+          <p>Total Male: ${totals.male.toLocaleString()}</p>
+          <p>Total Female: ${totals.female.toLocaleString()}</p>
+        </div>
+        <div class="right-col">
+          <p>Number of Barangays: ${barangayCount.toLocaleString()}</p>
+        </div>
+      </div>
     </div>
   </div>
 </body>
@@ -521,7 +582,12 @@ async function openBarangayPrint(barangay) {
     if (/^male$/i.test(g)) male += 1;
     else if (/^female$/i.test(g)) female += 1;
   });
-  const rows = [{ barangay, male, female, total: seniors.length }];
+  const rows = [{
+    barangay,
+    male,
+    female,
+    total: seniors.length
+  }];
   await openPrintWindow(buildOscaReportHtml('SENIOR CITIZEN BARANGAY REPORT', barangay, rows));
 }
 
@@ -541,7 +607,12 @@ window.monthlyReport = async function(barangay) {
       if (/^male$/i.test(g)) male += 1;
       else if (/^female$/i.test(g)) female += 1;
     });
-    const rows = [{ barangay, male, female, total: seniors.length }];
+    const rows = [{
+      barangay,
+      male,
+      female,
+      total: seniors.length
+    }];
     await openPrintWindow(buildOscaReportHtml('MONTHLY ACCOMPLISHMENT REPORT', barangay, rows));
   } catch (e) {
     alert(e.message || 'Error generating monthly report.');

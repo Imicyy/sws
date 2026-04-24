@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Admin Alert Management</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
@@ -15,8 +16,9 @@
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
     .nav-link.active { background: #0f766e; color: #fff; }
     .nav-link:hover { background: #edf2f7; }
-    .main { padding: 20px; }
-    .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; max-width: 700px; }
+    .main { padding: 24px; max-width: 1280px; margin: 0 auto; width: 100%; }
+    .main > h1 { text-align: center; }
+    .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; width: 100%; max-width: 1080px; margin: 0 auto; }
     .form-group { margin-bottom: 16px; }
     label { font-weight: 600; margin-bottom: 6px; display: block; }
     input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-family: inherit; }
@@ -151,7 +153,8 @@
       const host = window.location.hostname || 'localhost';
       const proto = window.location.protocol === 'https:' ? 'https' : 'http';
       // Do not probe same-origin /socket.io (causes repeated 404 on PHP-only servers).
-      const portsToTry = ['3000', '8080'];
+      var __pagePort = String(window.location.port || '');
+      const portsToTry = ['3000', '8080'].filter(function (p) { return String(p) !== __pagePort; });
       let connected = false;
 
       function inst(port) {

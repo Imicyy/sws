@@ -70,3 +70,13 @@ function asset_url(string $relativePath): string
 {
     return app_base_path() . '/assets/' . ltrim($relativePath, '/');
 }
+
+/**
+ * Build an app-relative URL path (e.g. "/sws/Final_Caps/php/barangay").
+ */
+function app_url(string $path = '/'): string
+{
+    $base = app_base_path();
+    $normalized = '/' . ltrim($path, '/');
+    return $base . $normalized;
+}

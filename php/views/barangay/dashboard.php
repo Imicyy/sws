@@ -3,41 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Barangay — Person With Disability Analytics</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <link rel="stylesheet" href="/files/bower_components/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
+  <script src="/files/bower_components/chart.js/js/Chart.js"></script>
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
-    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; }
-    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
-    .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
-    .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
-    .nav-link.active { background: #0f766e; color: #fff; }
-    .nav-link:hover { background: #edf2f7; }
-    .main { padding: 20px; }
+    :root {
+      --bg-page: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%);
+      --panel-border: #dbe5f3;
+      --blue-main: #3b82f6;
+      --blue-dark: #1d4ed8;
+      --yellow-soft: #fef3c7;
+      --yellow-main: #facc15;
+    }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; line-height: 1.45; position: relative; }
+    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; position: relative; z-index: 1; }
+    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; box-shadow: 10px 0 30px rgba(59, 130, 246, 0.08); }
+    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.7px; margin-bottom: 18px; color: #0f172a !important; opacity: 1 !important; visibility: visible !important; }
+    .nav-title { font-size: 12px; color: #6b7280 !important; text-transform: uppercase; margin: 8px 10px; opacity: 1 !important; visibility: visible !important; }
+    .sidebar .nav-link { display: flex !important; align-items: center !important; min-height: 40px !important; padding: 10px 12px; margin-bottom: 6px; border-radius: 10px; color: #1f2937 !important; text-decoration: none !important; font-weight: 600; font-size: 14px !important; line-height: 1.3 !important; letter-spacing: .1px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .2s ease; }
+    .sidebar .nav-link.active { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #fff !important; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
+    .sidebar .nav-link:hover { background: #eaf3ff; color: #0f172a !important; transform: translateX(2px); }
+    .nav-fallback-item { padding: 8px 10px; margin-bottom: 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1f2937; cursor: pointer; }
+    .nav-fallback-item.active { background: #3b82f6; color: #fff; }
+    .main { padding: 24px; }
     .top-header { margin-bottom: 20px; }
     .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
-    .stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; text-align: center; }
-    .stat-number { font-size: 24px; font-weight: 700; color: #0f766e; }
+    .stat-card { background: #fff; border: 1px solid var(--panel-border); border-radius: 14px; padding: 16px; text-align: center; box-shadow: 0 12px 24px rgba(59, 130, 246, 0.08); }
+    .stat-number { font-size: 26px; font-weight: 800; color: var(--blue-dark); }
     .stat-label { font-size: 12px; color: #6b7280; margin-top: 6px; }
-    .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
-    .panel-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
-    .search-box { margin-bottom: 12px; }
+    .panel { background: #fff; border: 1px solid var(--panel-border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 16px 30px rgba(59, 130, 246, 0.08); }
+    .panel-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .search-box { margin-bottom: 12px; padding: 9px 12px; border-radius: 8px; border: 1px solid #d1d5db; }
     .search-box input { padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7eb; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    table th { background: #f9fafb; padding: 10px; text-align: left; font-weight: 600; }
-    table td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
-    table tr:hover { background: #f9fafb; }
+    table th { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #f8fafc; padding: 11px 10px; text-align: left; font-weight: 700; letter-spacing: .2px; }
+    table td { padding: 11px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+    table tr:hover { background: #fffbeb; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
     .modal.show { display: block; }
     .modal-content { background-color: #fff; margin: 5% auto; padding: 20px; border: 1px solid #888; border-radius: 12px; width: 80%; max-width: 700px; }
     .close { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
     .close:hover { color: #000; }
-    button { padding: 8px 14px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
-    button.btn-primary { background: #0f766e; color: #fff; border: none; }
-    button.btn-info { background: #2563eb; color: #fff; border: none; }
+    button { padding: 8px 14px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; font-weight: 600; transition: all .2s ease; }
+    button.btn-primary { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #fff; border: none; }
+    button.btn-info { background: linear-gradient(135deg, #fef3c7, var(--yellow-main)); color: #713f12; border: none; }
+    button:hover { transform: translateY(-1px); }
+    input:focus, select:focus { outline: none; border-color: var(--blue-main) !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14); }
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; max-height: none; }
@@ -46,26 +58,27 @@
   </style>
 </head>
 <body>
+  <script>window.__APP_BASE__=<?= json_encode(app_base_path(), JSON_UNESCAPED_UNICODE) ?>;</script>
   <div class="layout">
     <aside class="sidebar">
       <div class="brand">ENRIQUE B. MAGALONA</div>
       <div class="nav-title">Navigation</div>
-      <a class="nav-link active" href="/barangay">Person With Disability Analytics</a>
-      <a class="nav-link" href="/barangay-senior-dashboard">Senior Citizen Analytics</a>
-      <a class="nav-link" href="/barangay-pwd">Person With Disability List</a>
-      <a class="nav-link" href="/barangay-senior">Senior Citizens List</a>
-      <a class="nav-link" href="/logout">Logout</a>
+      <a class="nav-link active" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#ffffff !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability Analytics</a>
+      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior-dashboard'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizen Analytics</a>
+      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-pwd'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability List</a>
+      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizens List</a>
+      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
     </aside>
 
     <main class="main">
-      <div class="top-header" style="display:flex;align-items:center;justify-content:space-between;">
-        <div>
+      <div class="top-header" style="display:flex;align-items:center;justify-content:center;position:relative;">
+        <div style="text-align:center;">
           <h1 class="h4">Barangay Dashboard — PWD Analytics</h1>
           <?php if (!empty($assignedBarangayName)): ?>
           <p class="text-muted mb-0" style="font-size: 13px;"><strong>Barangay:</strong> <?= htmlspecialchars((string) $assignedBarangayName, ENT_QUOTES, 'UTF-8') ?></p>
           <?php endif; ?>
         </div>
-        <div style="position:relative;">
+        <div style="position:absolute;right:0;top:0;">
           <button id="notifBellBrgy" style="background:transparent;border:0;cursor:pointer;padding:8px;border-radius:8px;font-size:18px;">🔔 <span id="notifBadgeBrgy" style="background:#dc2626;color:#fff;border-radius:10px;padding:2px 6px;font-size:12px;display:none;margin-left:6px;">0</span></button>
           <div id="notifDropdownBrgy" style="display:none;position:absolute;right:0;top:48px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);width:360px;max-height:320px;overflow:auto;padding:8px;z-index:2000;">
             <div style="font-weight:700;padding:8px;border-bottom:1px solid #f3f4f6;">Notifications</div>
@@ -188,6 +201,10 @@
   </div>
 
   <script>
+    function appPath(p) {
+      var b = window.__APP_BASE__ || '';
+      return b + (p.charAt(0) === '/' ? p : '/' + p);
+    }
     function showChartModal(purokName) {
       document.getElementById('modalTitle').textContent = purokName;
       document.getElementById('chartModal').classList.add('show');
@@ -230,16 +247,109 @@
         .replace(/'/g, '&#039;');
     }
 
-    function buildOscaReportHtml(reportTitle, scopeName, rows) {
-      const safeRows = Array.isArray(rows) ? rows : [];
-      const rowsHtml = safeRows.length ? safeRows.map(r => `
-        <tr>
-          <td><strong>${escapeHtml(r.purok || r.name || 'Unknown')}</strong></td>
-          <td>${Number(r.count || r.total || 0).toLocaleString()}</td>
-        </tr>
-      `).join('') : '<tr><td colspan="2" class="text-center">No data available.</td></tr>';
+    function escReport(value) {
+      return String(value === null || value === undefined ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
 
-      const total = safeRows.reduce((acc, r) => acc + Number(r.count || r.total || 0), 0);
+    function buildDisabilityTableHtml(scopeName, pwds) {
+      const mapping = {
+        'Hard of Hearing/Deaf': 'Deaf or Hard of Hearing',
+        'Visual/Blind': 'Visual Disability',
+        'Speech/Language Impairment': 'Speech and Language Impairment',
+        'Learning Disability': 'Learning Disability',
+        'Mental/Intellectual': 'Intellectual Disability',
+        'Physical Disability': 'Physical Disability (Orthopedic)',
+        'Psychosocial Disability': 'Psychosocial Disability',
+        'Cancer': 'Cancer (RA11215)',
+        'Rare Disease': 'Rare Disease (RA10747)',
+        'Multiple Disability': 'Multiple Disability',
+        'Other': 'Other'
+      };
+
+      const stats = {};
+      const uniqueIds = new Set();
+
+      (Array.isArray(pwds) ? pwds : []).forEach(function (p) {
+        if (p && (p._id || p.id)) uniqueIds.add(p._id || p.id);
+        const age = (typeof p.age === 'number') ? p.age : (p.age ? parseInt(p.age, 10) : null);
+        const gender = (p.gender || 'Unknown').toString();
+        const disabilityField = p.disability || p.disabilities;
+        const disabilities = Array.isArray(disabilityField)
+          ? disabilityField
+          : (disabilityField ? String(disabilityField).split(',').map(function (s) { return s.trim(); }).filter(Boolean) : []);
+
+        disabilities.forEach(function (d) {
+          const key = mapping[d] || d || 'Other';
+          if (!stats[key]) {
+            stats[key] = { count: 0, male: 0, female: 0, otherGender: 0, ages: [] };
+          }
+          stats[key].count += 1;
+          if (age !== null && !isNaN(age)) stats[key].ages.push(age);
+          if (/^male$/i.test(gender)) stats[key].male += 1;
+          else if (/^female$/i.test(gender)) stats[key].female += 1;
+          else stats[key].otherGender += 1;
+        });
+      });
+
+      const preferredOrder = [
+        'Deaf or Hard of Hearing', 'Intellectual Disability', 'Learning Disability',
+        'Mental Disability', 'Physical Disability (Orthopedic)', 'Psychosocial Disability',
+        'Speech and Language Impairment', 'Visual Disability', 'Cancer (RA11215)',
+        'Rare Disease (RA10747)', 'Multiple Disability', 'Other'
+      ];
+      const keys = Array.from(new Set(preferredOrder.concat(Object.keys(stats))));
+      const grandTotal = Object.values(stats).reduce(function (sum, s) { return sum + (s.count || 0); }, 0);
+
+      let rowIndex = 1;
+      let bodyHtml = '';
+      keys.forEach(function (k) {
+        if (!stats[k]) return;
+        const s = stats[k];
+        const minAge = s.ages.length ? Math.min.apply(null, s.ages) : 'N/A';
+        const maxAge = s.ages.length ? Math.max.apply(null, s.ages) : 'N/A';
+        const ageRange = s.ages.length ? (minAge + ' - ' + maxAge) : 'N/A';
+        const percent = grandTotal > 0 ? ((s.count / grandTotal) * 100).toFixed(1) : '0.0';
+        bodyHtml += `<tr>
+          <td>${rowIndex++}</td>
+          <td><strong>${escReport(k)}</strong></td>
+          <td>${escReport(ageRange)}</td>
+          <td>${s.count}</td>
+          <td>${percent}%</td>
+          <td>${s.male}</td>
+          <td>${s.female}</td>
+          <td>${s.otherGender}</td>
+        </tr>`;
+      });
+      if (!bodyHtml) {
+        bodyHtml = '<tr><td colspan="8" class="text-center">No data available.</td></tr>';
+      }
+
+      let totalMale = 0, totalFemale = 0, totalOther = 0, totalCount = 0;
+      Object.values(stats).forEach(function (s) {
+        totalMale += s.male;
+        totalFemale += s.female;
+        totalOther += s.otherGender;
+        totalCount += s.count;
+      });
+      const allAges = [].concat.apply([], Object.values(stats).map(function (s) { return s.ages; }));
+      const overallAgeRange = allAges.length ? (Math.min.apply(null, allAges) + ' - ' + Math.max.apply(null, allAges)) : 'N/A';
+
+      return {
+        tableRowsHtml: bodyHtml,
+        totalMale: totalMale,
+        totalFemale: totalFemale,
+        totalOther: totalOther,
+        totalCount: totalCount,
+        uniquePwds: uniqueIds.size,
+        overallAgeRange: overallAgeRange
+      };
+    }
+
+    function buildOscaReportHtml(reportTitle, scopeName, pwds) {
+      const tableData = buildDisabilityTableHtml(scopeName, pwds);
 
       return `<!doctype html>
 <html>
@@ -247,75 +357,211 @@
   <meta charset="utf-8">
   <title>${escapeHtml(reportTitle)} - ${escapeHtml(scopeName)}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/files/bower_components/bootstrap/css/bootstrap.min.css">
   <style>
-    @page { size: A4 portrait; margin: 10mm; }
-    body { padding: 10px; font-family: Arial, sans-serif; color: #1f2937; background: #f3f4f6; }
-    .container { max-width: 190mm; margin: 0 auto; background: #fff; padding: 10px 12px 12px; border: 1px solid #e5e7eb; }
-    .print-button-container { text-align: center; margin-bottom: 14px; padding: 10px; background: #f8fafc; border-radius: 6px; }
-    .print-button-container button { background: #0d6efd; color: #fff; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; }
-    .header-wrapper { position: relative; min-height: 82px; margin-bottom: 8px; }
-    .logo-left { position: absolute; top: 0; left: 0; width: 60px; }
-    .logo-right { position: absolute; top: 0; right: 0; width: 76px; }
-    .main-header { text-align: center; padding-top: 2px; }
-    .main-header h4, .main-header h2, .main-header p { margin: 0; }
-    .main-header h4 { font-size: 14px; }
-    .main-header h2 { font-size: 22px; }
-    .main-header p { font-size: 13px; }
-    .title-section { text-align: center; margin: 12px 0 14px; }
-    .title-section h5, .title-section h4 { margin: 0; }
-    .title-section h4 { font-size: 16px; }
-    .title-section h5 { font-size: 14px; margin-top: 2px; }
-    .title-section .as-of { margin-top: 8px; font-size: 13px; }
-    .table th { background: #d1d5db; color: #111827; }
-    .table { font-size: 13px; margin-bottom: 8px; }
-    .table th, .table td { padding: 6px 8px !important; }
-    .summary-box { margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
-    .summary-box h5 { margin-bottom: 6px; }
-    .summary-box p { margin: 2px 0; font-weight: 600; font-size: 13px; }
-    @media print {
-      .print-button-container { display: none; }
-      body { padding: 0; background: #fff; }
-      .container { width: 100% !important; max-width: none !important; border: none; padding: 0; }
+    @page { size: auto; margin: 8mm; }
+    body { padding: 10px; font-family: Arial, sans-serif; font-size: 14px; }
+    .container-fluid { width: 100%; max-width: 100%; padding-left: 6px; padding-right: 6px; }
+    .header-wrapper { position: relative; margin-bottom: 16px; min-height: 130px; }
+    .logo-left { position: absolute; top: 6px; left: 0; width: 92px; }
+    .logo-right { position: absolute; top: 2px; right: 0; width: 110px; }
+    .main-header { text-align: center; margin-top: 8px; line-height: 1.15; }
+    .main-header h4 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: .2px; }
+    .main-header h3 { margin: 0 0 6px; font-size: 14px; font-weight: 500; color: #333; }
+    .main-header p { margin: 0; font-size: 14px; font-weight: 500; }
+    .title-section { margin-top: 8px; text-align: center; }
+    .title-section h5 { margin: 3px 0; font-size: 16px; font-weight: 600; }
+    .as-of-label { margin-top: 10px; margin-bottom: 0; font-size: 13px; }
+    .as-of-date { margin-top: 2px; margin-bottom: 0; font-size: 13px; font-weight: 700; }
+    .print-button-container { text-align: center; margin: 4px 0 12px; }
+    .print-button-container button { background-color: #2f80ed; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .print-button-container button:hover { background-color: #0056b3; }
+    .report-info {
+      margin: 12px auto 10px; text-align: center; font-size: 12px; line-height: 1.5;
+      max-width: 100%; white-space: nowrap;
     }
+    .info-item { display: inline-block; margin: 0 15px; }
+    .underline { display: inline-block; border-bottom: 1px solid #000; width: 120px; height: 14px; vertical-align: bottom; margin-left: 5px; }
+    .address-underline { width: 150px; }
+    .table { width: 100%; margin-bottom: 8px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+    .table thead th {
+      background: #cfd3d8 !important;
+      color: #1f2937 !important;
+      font-weight: 700;
+      text-align: center;
+      border: 1px solid #e5e7eb !important;
+      padding: 4px 8px !important;
+    }
+    .table tbody td, .table tfoot td {
+      background: #ffffff;
+      border: 1px solid #f0f1f3 !important;
+      vertical-align: middle;
+      padding: 5px 8px !important;
+      color: #1f2937;
+      line-height: 1.2;
+    }
+    .table tfoot td {
+      background: #eef0f3 !important;
+      font-weight: 700;
+    }
+    .table tbody td:not(:first-child),
+    .table tfoot td:not(:first-child) { text-align: center; }
+    .summary-box { margin-top: 6px; padding-top: 8px; }
+    .summary-box h5 { margin-bottom: 4px; }
+    .summary-box ul { margin-bottom: 4px; }
+    @media print { .print-button-container { display: none; } body { padding: 0; } .container-fluid { padding-left: 0; padding-right: 0; } }
   </style>
 </head>
 <body>
   <div class="print-button-container"><button onclick="window.print()">🖨️ Print Report</button></div>
 
-  <div class="container">
+  <div class="container-fluid">
     <div class="header-wrapper">
-      <img src="/assets/images/SilayLogo.jpg" class="logo-left">
       <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
       <div class="main-header">
-        <h4>Republic of the Philippines</h4>
-        <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
+        <h3>Republic of the Philippines</h3>
+        <h4>ENRIQUE B. MAGALONA</h4>
         <p>Persons with Disability Affairs Office</p>
       </div>
     </div>
 
     <div class="title-section">
-      <h4>PERSONS WITH DISABILITY AFFAIRS OFFICE</h4>
+      <h5>PERSONS WITH DISABILITY AFFAIRS OFFICE</h5>
       <h5>${escapeHtml(reportTitle)}</h5>
-      <h4><strong>${escapeHtml(scopeName)}</strong></h4>
-      <div class="as-of">As of - <strong>${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong></div>
+      <h5><strong>${escapeHtml(scopeName)}</strong></h5>
+      <p class="as-of-label">As of -</p>
+      <p class="as-of-date">${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    </div>
+    <div class="report-info">
+      <span class="info-item">Region: <span class="underline"></span></span>
+      <span class="info-item">Persons with Disability Statistics: <span class="underline"></span></span>
+      <span class="info-item">Address: <span class="underline address-underline"></span></span>
     </div>
 
     <table class="table table-bordered table-striped">
       <thead>
         <tr>
-          <th>Purok</th>
-          <th>Total PWD</th>
+          <th>No.</th>
+          <th>Disability Type</th>
+          <th>Age Range</th>
+          <th>Total</th>
+          <th>Percent</th>
+          <th>Male</th>
+          <th>Female</th>
+          <th>Other/Unknown</th>
         </tr>
       </thead>
-      <tbody>${rowsHtml}</tbody>
+      <tbody>${tableData.tableRowsHtml}</tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td></td>
+          <td>TOTAL</td>
+          <td></td>
+          <td>${tableData.totalCount.toLocaleString()}</td>
+          <td>100%</td>
+          <td>${tableData.totalMale.toLocaleString()}</td>
+          <td>${tableData.totalFemale.toLocaleString()}</td>
+          <td>${tableData.totalOther.toLocaleString()}</td>
+        </tr>
+      </tfoot>
     </table>
 
     <div class="summary-box">
       <h5>Report Summary</h5>
-      <p>Barangay: ${escapeHtml(scopeName)}</p>
-      <p>Total PWD: ${total.toLocaleString()}</p>
-      <p>Total Purok Covered: ${safeRows.length.toLocaleString()}</p>
+      <ul>
+        <li><strong>Scope:</strong> ${escapeHtml(scopeName)}</li>
+        <li><strong>Unique PWDs:</strong> ${tableData.uniquePwds.toLocaleString()}</li>
+        <li><strong>Total Disability Records:</strong> ${tableData.totalCount.toLocaleString()}</li>
+        <li><strong>Overall Age Range:</strong> ${escapeHtml(tableData.overallAgeRange)}</li>
+      </ul>
+      <ul>
+        <li><strong>Gender Distribution:</strong></li>
+        <li>Male: ${tableData.totalMale.toLocaleString()}</li>
+        <li>Female: ${tableData.totalFemale.toLocaleString()}</li>
+        <li>Other/Unknown: ${tableData.totalOther.toLocaleString()}</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>`;
+    }
+
+    function buildPurokDetailReportHtml(title, purokName, rows) {
+      const safeRows = Array.isArray(rows) ? rows : [];
+      const total = safeRows.length;
+      const male = safeRows.filter(function (r) { return String(r.gender || '').toLowerCase() === 'male'; }).length;
+      const female = safeRows.filter(function (r) { return String(r.gender || '').toLowerCase() === 'female'; }).length;
+      const rowsHtml = safeRows.length
+        ? safeRows.map(function (r, idx) {
+            return `<tr>
+              <td>${idx + 1}</td>
+              <td>${escapeHtml(r.fullName || 'Unnamed')}</td>
+              <td>${escapeHtml(r.contact || 'N/A')}</td>
+              <td>${escapeHtml(r.gender || 'N/A')}</td>
+              <td>${escapeHtml(r.age || 'N/A')}</td>
+            </tr>`;
+          }).join('')
+        : '<tr><td colspan="5" class="text-center">No data available.</td></tr>';
+
+      return `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(title)} - ${escapeHtml(purokName || 'Unknown')}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/files/bower_components/bootstrap/css/bootstrap.min.css">
+  <style>
+    @page { size: auto; margin: 8mm; }
+    body { padding: 10px; font-family: Arial, sans-serif; font-size: 14px; }
+    .container-fluid { width: 100%; max-width: 100%; padding-left: 6px; padding-right: 6px; }
+    .header-wrapper { position: relative; margin-bottom: 16px; min-height: 130px; }
+    .logo-left { position: absolute; top: 6px; left: 0; width: 92px; }
+    .logo-right { position: absolute; top: 2px; right: 0; width: 110px; }
+    .main-header { text-align: center; margin-top: 8px; line-height: 1.15; }
+    .main-header h4 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: .2px; }
+    .main-header h3 { margin: 0 0 6px; font-size: 14px; font-weight: 500; color: #333; }
+    .main-header p { margin: 0; font-size: 14px; font-weight: 500; }
+    .title-section { margin-top: 8px; text-align: center; }
+    .title-section h5 { margin: 3px 0; font-size: 16px; font-weight: 600; }
+    .as-of-label { margin-top: 10px; margin-bottom: 0; font-size: 13px; }
+    .as-of-date { margin-top: 2px; margin-bottom: 0; font-size: 13px; font-weight: 700; }
+    .print-button-container { text-align: center; margin: 4px 0 12px; }
+    .print-button-container button { background-color: #2f80ed; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .table { width: 100%; margin-top: 8px; margin-bottom: 8px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+    .table thead th { background: #cfd3d8 !important; color: #1f2937 !important; text-align: center; font-size: 13px; font-weight: 700; border: 1px solid #e5e7eb !important; padding: 4px 8px !important; }
+    .table tbody td { padding: 5px 8px !important; font-size: 13px; color: #1f2937; border: 1px solid #f0f1f3 !important; vertical-align: middle; line-height: 1.2; background: #ffffff; text-align: center; }
+    .table tbody td:nth-child(2) { text-align: left; }
+    .summary-box { margin-top: 6px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+    @media print { .print-button-container { display: none; } body { padding: 0; } .container-fluid { padding-left: 0; padding-right: 0; } }
+  </style>
+</head>
+<body>
+  <div class="print-button-container"><button onclick="window.print()">🖨️ Print Report</button></div>
+  <div class="container-fluid">
+    <div class="header-wrapper">
+      <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+      <div class="main-header">
+        <h3>Republic of the Philippines</h3>
+        <h4>ENRIQUE B. MAGALONA</h4>
+        <p>Persons with Disability Affairs Office</p>
+      </div>
+    </div>
+    <div class="title-section">
+      <h5>PERSONS WITH DISABILITY AFFAIRS OFFICE</h5>
+      <h5>${escapeHtml(title)}</h5>
+      <h5><strong>${escapeHtml(purokName || 'Unknown')}</strong></h5>
+      <p class="as-of-label">As of -</p>
+      <p class="as-of-date">${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    </div>
+    <table class="table table-bordered table-striped">
+      <thead><tr><th>#</th><th>Name</th><th>Contact</th><th>Gender</th><th>Age</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div class="summary-box">
+      <h5>Report Summary</h5>
+      <p><strong>Total Count:</strong> ${total}</p>
+      <p><strong>Total Male:</strong> ${male}</p>
+      <p><strong>Total Female:</strong> ${female}</p>
     </div>
   </div>
 </body>
@@ -327,23 +573,11 @@
         const type = document.getElementById('reportTypeSelect').value;
         const year = encodeURIComponent(String(document.getElementById('reportYear').value || new Date().getFullYear()));
         const month = type === 'monthly' ? `&month=${encodeURIComponent(String(document.getElementById('reportMonth').value))}` : '';
-        const query = `?groupBy=purok&year=${year}${month}`;
-
-        const res = await fetch(`/api/analytics/pdao${query}`, { credentials: 'same-origin' });
+        const query = `?year=${year}${month}`;
+        const res = await fetch(appPath('/api/pwds') + query, { credentials: 'same-origin' });
         const json = await res.json();
         if (!res.ok || !json) { throw new Error((json && json.message) || 'Unable to load report data'); }
-
-        // Analytics endpoint already returns purok aggregates.
-        let rows = [];
-        if (Array.isArray(json.data)) {
-          rows = json.data.map(function (p) {
-            return {
-              purok: p.name || p.purok || 'Unknown',
-              count: Number(p.total || p.count || 0)
-            };
-          });
-        }
-
+        const rows = Array.isArray(json.pwds) ? json.pwds : [];
         const html = buildOscaReportHtml(type === 'monthly' ? 'MONTHLY ACCOMPLISHMENT REPORT' : 'ANNUAL ACCOMPLISHMENT REPORT', <?= json_encode($assignedBarangayName ?? '', JSON_UNESCAPED_UNICODE) ?>, rows);
         openPrintWindow(html);
       } catch (err) {
@@ -361,6 +595,10 @@
   </script>
   <script>
     (function () {
+      function appPath(p) {
+        var b = window.__APP_BASE__ || '';
+        return b + (p.charAt(0) === '/' ? p : '/' + p);
+      }
       const assignedBarangayName = <?= json_encode($assignedBarangayName ?? '', JSON_UNESCAPED_UNICODE) ?>;
       const tableBody = document.getElementById('tableBody');
       const searchInput = document.getElementById('searchInput');
@@ -410,9 +648,9 @@
               + '<td>' + Number(row.count || 0).toLocaleString() + '</td>'
               + '<td>'
               + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
-              + '<button class="btn btn-primary btn-sm" onclick="showChartModal(\'' + safePurok + '\')">View Chart</button>'
-              + '<button class="btn btn-secondary btn-sm" onclick="openPurokPrint(\'' + safePurok + '\')">Print</button>'
-              + '<button class="btn btn-info btn-sm" onclick="monthlyReport(\'' + safePurok + '\')">Monthly Report</button>'
+              + '<button class="btn btn-primary btn-sm" type="button" onclick="showChartModal(\'' + safePurok + '\')">View Chart</button>'
+              + '<button class="btn btn-secondary btn-sm" type="button" onclick="openPurokPrint(\'' + safePurok + '\')" style="background-color:#6c757d;border-color:#6c757d;color:#fff;">Print</button>'
+              + '<button class="btn btn-info btn-sm" type="button" onclick="monthlyReport(\'' + safePurok + '\')" style="background-color:#17a2b8;border-color:#17a2b8;color:#fff;">Monthly Report</button>'
               + '</div>'
               + '</td>'
               + '</tr>';
@@ -457,7 +695,7 @@
 
       async function loadPurokAnalytics() {
         try {
-          const res = await fetch('/api/pwds', { credentials: 'same-origin' });
+          const res = await fetch(appPath('/api/pwds'), { credentials: 'same-origin' });
           const json = await res.json();
           const rows = Array.isArray(json && json.pwds) ? json.pwds : [];
           const aggregate = {};
@@ -564,53 +802,13 @@
 
       window.openPurokPrint = async function (purokName) {
         try {
-          const res = await fetch('/api/pwds/purok/' + encodeURIComponent(String(purokName || '')), { credentials: 'same-origin' });
+          const res = await fetch(appPath('/api/pwds/purok/' + encodeURIComponent(String(purokName || ''))), { credentials: 'same-origin' });
           const json = await res.json();
           if (!res.ok || !json || json.success !== true) {
             throw new Error((json && json.message) ? json.message : 'Unable to load print data');
           }
           const rows = Array.isArray(json.data) ? json.data : [];
-          const total = rows.length;
-          const male = rows.filter(function (r) { return String(r.gender || '').toLowerCase() === 'male'; }).length;
-          const female = rows.filter(function (r) { return String(r.gender || '').toLowerCase() === 'female'; }).length;
-          const rowHtml = rows.length
-            ? rows.map(function (r, idx) {
-                return '<tr>'
-                  + '<td>' + (idx + 1) + '</td>'
-                  + '<td>' + escapeHtml(r.fullName || 'Unnamed') + '</td>'
-                  + '<td>' + escapeHtml(r.contact || 'N/A') + '</td>'
-                  + '<td>' + escapeHtml(r.gender || 'N/A') + '</td>'
-                  + '<td>' + escapeHtml(r.age || 'N/A') + '</td>'
-                  + '</tr>';
-              }).join('')
-            : '<tr><td colspan="5" style="text-align:center;color:#6b7280;">No data available.</td></tr>';
-          const html = '<!doctype html><html><head><meta charset="utf-8"><title>PWD Report</title><style>'
-            + '@page{size:A4 portrait;margin:10mm;}'
-            + 'body{font-family:Arial,sans-serif;margin:0;padding:10px;color:#111827;background:#f3f4f6;}'
-            + '.print-wrap{width:190mm;max-width:190mm;margin:0 auto;background:#fff;padding:0 0 10px;border:1px solid #e5e7eb;}'
-            + '.print-actions{text-align:center;padding:8px 0;border-bottom:1px solid #e5e7eb;background:#f9fafb;}'
-            + '.print-btn{background:#0d6efd;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;}'
-            + '.header-wrap{position:relative;padding:10px 14px 6px;min-height:82px;border-bottom:1px solid #e5e7eb;}'
-            + '.logo-left{position:absolute;left:14px;top:12px;width:60px;height:60px;object-fit:contain;}'
-            + '.logo-right{position:absolute;right:14px;top:12px;width:76px;height:60px;object-fit:contain;}'
-            + '.header{text-align:center;padding-top:2px;}'
-            + '.header .rp{font-size:14px;font-weight:700;margin:0;}'
-            + '.header .city{font-size:22px;font-weight:800;letter-spacing:.4px;margin:2px 0;}'
-            + '.header .office{font-size:13px;margin:0;}'
-            + '.title{text-align:center;padding:8px 10px 4px;}'
-            + '.title h3{margin:0;font-size:15px;font-weight:800;} .title h4{margin:2px 0;font-size:14px;font-weight:800;}'
-            + '.title .scope{font-size:18px;font-weight:800;margin:4px 0 2px;} .title .asof{font-size:12px;color:#374151;}'
-            + 'table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;} th,td{border:1px solid #d1d5db;padding:6px 7px;text-align:left;} th{background:#d1d5db;}'
-            + '.summary{margin:10px 10px 0;border-top:1px solid #d1d5db;padding-top:8px;font-size:12px;} .summary p{margin:3px 0;font-weight:600;}'
-            + '@media print{.print-actions{display:none;} body{padding:0;background:#fff;} .print-wrap{width:100%;max-width:none;margin:0;border:none;}}</style></head><body>'
-            + '<div class="print-wrap"><div class="print-actions"><button class="print-btn" onclick="window.print()">🖨️ Print Report</button></div>'
-            + '<div class="header-wrap"><img src="/assets/images/SilayLogo.jpg" class="logo-left"><img src="/assets/images/BagongPilipinas.jpg" class="logo-right">'
-            + '<div class="header"><p class="rp">Republic of the Philippines</p><p class="city">ENRIQUE B. MAGALONA</p><p class="office">Persons with Disability Affairs Office</p></div></div>'
-            + '<div class="title"><h3>PERSONS WITH DISABILITY AFFAIRS OFFICE</h3><h4>PWD PUROK REPORT</h4><div class="scope">' + escapeHtml(purokName || 'Unknown') + '</div><div class="asof">As of - ' + escapeHtml(new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })) + '</div></div>'
-            + '<table><thead><tr><th>#</th><th>Name</th><th>Contact</th><th>Gender</th><th>Age</th></tr></thead><tbody>' + rowHtml + '</tbody></table>'
-            + '<div class="summary"><h3 style="margin:0 0 8px 0;font-size:14px;">Report Summary</h3>'
-            + '<p>Total Count: ' + total + '</p><p>Total Male: ' + male + '</p><p>Total Female: ' + female + '</p></div>'
-            + '</div></body></html>';
+          const html = buildPurokDetailReportHtml('PWD PUROK REPORT', purokName || 'Unknown', rows);
           openPrintWindow(html);
         } catch (error) {
           alert(error.message || 'Error generating print report.');
@@ -622,14 +820,13 @@
           const now = new Date();
           const month = now.getMonth() + 1;
           const year = now.getFullYear();
-          const res = await fetch('/api/pwds/purok/' + encodeURIComponent(String(purokName || '')) + '?month=' + encodeURIComponent(String(month)) + '&year=' + encodeURIComponent(String(year)), { credentials: 'same-origin' });
+          const res = await fetch(appPath('/api/pwds/purok/' + encodeURIComponent(String(purokName || '')) + '?month=' + encodeURIComponent(String(month)) + '&year=' + encodeURIComponent(String(year))), { credentials: 'same-origin' });
           const json = await res.json();
           if (!res.ok || !json || json.success !== true) {
             throw new Error((json && json.message) ? json.message : 'Unable to load monthly report data');
           }
           const rows = Array.isArray(json.data) ? json.data : [];
-          const reportRows = [{ purok: purokName || 'Unknown', count: rows.length }];
-          const html = buildOscaReportHtml('MONTHLY ACCOMPLISHMENT REPORT', assignedBarangayName || 'Barangay', reportRows);
+          const html = buildOscaReportHtml('MONTHLY ACCOMPLISHMENT REPORT', assignedBarangayName || 'Barangay', rows);
           openPrintWindow(html);
         } catch (error) {
           alert(error.message || 'Error generating monthly report.');
@@ -660,7 +857,7 @@
       }
       async function markNotificationRead(notificationId) {
         try {
-          await fetch('/api/notifications/mark-read', {
+          await fetch((window.__APP_BASE__ || '') + '/api/notifications/mark-read', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
@@ -707,7 +904,7 @@
       }
       async function loadNotifications() {
         try {
-          const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+          const res = await fetch((window.__APP_BASE__ || '') + '/api/notifications', { credentials: 'same-origin' });
           const json = await res.json();
           notifications = (json && json.success && Array.isArray(json.data)) ? json.data : [];
           renderNotifications();
@@ -739,7 +936,9 @@
       }
       const host = window.location.hostname || 'localhost';
       const proto = window.location.protocol === 'https:' ? 'https' : 'http';
-      const ports = [null, '3000', '8080'];
+      var __pagePort = String(window.location.port || '');
+      var ports = [null];
+      ['3000', '8080'].forEach(function (p) { if (p !== __pagePort) { ports.push(p); } });
       (function tryConnect(i) {
         if (i >= ports.length) return;
         try {
@@ -753,6 +952,58 @@
       setInterval(loadNotifications, 10000);
       document.addEventListener('visibilitychange', function () {
         if (!document.hidden) loadNotifications();
+      });
+    })();
+
+    (function monitorSessionReplacement() {
+      const expectedUserId = <?= json_encode((int) ($user['_id'] ?? 0), JSON_UNESCAPED_UNICODE) ?>;
+      if (!expectedUserId) return;
+      const storageKey = 'swsActiveUserId';
+
+      try { localStorage.setItem(storageKey, String(expectedUserId)); } catch (_) {}
+
+      function forceLogout() {
+        window.location.replace(appPath('/?session_replaced=1'));
+      }
+
+      function checkLocalActiveUser() {
+        try {
+          const active = Number(localStorage.getItem(storageKey) || 0);
+          if (active && active !== expectedUserId) forceLogout();
+        } catch (_) {}
+      }
+
+      window.addEventListener('storage', function (event) {
+        if (event.key !== storageKey) return;
+        const active = Number(event.newValue || 0);
+        if (active && active !== expectedUserId) forceLogout();
+      });
+
+      async function checkSession() {
+        try {
+          const res = await fetch(appPath('/api/session-state'), { credentials: 'same-origin', cache: 'no-store' });
+          if (!res.ok) {
+            forceLogout();
+            return;
+          }
+          const data = await res.json();
+          const activeUserId = Number((data && data.user && data.user._id) || 0);
+          if (!data || data.success !== true || activeUserId !== expectedUserId) {
+            forceLogout();
+          }
+        } catch (_) {
+          forceLogout();
+        }
+      }
+
+      checkLocalActiveUser();
+      setInterval(checkSession, 3000);
+      setInterval(checkLocalActiveUser, 1000);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+          checkLocalActiveUser();
+          checkSession();
+        }
       });
     })();
   </script>

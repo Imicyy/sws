@@ -1,0 +1,39 @@
+:root {
+  --app-bg: #f5f7fb;
+  --app-text: #1f2937;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+}
+
+body {
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+.card,
+.panel,
+.stat-card {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+}
+
+/* Barangay/Staff/Admin simple sidebar layout */
+.sidebar .nav-link {
+  color: #1f2937 !important;
+  text-decoration: none !important;
+}
+
+.sidebar .nav-link.active {
+  color: #ffffff !important;
+}
+
+/* Legacy pcoded sidebar layout fallback */
+.pcoded-navbar .pcoded-submenu {
+  display: block;
+}
+
+.pcoded-navbar .pcoded-submenu li a,
+.pcoded-navbar .pcoded-submenu li a span,
+.pcoded-navbar .pcoded-item > li > a .pcoded-mtext {
+  color: #ffffff;
+}

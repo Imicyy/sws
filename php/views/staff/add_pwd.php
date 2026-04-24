@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Person With Disability FORM</title>
   <link rel="stylesheet" type="text/css" href="/files/assets/css/fill.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
     body {
       margin: 0;
@@ -50,6 +51,7 @@
       width: 100%;
       justify-content: center;
       position: relative;
+      padding-left: 170px;
     }
 
     .topbar-title {
@@ -100,12 +102,23 @@
       padding: 20px;
     }
 
+    .step-counter {
+      margin: -6px 0 14px;
+      color: #4b5563;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
     .navigation {
       display: flex;
       justify-content: flex-end;
       gap: 16px;
       margin-top: 28px;
       padding: 0 2px;
+      position: sticky;
+      bottom: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 28%);
+      padding-top: 12px;
     }
 
     .navigation button {
@@ -118,6 +131,31 @@
       letter-spacing: 0.4px;
       border: 1px solid transparent;
       transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    
+    #prevBtn {
+      background: #f3f4f6;
+      color: #374151;
+      border-color: #d1d5db;
+    }
+
+    #prevBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #nextBtn {
+      background: #0f766e;
+      color: #ffffff;
+    }
+
+    #prevBtn:hover {
+      background: #e5e7eb;
+    }
+
+    #nextBtn:hover {
+      background: #115e59;
     }
 
     .helper { margin: 0 0 12px; color: #6b7280; font-size: 14px; }
@@ -285,11 +323,17 @@
     }
 
     .form-panel .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      align-items: end;
       gap: 18px;
       margin-bottom: 18px;
     }
 
     .form-panel .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
       min-width: 220px;
       margin-bottom: 0;
     }
@@ -305,6 +349,11 @@
     .form-panel input,
     .form-panel select,
     .form-panel .other-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      font-size: 14px;
+      line-height: 1.25;
       background: #ffffff;
       color: #111827;
       border: 1px solid #d1d5db;
@@ -356,6 +405,8 @@
 
     .form-panel .skill-item input[type="checkbox"] {
       accent-color: #0f766e;
+      min-height: 16px;
+      width: 16px;
     }
 
     .form-panel .add-child-btn {
@@ -396,6 +447,7 @@
 
       .topbar-left {
         justify-content: flex-start;
+        padding-left: 0;
       }
 
       .topbar-btn {
@@ -480,6 +532,83 @@
         min-width: 110px;
       }
     }
+
+    /* Force light yellow/blue theme on pages with strong local CSS */
+    body {
+      background: linear-gradient(135deg, #fffde8 0%, #eef4ff 52%, #fff9d9 100%) !important;
+      position: relative;
+    }
+    .page-shell {
+      position: relative !important;
+      z-index: 1;
+    }
+    .topbar,
+    .form-panel,
+    .logs-panel {
+      border: 1px solid #dbe5f3 !important;
+      box-shadow: 0 12px 26px rgba(37, 99, 235, 0.12) !important;
+    }
+    .topbar {
+      background: linear-gradient(135deg, #fffef8, #f3f8ff) !important;
+    }
+    .form-panel {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
+      position: relative;
+      overflow: hidden;
+    }
+    .form-panel::after { display: none !important; }
+    .form-panel > * {
+      position: relative;
+      z-index: 1;
+    }
+    .form-panel fieldset {
+      background: linear-gradient(180deg, #ffffff 0%, #fffcf0 100%) !important;
+      border-color: #dbe5f3 !important;
+    }
+    .page-shell {
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      backdrop-filter: blur(1px);
+    }
+    .topbar-title {
+      color: #1e3a8a;
+    }
+    .topbar-btn,
+    #nextBtn {
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      color: #fff;
+    }
+    .topbar-btn:hover,
+    #nextBtn:hover {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    }
+    #prevBtn {
+      background: linear-gradient(135deg, #fef9c3, #fde68a);
+      border-color: #facc15;
+      color: #854d0e;
+    }
+    #prevBtn:hover {
+      background: #fde68a;
+    }
+    .form-panel .step.active,
+    .form-panel legend,
+    .logs-title {
+      color: #1d4ed8;
+    }
+    .form-panel .step.active::before {
+      background: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18);
+    }
+    .form-panel input:focus,
+    .form-panel select:focus,
+    .form-panel .other-input:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .logs-table th {
+      background: linear-gradient(135deg, #eff6ff, #fef9c3);
+      color: #1e3a8a;
+    }
   </style>
 </head>
 <?php
@@ -525,6 +654,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
         <div class="step"><span class="step-number">5</span><span>Education / HR Profile</span></div>
         <div class="step"><span class="step-number">6</span><span>Types / Cause Disability</span></div>
       </div>
+      <p class="step-counter" id="stepCounter">Step 1 of 6: Personal Information</p>
 
       <fieldset id="personalInfo" class="active">
         <legend>Personal Information</legend>
@@ -774,6 +904,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       const contactsContainer = document.getElementById('contactsContainer');
       const fieldsets = Array.from(document.querySelectorAll('#housingForm fieldset'));
       const steps = Array.from(document.querySelectorAll('.progress-bar .step'));
+      const stepCounter = document.getElementById('stepCounter');
       const employmentStatus = document.getElementById('employment_status');
       const categoryGroup = document.getElementById('categoryGroup');
       const typeGroup = document.getElementById('typeGroup');
@@ -1025,6 +1156,12 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
           } else {
             nextBtn.textContent = isLastStep ? (isEditMode ? 'UPDATE' : 'SUBMIT') : 'NEXT';
           }
+        }
+
+        if (stepCounter && fieldsets[currentStep]) {
+          const title = fieldsets[currentStep].querySelector('legend');
+          const label = title ? title.textContent.trim() : ('Step ' + (currentStep + 1));
+          stepCounter.textContent = 'Step ' + (currentStep + 1) + ' of ' + fieldsets.length + ': ' + label;
         }
       }
 
@@ -1289,5 +1426,47 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       font-weight: 600;
     }
   </style>
+  <script>
+    (function monitorSessionReplacement() {
+      const expectedUserId = <?= json_encode((int) ($user['_id'] ?? 0), JSON_UNESCAPED_UNICODE) ?>;
+      if (!expectedUserId) return;
+      const storageKey = 'swsActiveUserId';
+      const base = <?= json_encode(app_base_path(), JSON_UNESCAPED_UNICODE) ?> || '';
+      function appPath(p) { return base + (p.charAt(0) === '/' ? p : '/' + p); }
+
+      try { localStorage.setItem(storageKey, String(expectedUserId)); } catch (_) {}
+
+      function forceLogout() { window.location.replace(appPath('/?session_replaced=1')); }
+      function checkLocalActiveUser() {
+        try {
+          const active = Number(localStorage.getItem(storageKey) || 0);
+          if (active && active !== expectedUserId) forceLogout();
+        } catch (_) {}
+      }
+
+      window.addEventListener('storage', function (event) {
+        if (event.key !== storageKey) return;
+        const active = Number(event.newValue || 0);
+        if (active && active !== expectedUserId) forceLogout();
+      });
+
+      async function checkSession() {
+        try {
+          const res = await fetch(appPath('/api/session-state'), { credentials: 'same-origin', cache: 'no-store' });
+          if (!res.ok) return forceLogout();
+          const data = await res.json();
+          const activeUserId = Number((data && data.user && data.user._id) || 0);
+          if (!data || data.success !== true || activeUserId !== expectedUserId) forceLogout();
+        } catch (_) { forceLogout(); }
+      }
+
+      checkLocalActiveUser();
+      setInterval(checkLocalActiveUser, 1000);
+      setInterval(checkSession, 3000);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { checkLocalActiveUser(); checkSession(); }
+      });
+    })();
+  </script>
 </body>
 </html>

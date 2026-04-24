@@ -6,25 +6,27 @@
 	<link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
 	<title>Social Welfare System - Senior Citizens List</title>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
 	<style>
-		body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
+		body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #fffef5 0%, #eef5ff 100%); color: #1f2937; position: relative; }
+		.layout { position: relative; z-index: 1; }
 		.layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-		.sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; position: fixed; height: 100vh; width: 260px; overflow-y: auto; }
+		.sidebar { background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%); border-right: 1px solid #dbe5f3; padding: 20px 14px; position: fixed; height: 100vh; width: 260px; overflow-y: auto; box-shadow: 10px 0 24px rgba(37,99,235,0.08); }
 		.brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
 		.nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; margin-top: 16px; }
 		.nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
-		.nav-link.active { background: #0f766e; color: #fff; }
-		.nav-link:hover { background: #edf2f7; }
+		.nav-link.active { background: linear-gradient(135deg, #60a5fa, #2563eb); color: #fff; box-shadow: 0 8px 18px rgba(59,130,246,0.24); }
+		.nav-link:hover { background: #eaf2ff; }
 		.main { margin-left: 260px; padding: 20px; }
 		.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 		.top h1 { margin: 0; font-size: 28px; font-weight: 600; }
-		.filters { background: #fff; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e5e7eb; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end; }
+		.filters { background: #fff; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #dbe5f3; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end; box-shadow: 0 12px 24px rgba(37,99,235,0.08); }
 		.filter-group { display: flex; flex-direction: column; }
 		.filter-group label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280; }
 		.filter-group select { padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
-		.table-container { background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; overflow-x: auto; }
+		.table-container { background: #fff; border-radius: 8px; border: 1px solid #dbe5f3; overflow-x: auto; box-shadow: 0 12px 24px rgba(37,99,235,0.08); }
 		table { margin: 0; }
-		table thead { background: #374151; color: #fff; font-weight: 600; font-size: 12px; }
+		table thead { background: linear-gradient(135deg, #eff6ff, #fef9c3); color: #1e3a8a; font-weight: 700; font-size: 12px; }
 		table th { padding: 12px; text-align: left; border: none; }
 		table td { padding: 12px; border-top: 1px solid #e5e7eb; }
 		table tbody tr:hover { background: #f9fafb; }
@@ -39,9 +41,9 @@
 		.btn-sm:hover { background: #f3f4f6; }
 		.action-bar { margin-top: 16px; display: flex; gap: 12px; }
 		.action-bar button { padding: 10px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
-		.btn-sms { background: #059669; color: white; }
+		.btn-sms { background: linear-gradient(135deg, #60a5fa, #2563eb); color: white; }
 		.btn-sms:disabled { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
-		.btn-history { background: #0f766e; color: white; }
+		.btn-history { background: linear-gradient(135deg, #fef9c3, #fde68a); color: #854d0e; border: 1px solid #facc15; }
 		.pagination { margin-top: 16px; text-align: right; }
 		.entries-info { font-size: 14px; color: #6b7280; margin: 16px 0; }
 		@media (max-width: 768px) {
@@ -224,6 +226,48 @@
 		document.getElementById('viewHistoryBtn').addEventListener('click', function() {
 			alert('SMS History view would open here');
 		});
+	</script>
+	<script>
+		(function monitorSessionReplacement() {
+			const expectedUserId = <?= json_encode((int) ($user['_id'] ?? 0), JSON_UNESCAPED_UNICODE) ?>;
+			if (!expectedUserId) return;
+			const storageKey = 'swsActiveUserId';
+			const base = <?= json_encode(app_base_path(), JSON_UNESCAPED_UNICODE) ?> || '';
+			function appPath(p) { return base + (p.charAt(0) === '/' ? p : '/' + p); }
+
+			try { localStorage.setItem(storageKey, String(expectedUserId)); } catch (_) {}
+
+			function forceLogout() { window.location.replace(appPath('/?session_replaced=1')); }
+			function checkLocalActiveUser() {
+				try {
+					const active = Number(localStorage.getItem(storageKey) || 0);
+					if (active && active !== expectedUserId) forceLogout();
+				} catch (_) {}
+			}
+
+			window.addEventListener('storage', function (event) {
+				if (event.key !== storageKey) return;
+				const active = Number(event.newValue || 0);
+				if (active && active !== expectedUserId) forceLogout();
+			});
+
+			async function checkSession() {
+				try {
+					const res = await fetch(appPath('/api/session-state'), { credentials: 'same-origin', cache: 'no-store' });
+					if (!res.ok) return forceLogout();
+					const data = await res.json();
+					const activeUserId = Number((data && data.user && data.user._id) || 0);
+					if (!data || data.success !== true || activeUserId !== expectedUserId) forceLogout();
+				} catch (_) { forceLogout(); }
+			}
+
+			checkLocalActiveUser();
+			setInterval(checkLocalActiveUser, 1000);
+			setInterval(checkSession, 3000);
+			document.addEventListener('visibilitychange', function () {
+				if (!document.hidden) { checkLocalActiveUser(); checkSession(); }
+			});
+		})();
 	</script>
 </body>
 </html>

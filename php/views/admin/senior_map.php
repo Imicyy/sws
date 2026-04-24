@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -8,6 +8,7 @@
 
   <!-- ArcGIS CSS -->
   <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css"/>
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   
   <style>
     html, body, #viewDiv {

@@ -6,19 +6,31 @@
   <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Social Welfare System - PDAO Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
+    :root {
+      --bg-page: linear-gradient(180deg, #eef5ff 0%, #f7fbff 35%, #f8fafc 100%);
+      --panel-bg: #ffffff;
+      --panel-border: #dbe4f0;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --brand-primary: #2563eb;
+      --brand-primary-dark: #1e40af;
+      --brand-accent: #0f766e;
+      --brand-accent-dark: #115e59;
+    }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: var(--text-main); }
     * { box-sizing: border-box; }
     html, body { width: 100%; min-height: 100%; }
     .layout { display: flex; align-items: stretch; min-height: 100vh; width: 100%; }
-    .sidebar { flex: 0 0 260px; width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; }
+    .sidebar { flex: 0 0 260px; width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; box-shadow: 10px 0 24px rgba(15, 23, 42, 0.04); }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; margin-top: 16px; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
-    .nav-link.active { background: #2563eb; color: #fff; }
+    .nav-link.active { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22); }
     .nav-link:hover { background: #edf2f7; }
     .main { flex: 1 1 auto; min-width: 0; padding: 20px; }
-    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; padding: 14px 16px; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--panel-border); border-radius: 14px; box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06); backdrop-filter: blur(2px); }
     .top .welcome { color: #6b7280; font-size: 14px; }
     .top-left { display: flex; align-items: center; gap: 12px; }
     .top-right { display: flex; align-items: center; gap: 12px; }
@@ -26,25 +38,28 @@
       display: inline-block;
       padding: 9px 14px;
       border-radius: 8px;
-      background: #0f766e;
+      background: linear-gradient(135deg, #0f766e, #0d9488);
       color: #fff;
       font-weight: 700;
       text-decoration: none;
       border: none;
       cursor: pointer;
+      box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
     }
-    .add-pwd-btn:hover { background: #115e59; color: #fff; text-decoration: none; }
-    .panel { margin-top: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; }
+    .add-pwd-btn:hover { background: linear-gradient(135deg, #115e59, #0f766e); color: #fff; text-decoration: none; transform: translateY(-1px); }
+    .panel { margin-top: 16px; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 14px; padding: 18px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06); }
     .quick a { display: inline-block; margin-right: 10px; margin-bottom: 10px; padding: 9px 12px; border-radius: 8px; background: #eff6ff; color: #1e40af; text-decoration: none; }
     .quick a:hover { background: #dbeafe; }
     .dept-badge { display: inline-block; padding: 4px 10px; background: #dbeafe; color: #1e40af; border-radius: 6px; font-size: 12px; font-weight: 600; }
     .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
     .filter-group { display: flex; flex-direction: column; }
     .filter-group label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280; }
-    .filter-group select { padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
-    .table-container { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; overflow-x: auto; margin-top: 16px; }
+    .filter-group select { padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #fff; transition: border-color .15s ease, box-shadow .15s ease; }
+    .filter-group select:focus,
+    .table-toolbar .toolbar-search:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16); outline: none; }
+    .table-container { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; overflow-x: auto; margin-top: 16px; box-shadow: inset 0 1px 0 #fff, 0 8px 22px rgba(15, 23, 42, 0.05); }
     table { margin: 0; }
-    table thead { background: #374151; color: #fff; font-weight: 600; font-size: 12px; }
+    table thead { background: linear-gradient(135deg, #374151, #1f2937); color: #fff; font-weight: 600; font-size: 12px; }
     table th { padding: 12px; text-align: left; border: none; white-space: nowrap; }
     table td { padding: 12px; border-top: 1px solid #e5e7eb; vertical-align: middle; }
     table tbody tr:hover { background: #f9fafb; }
@@ -72,14 +87,51 @@
     .action.action-archive { color: #dc2626; }
     .actions .action:focus { outline: 2px solid rgba(15, 118, 110, 0.25); outline-offset: 2px; }
     .table-toolbar { margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .table-toolbar .toolbar-search { flex: 1 1 200px; max-width: 320px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+    .table-toolbar .toolbar-search { flex: 1 1 240px; max-width: 360px; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: #fff; }
     .btn-print-app { background: #0f766e; color: #fff; border-color: #0f766e; }
     .btn-print-app:hover { background: #0d5f59; color: #fff; }
     .action-bar { margin-top: 16px; display: flex; gap: 12px; }
-    .action-bar button { padding: 10px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
-    .btn-sms { background: #2563eb; color: white; }
+    .action-bar button { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12); transition: transform .15s ease, box-shadow .15s ease; }
+    .action-bar button:hover { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15, 23, 42, 0.15); }
+    .btn-sms { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
     .btn-sms:disabled { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
-    .btn-history { background: #1e40af; color: white; }
+    .btn-history { background: linear-gradient(135deg, #1e40af, #1e3a8a); color: white; }
+    .notif-button {
+      position: relative;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      font-weight: 700;
+      box-shadow: 0 6px 12px rgba(15, 23, 42, 0.08);
+    }
+    .notif-dropdown {
+      display: none;
+      position: absolute;
+      right: 20px;
+      top: 60px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+      width: 320px;
+      max-height: 300px;
+      overflow: auto;
+      padding: 8px;
+      z-index: 2000;
+    }
+    .birthdays-button {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 9px 12px;
+      background: #fff;
+      font-weight: 700;
+      box-shadow: 0 6px 12px rgba(15, 23, 42, 0.08);
+    }
+    .pagination-wrap { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+    #pwdPaginationControls button { border-radius: 8px !important; border: 1px solid #d1d5db !important; background: #fff; }
+    #pwdPaginationControls button.active,
+    #pwdPaginationControls button.btn-primary { background: var(--brand-primary) !important; border-color: var(--brand-primary) !important; }
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -185,13 +237,14 @@
   </style>
 </head>
 <body>
+  <script>window.__APP_BASE__=<?= json_encode(app_base_path(), JSON_UNESCAPED_UNICODE) ?>;</script>
   <div class="layout">
     <aside class="sidebar">
       <div class="brand">ENRIQUE B. MAGALONA</div>
       <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">PDAO Department</span></div>
       <div class="nav-title">Navigation</div>
-      <a class="nav-link active" href="/pdao-dashboard">Dashboard</a>
-      <a class="nav-link" href="/logout">Logout</a>
+      <a class="nav-link active" href="<?= htmlspecialchars(app_url('/pdao-dashboard'), ENT_QUOTES, 'UTF-8') ?>">Dashboard</a>
+      <a class="nav-link" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
     </aside>
 
     <main class="main">
@@ -201,19 +254,19 @@
         </div>
         <div class="top-right">
           <div class="notif-container" style="display:flex;align-items:center;margin-right:12px;">
-            <button id="notifBell" class="btn" style="position:relative;padding:8px 10px;border-radius:8px;">
+            <button id="notifBell" class="btn notif-button">
               🔔 <span id="notifBadge" style="position:absolute;top:0;right:0;background:#dc2626;color:#fff;border-radius:10px;padding:2px 6px;font-size:12px;display:none;">0</span>
             </button>
-            <div id="notifDropdown" style="display:none;position:absolute;right:20px;top:60px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);width:320px;max-height:300px;overflow:auto;padding:8px;z-index:2000;">
+            <div id="notifDropdown" class="notif-dropdown">
               <div style="font-weight:700;padding:8px;border-bottom:1px solid #f3f4f6;">Notifications</div>
               <div id="notifList" style="padding:8px;font-size:13px;color:#374151;"></div>
             </div>
           </div>
-          <button type="button" class="btn-sm" id="birthdaysBtn" style="border:1px solid #d1d5db;border-radius:8px;padding:9px 12px;background:#fff;font-weight:700;">
+          <button type="button" class="btn-sm birthdays-button" id="birthdaysBtn">
             🎂 Birthdays <span id="birthdaysBadge" style="display:none;margin-left:6px;background:#0f766e;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;">0</span>
           </button>
-          <button type="button" class="add-pwd-btn" onclick="window.location.href = window.location.origin + '/add_pwd'">Add PWD</button>
-          <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['name'] ?? ($user['role'] ?? 'Staff')), ENT_QUOTES, 'UTF-8') ?></div>
+          <button type="button" class="add-pwd-btn" onclick='window.open(<?= json_encode(app_url('/add_pwd')) ?>, "_blank", "noopener,noreferrer")'>Add PWD</button>
+          <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? $user['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
         </div>
       </div>
 
@@ -303,7 +356,7 @@
           </table>
         </div>
 
-        <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <div class="pagination-wrap">
           <small id="pwdPaginationInfo">Showing 0-0 of 0 records</small>
           <div id="pwdPaginationControls" class="btn-group btn-group-sm" style="display: flex; gap: 4px;"></div>
         </div>
@@ -446,6 +499,10 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     const barangays = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
+    function appPath(p) {
+      var b = window.__APP_BASE__ || '';
+      return b + (p.charAt(0) === '/' ? p : '/' + p);
+    }
     const barangayFilter = document.getElementById('barangayFilter');
     const purokFilter = document.getElementById('purokFilter');
     const editPwdFrame = document.getElementById('editPwdFrame');
@@ -900,7 +957,7 @@
       btn.disabled = true;
       btn.textContent = 'Sending...';
       try {
-        const response = await fetch('/send-sms', {
+        const response = await fetch(appPath('/send-sms'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ recipients: recipients, message: message })
@@ -927,7 +984,7 @@
       const tableBody = document.getElementById('smsHistoryTableBody');
       tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Loading...</td></tr>';
       try {
-        const response = await fetch('/sms-history?recipient_type=PWD&limit=200');
+        const response = await fetch(appPath('/sms-history?recipient_type=PWD&limit=200'));
         const payload = await response.json();
         if (!response.ok || !payload || payload.success !== true || !Array.isArray(payload.data)) {
           tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading SMS history</td></tr>';
@@ -956,7 +1013,7 @@
           checkbox.addEventListener('change', async function () {
             const isChecked = checkbox.checked;
             try {
-              const response = await fetch('/update-sms-received', {
+              const response = await fetch(appPath('/update-sms-received'), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ smsId: checkbox.dataset.smsId, received: isChecked })
@@ -1001,7 +1058,7 @@
         }
 
         if (viewPwdFrame) {
-          viewPwdFrame.src = '/add_pwd?edit=' + encodeURIComponent(String(id)) + '&modal=1&view=1';
+          viewPwdFrame.src = appPath('/add_pwd') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1&view=1';
         }
         currentViewPwdId = String(id);
         currentViewPwdData = pwd;
@@ -1047,7 +1104,7 @@
           return;
         }
         if (editPwdFrame) {
-          editPwdFrame.src = '/add_pwd?edit=' + encodeURIComponent(String(id)) + '&modal=1';
+          editPwdFrame.src = appPath('/add_pwd') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1';
         }
         openModal('editModal');
       });
@@ -1077,7 +1134,7 @@
         const row = button.closest('tr');
         const pwd = getPwdFromRow(row);
         const isArchived = (button.dataset.status || pwd.status || '') === 'Archived';
-        const endpoint = isArchived ? '/unarchive-pwd' : '/archive-pwd';
+        const endpoint = appPath(isArchived ? '/unarchive-pwd' : '/archive-pwd');
         const actionLabel = isArchived ? 'unarchive' : 'archive';
 
         let reason = '';
@@ -1228,7 +1285,7 @@
       if (!birthdaysBody) return;
       birthdaysBody.innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
       try {
-        const res = await fetch('/api/birthdays?type=pwd&range=' + encodeURIComponent(range || 'month'), { credentials: 'same-origin' });
+        const res = await fetch(appPath('/api/birthdays?type=pwd&range=' + encodeURIComponent(range || 'month')), { credentials: 'same-origin' });
         const json = await res.json();
         birthdaysCache = (json && json.success && Array.isArray(json.data)) ? json.data : [];
         renderBirthdaysTable();
@@ -1242,7 +1299,7 @@
 
     async function updateBirthdaysBadge() {
       try {
-        const res = await fetch('/api/birthdays?type=pwd&range=today', { credentials: 'same-origin' });
+        const res = await fetch(appPath('/api/birthdays?type=pwd&range=today'), { credentials: 'same-origin' });
         const json = await res.json();
         const todayCount = (json && json.success && Array.isArray(json.data)) ? json.data.length : 0;
         if (birthdaysBadge) {
@@ -1352,7 +1409,7 @@
       }
       async function markNotificationRead(notificationId) {
         try {
-          await fetch('/api/notifications/mark-read', {
+          await fetch(appPath('/api/notifications/mark-read'), {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
@@ -1399,7 +1456,7 @@
       }
       async function loadNotifications() {
         try {
-          const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+          const res = await fetch(appPath('/api/notifications'), { credentials: 'same-origin' });
           const json = await res.json();
           notifications = (json && json.success && Array.isArray(json.data)) ? json.data : [];
           renderNotifications();
@@ -1431,10 +1488,12 @@
         document.addEventListener('click', function () { if (dropdown) dropdown.style.display = 'none'; });
       }
 
-      // Try connecting to socket on same origin, 3000, then 8080
+      // Same origin first, then common Node ports (skip page port to avoid duplicate tries on :8080 etc.)
       const host = window.location.hostname || 'localhost';
       const proto = window.location.protocol === 'https:' ? 'https' : 'http';
-      const ports = [null, '3000', '8080'];
+      var __pagePort = String(window.location.port || '');
+      var ports = [null];
+      ['3000', '8080'].forEach(function (p) { if (p !== __pagePort) { ports.push(p); } });
       (function tryConnect(i) {
         if (i >= ports.length) return;
         try {
@@ -1448,6 +1507,58 @@
       setInterval(loadNotifications, 10000);
       document.addEventListener('visibilitychange', function () {
         if (!document.hidden) loadNotifications();
+      });
+    })();
+
+    (function monitorSessionReplacement() {
+      const expectedUserId = <?= json_encode((int) ($user['_id'] ?? 0), JSON_UNESCAPED_UNICODE) ?>;
+      if (!expectedUserId) return;
+      const storageKey = 'swsActiveUserId';
+
+      try { localStorage.setItem(storageKey, String(expectedUserId)); } catch (_) {}
+
+      function forceLogout() {
+        window.location.replace(appPath('/?session_replaced=1'));
+      }
+
+      function checkLocalActiveUser() {
+        try {
+          const active = Number(localStorage.getItem(storageKey) || 0);
+          if (active && active !== expectedUserId) forceLogout();
+        } catch (_) {}
+      }
+
+      window.addEventListener('storage', function (event) {
+        if (event.key !== storageKey) return;
+        const active = Number(event.newValue || 0);
+        if (active && active !== expectedUserId) forceLogout();
+      });
+
+      async function checkSession() {
+        try {
+          const res = await fetch(appPath('/api/session-state'), { credentials: 'same-origin', cache: 'no-store' });
+          if (!res.ok) {
+            forceLogout();
+            return;
+          }
+          const data = await res.json();
+          const activeUserId = Number((data && data.user && data.user._id) || 0);
+          if (!data || data.success !== true || activeUserId !== expectedUserId) {
+            forceLogout();
+          }
+        } catch (_) {
+          forceLogout();
+        }
+      }
+
+      checkLocalActiveUser();
+      setInterval(checkSession, 3000);
+      setInterval(checkLocalActiveUser, 1000);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+          checkLocalActiveUser();
+          checkSession();
+        }
       });
     })();
   </script>

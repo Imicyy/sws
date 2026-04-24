@@ -38,6 +38,9 @@ $router->add('POST', '/verify-login-code', static function () use ($controller) 
 $router->add('GET', '/logout', static function () use ($controller) {
     $controller->logout();
 });
+$router->add('GET', '/api/session-state', static function () use ($controller) {
+    $controller->getSessionState();
+}, [$requireAuth]);
 
 $router->add('POST', '/send-sms', static function () use ($controller) {
     $controller->sendSms();

@@ -6,16 +6,24 @@
   <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Social Welfare System - Office of Senior Citizen Affairs Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
+    :root {
+      --bg-page: linear-gradient(180deg, #ecfdf5 0%, #f0fdfa 35%, #f8fafc 100%);
+      --panel-bg: #ffffff;
+      --panel-border: #dbe4f0;
+      --brand-primary: #0f766e;
+      --brand-primary-dark: #115e59;
+    }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; }
     * { box-sizing: border-box; }
     html, body { width: 100%; min-height: 100%; }
     .layout { display: flex; align-items: stretch; min-height: 100vh; width: 100%; }
-    .sidebar { flex: 0 0 260px; width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; }
+    .sidebar { flex: 0 0 260px; width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; box-shadow: 10px 0 24px rgba(15, 23, 42, 0.04); }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; margin-top: 16px; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
-    .nav-link.active { background: #0f766e; color: #fff; }
+    .nav-link.active { background: linear-gradient(135deg, #0f766e, #14b8a6); color: #fff; box-shadow: 0 10px 22px rgba(15, 118, 110, 0.24); }
     .nav-link:hover { background: #edf2f7; }
     .top-actions {
       display: flex;
@@ -29,16 +37,18 @@
       gap: 8px;
       padding: 10px 14px;
       border-radius: 10px;
-      background: #0f766e;
+      background: linear-gradient(135deg, #0f766e, #14b8a6);
       color: #fff;
       text-decoration: none;
       font-size: 14px;
       font-weight: 700;
-      box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18);
+      box-shadow: 0 8px 18px rgba(15, 118, 110, 0.2);
+      border: 1px solid transparent;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
     }
-    .header-action:hover { background: #115e59; color: #fff; text-decoration: none; }
+    .header-action:hover { background: linear-gradient(135deg, #115e59, #0f766e); color: #fff; text-decoration: none; transform: translateY(-1px); box-shadow: 0 10px 20px rgba(15, 118, 110, 0.24); }
     .main { flex: 1 1 auto; min-width: 0; padding: 20px; }
-    .top { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 16px; gap: 12px; position: relative; }
+    .top { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 16px; gap: 12px; position: relative; padding: 14px 16px; background: rgba(255,255,255,0.92); border: 1px solid var(--panel-border); border-radius: 14px; box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06); }
     .top h1 { position: absolute; left: 50%; transform: translateX(-50%); margin: 0; text-align: center; }
     .top .welcome { color: #6b7280; font-size: 14px; }
     .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
@@ -47,17 +57,18 @@
     .card-metric .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
     .bg-green { background: linear-gradient(135deg, #059669, #34d399); }
     .bg-teal { background: linear-gradient(135deg, #0d9488, #2dd4bf); }
-    .panel { margin-top: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; }
+    .panel { margin-top: 16px; background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 14px; padding: 18px; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06); }
     .quick a { display: inline-block; margin-right: 10px; margin-bottom: 10px; padding: 9px 12px; border-radius: 8px; background: #ecfdf5; color: #065f46; text-decoration: none; }
     .quick a:hover { background: #d1fae5; }
     .dept-badge { display: inline-block; padding: 4px 10px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 600; }
     .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
     .filter-group { display: flex; flex-direction: column; }
     .filter-group label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280; }
-    .filter-group select { padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
-    .table-container { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; overflow-x: auto; margin-top: 16px; }
+    .filter-group select { padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #fff; transition: border-color .15s ease, box-shadow .15s ease; }
+    .filter-group select:focus { border-color: #99f6e4; box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2); outline: none; }
+    .table-container { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; overflow-x: auto; margin-top: 16px; box-shadow: inset 0 1px 0 #fff, 0 8px 22px rgba(15, 23, 42, 0.05); }
     table { margin: 0; }
-    table thead { background: #374151; color: #fff; font-weight: 600; font-size: 12px; }
+    table thead { background: linear-gradient(135deg, #374151, #1f2937); color: #fff; font-weight: 600; font-size: 12px; }
     table th { padding: 12px; text-align: left; border: none; white-space: nowrap; }
     table td { padding: 12px; border-top: 1px solid #e5e7eb; vertical-align: middle; }
     table tbody tr:hover { background: #f9fafb; }
@@ -85,10 +96,27 @@
     .action.action-archive { color: #dc2626; }
     .action-container .action:focus { outline: 2px solid rgba(15, 118, 110, 0.25); outline-offset: 2px; }
     .action-bar { margin-top: 16px; display: flex; gap: 12px; }
-    .action-bar button { padding: 10px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
-    .btn-sms { background: #059669; color: white; }
+    .action-bar button { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12); transition: transform .15s ease, box-shadow .15s ease; }
+    .action-bar button:hover { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15, 23, 42, 0.15); }
+    .btn-sms { background: linear-gradient(135deg, #059669, #0f766e); color: white; }
     .btn-sms:disabled { background: #d1d5db; color: #6b7280; cursor: not-allowed; }
-    .btn-history { background: #0f766e; color: white; }
+    .btn-history { background: linear-gradient(135deg, #0f766e, #115e59); color: white; }
+    .notif-button {
+      background: #fff !important;
+      border: 1px solid #d1d5db !important;
+      color: #0f172a !important;
+      box-shadow: 0 6px 12px rgba(15, 23, 42, 0.08);
+    }
+    .birthdays-button {
+      background: #fff !important;
+      border: 1px solid #d1d5db !important;
+      color: #0f172a !important;
+      box-shadow: 0 6px 12px rgba(15, 23, 42, 0.08);
+    }
+    .pagination-wrap { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+    #seniorPaginationControls button { border-radius: 8px !important; border: 1px solid #d1d5db !important; background: #fff; }
+    #seniorPaginationControls button.active,
+    #seniorPaginationControls button.btn-primary { background: var(--brand-primary) !important; border-color: var(--brand-primary) !important; }
     .detail-section { margin-bottom: 14px; }
     .detail-section h6 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #0f766e; text-transform: uppercase; }
     .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 16px; }
@@ -119,9 +147,9 @@
     <main class="main">
       <div class="top">
         <h1 class="h4 mb-0">Office of Senior Citizen Affairs Dashboard</h1>
-        <div class="top-actions" style="display:flex;align-items:center;gap:12px;">
+        <div class="top-actions">
           <div style="position:relative;">
-            <button id="notifBellSenior" class="header-action" style="background:transparent;border:0;cursor:pointer;padding:8px;border-radius:8px;">
+            <button id="notifBellSenior" class="header-action notif-button" style="padding:8px;border-radius:8px;">
               🔔 <span id="notifBadgeSenior" style="background:#dc2626;color:#fff;border-radius:10px;padding:2px 6px;font-size:12px;display:none;margin-left:6px;">0</span>
             </button>
             <div id="notifDropdownSenior" style="display:none;position:absolute;right:0;top:44px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);width:360px;max-height:320px;overflow:auto;padding:8px;z-index:2000;">
@@ -129,11 +157,11 @@
               <div id="notifListSenior" style="padding:8px;font-size:13px;color:#374151;"></div>
             </div>
           </div>
-          <button type="button" class="header-action" id="birthdaysBtnSenior" style="background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;">
+          <button type="button" class="header-action birthdays-button" id="birthdaysBtnSenior" style="padding:8px 12px;display:flex;align-items:center;gap:8px;">
             <span>🎂 Birthdays</span>
             <span id="birthdaysBadgeSenior" style="display:none;background:#0f766e;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700;">0</span>
           </button>
-          <a class="header-action" href="/add_senior" id="addSeniorBtn" target="_blank">
+          <a class="header-action" href="/add_senior" id="addSeniorBtn" target="_blank" rel="noopener noreferrer">
             <i class="feather icon-user-plus"></i>
             <span>Add Senior</span>
           </a>
@@ -223,7 +251,7 @@
           </table>
         </div>
 
-        <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <div class="pagination-wrap">
           <small id="seniorPaginationInfo">Showing 0-0 of 0 records</small>
           <div id="seniorPaginationControls" class="btn-group btn-group-sm" style="display: flex; gap: 4px;"></div>
         </div>
@@ -2346,9 +2374,11 @@
       try {
         const host = window.location.hostname || 'localhost';
         const proto = window.location.protocol === 'https:' ? 'https' : 'http';
-        // Try multiple candidate endpoints: same-origin, 3000, then 8080
+        // Same origin first, then 3000 / 8080 unless that is already the page port
         (function () {
-          const portsToTry = [null, '3000', '8080'];
+          var __pagePort = String(window.location.port || '');
+          var portsToTry = [null];
+          ['3000', '8080'].forEach(function (p) { if (p !== __pagePort) { portsToTry.push(p); } });
           let connected = false;
           function tryPort(index) {
             if (connected) return;
@@ -2726,6 +2756,62 @@
         });
       }
       updateBadge();
+    })();
+
+    (function monitorSessionReplacement() {
+      const expectedUserId = <?= json_encode((int) ($user['_id'] ?? 0), JSON_UNESCAPED_UNICODE) ?>;
+      if (!expectedUserId) return;
+      const storageKey = 'swsActiveUserId';
+      const base = <?= json_encode(app_base_path(), JSON_UNESCAPED_UNICODE) ?> || '';
+      function appPath(p) {
+        return base + (p.charAt(0) === '/' ? p : '/' + p);
+      }
+
+      try { localStorage.setItem(storageKey, String(expectedUserId)); } catch (_) {}
+
+      function forceLogout() {
+        window.location.replace(appPath('/?session_replaced=1'));
+      }
+
+      function checkLocalActiveUser() {
+        try {
+          const active = Number(localStorage.getItem(storageKey) || 0);
+          if (active && active !== expectedUserId) forceLogout();
+        } catch (_) {}
+      }
+
+      window.addEventListener('storage', function (event) {
+        if (event.key !== storageKey) return;
+        const active = Number(event.newValue || 0);
+        if (active && active !== expectedUserId) forceLogout();
+      });
+
+      async function checkSession() {
+        try {
+          const res = await fetch(appPath('/api/session-state'), { credentials: 'same-origin', cache: 'no-store' });
+          if (!res.ok) {
+            forceLogout();
+            return;
+          }
+          const data = await res.json();
+          const activeUserId = Number((data && data.user && data.user._id) || 0);
+          if (!data || data.success !== true || activeUserId !== expectedUserId) {
+            forceLogout();
+          }
+        } catch (_) {
+          forceLogout();
+        }
+      }
+
+      checkLocalActiveUser();
+      setInterval(checkSession, 3000);
+      setInterval(checkLocalActiveUser, 1000);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+          checkLocalActiveUser();
+          checkSession();
+        }
+      });
     })();
   </script>
 </body>

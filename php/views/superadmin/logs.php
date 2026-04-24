@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Super Admin - System Logs</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; background: #f3f6fb; color: #1f2937; display: flex; }
@@ -13,18 +14,20 @@
     /* Sidebar Styles */
     .sidebar { 
       width: 260px; 
-      background: #0f766e; 
-      color: #fff; 
+      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+      color: #1e3a8a; 
       min-height: 100vh; 
       padding: 20px 0; 
       position: fixed; 
       left: 0; 
       top: 0; 
-      overflow-y: auto; 
+      overflow-y: auto;
+      border-right: 1px solid #dbe5f3;
+      box-shadow: 10px 0 24px rgba(37, 99, 235, 0.08);
     }
     .sidebar-header { 
       padding: 0 20px 24px; 
-      border-bottom: 1px solid rgba(255,255,255,0.1); 
+      border-bottom: 1px solid rgba(59,130,246,0.18); 
       margin-bottom: 20px; 
     }
     .sidebar-header h2 { 
@@ -41,25 +44,29 @@
     .sidebar-nav a { 
       display: block; 
       padding: 12px 20px; 
-      color: rgba(255,255,255,0.8); 
+      color: #1e3a8a; 
       text-decoration: none; 
       transition: all 0.3s ease; 
-      border-left: 3px solid transparent; 
+      border-left: 3px solid transparent;
+      border-radius: 10px;
+      margin: 0 10px 6px;
+      font-weight: 600;
     }
     .sidebar-nav a:hover { 
-      background: rgba(255,255,255,0.1); 
-      color: #fff; 
-      border-left-color: #fff; 
+      background: #dbeafe; 
+      color: #1e3a8a; 
+      border-left-color: #3b82f6; 
     }
     .sidebar-nav a.active { 
-      background: #0f766e; 
+      background: linear-gradient(135deg, #60a5fa, #3b82f6); 
       color: #fff; 
-      border-left-color: #fbbf24; 
+      border-left-color: #facc15; 
+      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
     }
     .sidebar-nav-label {
       font-size: 12px;
       font-weight: 600;
-      color: rgba(255,255,255,0.6);
+      color: #64748b;
       text-transform: uppercase;
       padding: 16px 20px 8px;
       letter-spacing: 0.5px;
@@ -67,10 +74,15 @@
     .user-name {
       font-size: 14px;
       font-weight: 600;
-      color: #fff;
+      color: #1e3a8a;
       padding: 0 20px;
       margin-bottom: 8px;
       word-break: break-word;
+    }
+    .sidebar-nav .nav-logout {
+      margin-top: 24px;
+      border-top: 1px solid rgba(59,130,246,0.18);
+      padding-top: 16px;
     }
     
     /* Main Content */
@@ -117,7 +129,7 @@
       <li><a href="/index-superadmin" class="<?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">Dashboard</a></li>
       <li><a href="/superadmin-users" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-users') !== false ? 'active' : '' ?>">User Management</a></li>
       <li><a href="/superadmin-logs" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-logs') !== false ? 'active' : '' ?>">System Logs</a></li>
-      <li style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;"><a href="/logout">Logout</a></li>
+      <li class="nav-logout"><a href="/logout">Logout</a></li>
     </ul>
   </div>
 
@@ -300,6 +312,72 @@
           document.getElementById('user-activities-content').textContent = 'Error loading user activities: ' + error.message;
         }
       }
+
+      function formatLogDateTime(dateValue) {
+        if (!dateValue) return 'N/A';
+        const raw = String(dateValue).trim();
+        if (!raw) return 'N/A';
+
+        // DB datetime usually has no timezone; treat it as UTC for consistent conversion.
+        const iso = raw.includes('T') ? raw : raw.replace(' ', 'T');
+        const hasTz = /([zZ]|[+\-]\d\d:\d\d)$/.test(iso);
+        const parsed = new Date(hasTz ? iso : (iso + 'Z'));
+        if (Number.isNaN(parsed.getTime())) return raw;
+
+        return parsed.toLocaleString('en-PH', {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        });
+      }
+
+      function toTitleCaseWords(value) {
+        return String(value || '')
+          .split(/\s+/)
+          .filter(Boolean)
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+      }
+
+      function simplifyActivityType(activityType) {
+        const raw = String(activityType || '').trim();
+        if (!raw) return 'Activity';
+
+        let normalized = raw;
+        if (normalized.startsWith('view_api_')) {
+          normalized = normalized.replace(/^view_api_/, 'view ');
+        } else if (normalized.startsWith('view_')) {
+          normalized = normalized.replace(/^view_/, 'view ');
+        }
+
+        normalized = normalized.replace(/_/g, ' ');
+
+        // Turn API-heavy labels into simpler wording.
+        normalized = normalized.replace(/\bapi\b/gi, '').replace(/\s{2,}/g, ' ').trim();
+        return toTitleCaseWords(normalized);
+      }
+
+      function simplifyActivityDescription(description) {
+        const raw = String(description || '').trim();
+        if (!raw) return 'No details available.';
+
+        // Example: "GET /api/senior-citizens/barangay/Alacaygan" -> "Viewed page: /senior-citizens/barangay/Alacaygan"
+        const match = raw.match(/^(GET|POST|PUT|PATCH|DELETE)\s+(.+)$/i);
+        if (match) {
+          const method = match[1].toUpperCase();
+          let path = match[2].trim();
+          path = path.replace(/^https?:\/\/[^/]+/i, '');
+          path = path.replace(/^\/api\b/i, '');
+          const action = method === 'GET' ? 'Viewed' : (method === 'DELETE' ? 'Deleted via' : 'Updated via');
+          return `${action} ${path || '/'}`;
+        }
+
+        return raw;
+      }
       
       function displayEditLogs(logs) {
         const container = document.getElementById('edit-logs-content');
@@ -311,7 +389,7 @@
         const logsHtml = logs.map(log => 
           `<div style="margin-bottom: 8px; padding: 4px; border-left: 3px solid #0f766e;">
             <strong>${log.field}</strong>: "${log.old_value || 'N/A'}" → "${log.new_value || 'N/A'}"<br>
-            <small style="color: #6b7280;">${log.edited_at} (${log.record_type})</small>
+            <small style="color: #6b7280;">${formatLogDateTime(log.edited_at)} (${log.record_type})</small>
           </div>`
         ).join('');
         
@@ -327,8 +405,8 @@
         
         const activitiesHtml = activities.map(activity => 
           `<div style="margin-bottom: 8px; padding: 4px; border-left: 3px solid #fbbf24;">
-            <strong>${activity.activity_type}</strong>: ${activity.activity_description}<br>
-            <small style="color: #6b7280;">${activity.created_at}</small>
+            <strong>${simplifyActivityType(activity.activity_type)}</strong>: ${simplifyActivityDescription(activity.activity_description)}<br>
+            <small style="color: #6b7280;">${formatLogDateTime(activity.created_at)}</small>
           </div>`
         ).join('');
         

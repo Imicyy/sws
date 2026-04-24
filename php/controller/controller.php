@@ -912,32 +912,8 @@ class Controller
                 $this->jsonResponse(['success' => false, 'error' => 'Invalid credentials'], 401);
             }
 
-            $code = $this->generateVerificationCode();
-            $_SESSION['pendingVerification'] = [
-                'userId' => (int) $user['id'],
-                'email' => $user['email'],
-                'role' => $user['role'],
-                'barangay_id' => $user['barangay_id'] !== null ? (int) $user['barangay_id'] : null,
-                'staff_classification' => $user['staff_classification'] ?? null,
-                'code' => $code,
-                'expiresAt' => time() + (10 * 60),
-            ];
-
-            if (!$this->sendLoginVerificationEmail((string) $user['email'], $code)) {
-                unset($_SESSION['pendingVerification']);
-                $this->jsonResponse([
-                    'success' => false,
-                    'error' => 'Unable to send verification email. Please try again.',
-                ], 500);
-            }
-
-            $this->jsonResponse([
-                'success' => true,
-                'verificationRequired' => true,
-                'message' => 'A verification code has been sent to your email.',
-            ]);
-
             $this->execute('INSERT INTO login_logs (user_id, status) VALUES (?, ?)', [(int) $user['id'], 'success']);
+            $this->execute('UPDATE users SET is_verified = 1 WHERE id = ?', [(int) $user['id']]);
 
             $_SESSION['user'] = [
                 '_id' => (int) $user['id'],
@@ -947,7 +923,15 @@ class Controller
                 'staff_classification' => $user['staff_classification'] ?? null,
             ];
 
-            $this->redirect($this->getRedirectPathByRole($user));
+            $redirectPath = $this->getRedirectPathByRole($user);
+            if (!empty($_POST)) {
+                $this->redirect($redirectPath);
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'redirectUrl' => $redirectPath,
+            ]);
         } catch (Throwable $e) {
             $this->jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
         }
@@ -1016,6 +1000,22 @@ class Controller
 
         session_destroy();
         $this->redirect('/');
+    }
+
+    public function getSessionState(): void
+    {
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (!is_array($sessionUser)) {
+            $this->jsonResponse([
+                'success' => false,
+                'message' => 'No active session',
+            ], 401);
+        }
+
+        $this->jsonResponse([
+            'success' => true,
+            'user' => $sessionUser,
+        ]);
     }
 
     public function updateUser(): void

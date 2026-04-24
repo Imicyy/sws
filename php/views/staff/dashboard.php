@@ -6,38 +6,44 @@
   <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Social Welfare System - Staff Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
+    :root {
+      --bg-page: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%);
+      --panel-border: #dbe5f3;
+    }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; }
+    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
-    .nav-link.active { background: #0f766e; color: #fff; }
-    .nav-link:hover { background: #edf2f7; }
+    .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
+    .nav-link:hover { background: #eaf3ff; }
     .main { padding: 20px; }
-    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.88); box-shadow: 0 10px 22px rgba(59, 130, 246, 0.08); }
     .top .welcome { color: #6b7280; font-size: 14px; }
     .top-left { display: flex; align-items: center; gap: 12px; }
     .add-pwd-btn {
       display: inline-block;
       padding: 9px 14px;
       border-radius: 8px;
-      background: #0f766e;
+      background: linear-gradient(135deg, #93c5fd, #60a5fa);
+      color: #1e3a8a;
       color: #fff;
       font-weight: 700;
       text-decoration: none;
     }
-    .add-pwd-btn:hover { background: #115e59; color: #fff; text-decoration: none; }
+    .add-pwd-btn:hover { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; text-decoration: none; }
     .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-    .card-metric { border-radius: 12px; padding: 16px; color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.12); }
+    .card-metric { border-radius: 14px; padding: 16px; color: #1e3a8a; box-shadow: 0 12px 24px rgba(15, 23, 42,.12); }
     .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; }
     .card-metric .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
-    .bg-blue { background: linear-gradient(135deg, #2563eb, #60a5fa); }
-    .bg-green { background: linear-gradient(135deg, #059669, #34d399); }
-    .bg-purple { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
-    .panel { margin-top: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; }
-    .quick a { display: inline-block; margin-right: 10px; margin-bottom: 10px; padding: 9px 12px; border-radius: 8px; background: #eef2ff; color: #1e3a8a; text-decoration: none; }
+    .bg-blue { background: linear-gradient(135deg, #bfdbfe, #60a5fa); }
+    .bg-green { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #713f12; }
+    .bg-purple { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
+    .panel { margin-top: 16px; background: #fff; border: 1px solid var(--panel-border); border-radius: 14px; padding: 18px; box-shadow: 0 14px 26px rgba(59, 130, 246, 0.08); }
+    .quick a { display: inline-block; margin-right: 10px; margin-bottom: 10px; padding: 9px 12px; border-radius: 10px; background: #eaf3ff; color: #1e3a8a; text-decoration: none; }
     .quick a:hover { background: #dbeafe; }
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
@@ -47,6 +53,13 @@
   </style>
 </head>
 <body>
+  <script>
+    window.__APP_BASE__ = <?= json_encode(app_base_path(), JSON_UNESCAPED_UNICODE) ?>;
+    function appPath(p) {
+      var b = window.__APP_BASE__ || '';
+      return b + (p.charAt(0) === '/' ? p : '/' + p);
+    }
+  </script>
   <div class="layout">
     <aside class="sidebar">
       <div class="brand">ENRIQUE B. MAGALONA</div>
@@ -103,6 +116,60 @@
       </section>
     </main>
   </div>
+
+  <script>
+    (function monitorSessionReplacement() {
+      const expectedUserId = <?= json_encode((int) ($user['_id'] ?? 0), JSON_UNESCAPED_UNICODE) ?>;
+      if (!expectedUserId) return;
+      const storageKey = 'swsActiveUserId';
+
+      try { localStorage.setItem(storageKey, String(expectedUserId)); } catch (_) {}
+
+      function forceLogout() {
+        window.location.replace(appPath('/?session_replaced=1'));
+      }
+
+      function checkLocalActiveUser() {
+        try {
+          const active = Number(localStorage.getItem(storageKey) || 0);
+          if (active && active !== expectedUserId) forceLogout();
+        } catch (_) {}
+      }
+
+      window.addEventListener('storage', function (event) {
+        if (event.key !== storageKey) return;
+        const active = Number(event.newValue || 0);
+        if (active && active !== expectedUserId) forceLogout();
+      });
+
+      async function checkSession() {
+        try {
+          const res = await fetch(appPath('/api/session-state'), { credentials: 'same-origin', cache: 'no-store' });
+          if (!res.ok) {
+            forceLogout();
+            return;
+          }
+          const data = await res.json();
+          const activeUserId = Number((data && data.user && data.user._id) || 0);
+          if (!data || data.success !== true || activeUserId !== expectedUserId) {
+            forceLogout();
+          }
+        } catch (_) {
+          forceLogout();
+        }
+      }
+
+      checkLocalActiveUser();
+      setInterval(checkLocalActiveUser, 1000);
+      setInterval(checkSession, 3000);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+          checkLocalActiveUser();
+          checkSession();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
 

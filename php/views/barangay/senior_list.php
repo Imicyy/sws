@@ -3,28 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
   <title>Barangay — Senior Citizens List</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/files/bower_components/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
-    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; }
-    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
-    .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
-    .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
-    .nav-link.active { background: #0f766e; color: #fff; }
-    .nav-link:hover { background: #edf2f7; }
-    .main { padding: 20px; }
-    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #eef3ff 0%, #f8fbff 100%); color: #1f2937; line-height: 1.45; position: relative; }
+    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; position: relative; z-index: 1; }
+    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; box-shadow: 10px 0 30px rgba(15, 23, 42, 0.04); }
+    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.7px; margin-bottom: 18px; color: #0f172a !important; opacity: 1 !important; visibility: visible !important; }
+    .nav-title { font-size: 12px; color: #6b7280 !important; text-transform: uppercase; margin: 8px 10px; opacity: 1 !important; visibility: visible !important; }
+    .sidebar .nav-link { display: flex !important; align-items: center !important; min-height: 40px !important; padding: 10px 12px; margin-bottom: 6px; border-radius: 10px; color: #1f2937 !important; text-decoration: none !important; font-weight: 600; font-size: 14px !important; line-height: 1.3 !important; letter-spacing: .1px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .2s ease; }
+    .sidebar .nav-link.active { background: #0f766e; color: #fff !important; }
+    .sidebar .nav-link:hover { background: #edf2f7; color: #0f172a !important; transform: translateX(2px); }
+    .nav-fallback-item { padding: 8px 10px; margin-bottom: 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1f2937; cursor: pointer; }
+    .nav-fallback-item.active { background: #0f766e; color: #fff; }
+    .main { padding: 24px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 20px; box-shadow: 0 16px 30px rgba(15, 23, 42, 0.06); }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 8px; border-bottom: 1px solid #e8edf3; text-align: left; }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 4px; border: 1px solid #d1d5db; background: none; cursor: pointer; }
+    th, td { padding: 11px 10px; border-bottom: 1px solid #e8edf3; text-align: left; vertical-align: middle; }
+    th { background: #0f172a; color: #f8fafc; letter-spacing: .2px; position: sticky; top: 0; z-index: 1; }
+    tbody tr { transition: background-color .2s ease; }
+    tbody tr:hover { background: #f8fbff; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .actions .btn-sm { width: 34px; height: 34px; padding: 0; font-size: 15px; border-radius: 8px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
     .btn-view { color: #2563eb; }
     .btn-edit { color: #4f46e5; }
     .btn-archive { color: #dc2626; }
-    .btn-sm:hover { background: #f3f4f6; }
+    .actions .btn-sm:hover { background: #f3f4f6; }
+    .icon-only { display: inline-block; transform: translateY(-0.5px); }
     .btn-print-app { background: #0f766e; color: #fff; border-color: #0f766e; }
     .btn-print-app:hover { background: #0d5f59; color: #fff; }
     .status-badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
@@ -41,7 +47,9 @@
     .modal-close { border: none; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
     .edit-frame-body { padding: 0; height: min(78vh, 760px); }
     .edit-frame-body iframe { width: 100%; height: 100%; border: none; }
-    .toolbar-search { width: 100%; max-width: 320px; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .toolbar-search { width: 100%; max-width: 320px; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 8px; }
+    input, select, textarea { transition: border-color .2s ease, box-shadow .2s ease; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #0f766e !important; box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12); }
     .birthday-modal-table { width: 100%; border-collapse: collapse; }
     .birthday-modal-table th, .birthday-modal-table td { border: 1px solid #e5e7eb; padding: 8px; font-size: 12px; }
     .birthday-modal-table th { background: #f8fafc; }
@@ -51,26 +59,27 @@
   </style>
 </head>
 <body>
+  <script>window.__APP_BASE__=<?= json_encode(app_base_path(), JSON_UNESCAPED_UNICODE) ?>;</script>
   <div class="layout">
     <aside class="sidebar">
       <div class="brand">ENRIQUE B. MAGALONA</div>
       <div class="nav-title">Navigation</div>
-      <a class="nav-link" href="/barangay">Person With Disability Analytics</a>
-      <a class="nav-link" href="/barangay-senior-dashboard">Senior Citizen Analytics</a>
-      <a class="nav-link" href="/barangay-pwd">Person With Disability List</a>
-      <a class="nav-link active" href="/barangay-senior">Senior Citizens List</a>
-      <a class="nav-link" href="/logout">Logout</a>
+      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability Analytics</a>
+      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior-dashboard'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizen Analytics</a>
+      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-pwd'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability List</a>
+      <a class="nav-link active" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#ffffff !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizens List</a>
+      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
     </aside>
 
     <main class="main">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h2 style="margin:0;">Senior — <?= htmlspecialchars((string)($assignedBarangayName ?? ''), ENT_QUOTES, 'UTF-8') ?></h2>
-          <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;justify-content:center;align-items:center;position:relative;">
+          <h2 style="margin:0;text-align:center;">Senior — <?= htmlspecialchars((string)($assignedBarangayName ?? ''), ENT_QUOTES, 'UTF-8') ?></h2>
+          <div style="display:flex;align-items:center;gap:8px;position:absolute;right:0;">
             <button type="button" class="btn btn-sm" id="birthdaysBtn" style="border:1px solid #d1d5db;border-radius:8px;padding:9px 12px;background:#fff;font-weight:700;">
               🎂 Birthdays <span id="birthdaysBadge" style="display:none;margin-left:6px;background:#0f766e;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;">0</span>
             </button>
-            <a href="/add_senior" class="btn btn-info" style="background:#0f766e;border-color:#0f766e;color:#fff;">ADD SENIOR</a>
+            <a href="<?= htmlspecialchars(app_url('/add_senior'), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-info" style="background:#0f766e;border-color:#0f766e;color:#fff;">ADD SENIOR</a>
           </div>
         </div>
 
@@ -107,7 +116,6 @@
           <table id="seniorTable" class="table table-striped">
             <thead class="thead-dark">
               <tr>
-                <th style="width:40px;"><input id="selectAll" type="checkbox"></th>
                 <th>FULL NAME</th>
                 <th>AGE</th>
                 <th>BARANGAY</th>
@@ -125,7 +133,6 @@
                   $statusClass = $status === 'Archived' ? 'status-archived' : 'status-active';
                 ?>
                 <tr data-purok="<?= htmlspecialchars((string)($s['purok'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" data-senior='<?= htmlspecialchars(json_encode($s, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'>
-                  <td><input class="rowCheckbox" type="checkbox" value="<?= (int)($s['id'] ?? 0) ?>"></td>
                   <td><?= htmlspecialchars(strtoupper($full), ENT_QUOTES, 'UTF-8') ?></td>
                   <td><?= htmlspecialchars((string)($s['age'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                   <td><?= htmlspecialchars((string)($s['barangay'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
@@ -134,9 +141,9 @@
                   <td><span class="status-badge <?= $statusClass ?>"><?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?></span></td>
                   <td>
                     <div class="actions">
-                      <button type="button" class="btn-sm btn-view view-btn">View</button>
-                      <button type="button" class="btn-sm btn-edit edit-btn">Edit</button>
-                      <button type="button" class="btn-sm btn-archive archive-btn" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>"><?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?></button>
+                      <button type="button" class="btn-sm btn-view view-btn" title="View" aria-label="View"><span class="icon-only"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M1 12C2.9 8.4 6.1 6 12 6C17.9 6 21.1 8.4 23 12C21.1 15.6 17.9 18 12 18C6.1 18 2.9 15.6 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"></circle></svg></span></button>
+                      <button type="button" class="btn-sm btn-edit edit-btn" title="Edit" aria-label="Edit"><span class="icon-only"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M16.5 3.5C17.3 2.7 18.7 2.7 19.5 3.5L20.5 4.5C21.3 5.3 21.3 6.7 20.5 7.5L9 19L4 20L5 15L16.5 3.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
+                      <button type="button" class="btn-sm btn-archive archive-btn" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" title="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>" aria-label="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>"><span class="icon-only"><?= $status === 'Archived' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12C3 7 7 3 12 3C15 3 17.6 4.2 19.3 6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M21 3V7H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 12C21 17 17 21 12 21C9 21 6.4 19.8 4.7 17.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M3 21V17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M8 6V4H16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19 6L18 20H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>' ?></span></button>
                     </div>
                   </td>
                 </tr>
@@ -249,14 +256,34 @@
       <div class="modal-actions"><button type="button" data-close="smsHistoryModal">Close</button></div>
     </div>
   </div>
+  <div id="archiveConfirmModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-card" style="width:min(520px,100%);">
+      <div class="modal-header">
+        <h5 id="archiveModalTitle" style="margin:0;">Archive Senior Record</h5>
+        <button type="button" class="modal-close" data-close="archiveConfirmModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="archiveModalMessage" class="muted" style="margin:0 0 10px 0;">Please provide a reason for archiving this record.</p>
+        <label id="archiveReasonLabel" for="archiveReasonInput" style="display:block;font-size:12px;color:#6b7280;margin-bottom:6px;">Reason (optional)</label>
+        <textarea id="archiveReasonInput" rows="4" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;resize:vertical;" placeholder="Enter archive reason..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="archiveConfirmBtn" class="primary">Archive</button>
+        <button type="button" data-close="archiveConfirmModal">Cancel</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
 <script>
   (function(){
+    function appPath(p) {
+      var b = window.__APP_BASE__ || '';
+      return b + (p.charAt(0) === '/' ? p : '/' + p);
+    }
     const purokFilter = document.getElementById('purokFilter');
     const statusFilter = document.getElementById('statusFilter');
     const searchInput = document.getElementById('searchInput');
-    const selectAll = document.getElementById('selectAll');
     const viewSeniorFrame = document.getElementById('viewSeniorFrame');
     const editSeniorFrame = document.getElementById('editSeniorFrame');
     const assignedBarangay = <?= json_encode((string)($assignedBarangayName ?? ''), JSON_UNESCAPED_UNICODE) ?>;
@@ -275,6 +302,11 @@
       modal.classList.remove('show');
       if (id === 'viewModal' && viewSeniorFrame) viewSeniorFrame.src = 'about:blank';
       if (id === 'editModal' && editSeniorFrame) editSeniorFrame.src = 'about:blank';
+      if (id === 'archiveConfirmModal' && archiveModalResolve) {
+        const resolve = archiveModalResolve;
+        archiveModalResolve = null;
+        resolve(null);
+      }
     }
 
     function getSeniorFromRow(row) {
@@ -304,8 +336,13 @@
       }
       row.dataset.status = status;
       if (archiveBtn) {
+        const label = status === 'Archived' ? 'Unarchive' : 'Archive';
         archiveBtn.dataset.status = status;
-        archiveBtn.textContent = status === 'Archived' ? 'Unarchive' : 'Archive';
+        archiveBtn.title = label;
+        archiveBtn.setAttribute('aria-label', label);
+        archiveBtn.innerHTML = '<span class="icon-only">' + (status === 'Archived'
+          ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12C3 7 7 3 12 3C15 3 17.6 4.2 19.3 6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M21 3V7H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 12C21 17 17 21 12 21C9 21 6.4 19.8 4.7 17.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M3 21V17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
+          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M8 6V4H16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19 6L18 20H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>') + '</span>';
       }
       const senior = getSeniorFromRow(row);
       senior.status = status;
@@ -319,8 +356,8 @@
       document.querySelectorAll('#seniorTable tbody tr').forEach(function(row){
         const rowPurok = (row.dataset.purok || '').toLowerCase();
         const cols = row.querySelectorAll('td');
-        const name = (cols[1] ? cols[1].textContent : '').toLowerCase();
-        const rowStatus = (cols[6] ? cols[6].textContent : '').trim();
+        const name = (cols[0] ? cols[0].textContent : '').toLowerCase();
+        const rowStatus = (cols[5] ? cols[5].textContent : '').trim();
 
         let show = true;
         if (purok && rowPurok !== purok) show = false;
@@ -344,11 +381,6 @@
         if (event.target === modal) closeModal(modal.id);
       });
     });
-    if (selectAll) selectAll.addEventListener('change', function(){
-      const checked = !!selectAll.checked;
-      document.querySelectorAll('.rowCheckbox').forEach(function(cb){ cb.checked = checked; });
-    });
-
     const birthdaysBtn = document.getElementById('birthdaysBtn');
     const birthdaysBadge = document.getElementById('birthdaysBadge');
     const birthdaysBody = document.getElementById('birthdaysTableBody');
@@ -359,6 +391,30 @@
     const birthdaysSelectAll = document.getElementById('birthdaysSelectAll');
     const birthdaysSendSmsBtn = document.getElementById('birthdaysSendSmsBtn');
     const birthdaysViewHistoryBtn = document.getElementById('birthdaysViewHistoryBtn');
+    const archiveModalTitle = document.getElementById('archiveModalTitle');
+    const archiveModalMessage = document.getElementById('archiveModalMessage');
+    const archiveReasonLabel = document.getElementById('archiveReasonLabel');
+    const archiveReasonInput = document.getElementById('archiveReasonInput');
+    const archiveConfirmBtn = document.getElementById('archiveConfirmBtn');
+    let archiveModalResolve = null;
+
+    function requestStatusChange(options) {
+      if (!archiveReasonInput || !archiveConfirmBtn) return Promise.resolve('');
+      const isUnarchive = !!(options && options.isUnarchive);
+      if (archiveModalTitle) archiveModalTitle.textContent = isUnarchive ? 'Unarchive Senior Record' : 'Archive Senior Record';
+      if (archiveModalMessage) archiveModalMessage.textContent = isUnarchive
+        ? 'Are you sure you want to unarchive this record?'
+        : 'Please provide a reason for archiving this record.';
+      archiveConfirmBtn.textContent = isUnarchive ? 'Unarchive' : 'Archive';
+      if (archiveReasonLabel) archiveReasonLabel.style.display = isUnarchive ? 'none' : 'block';
+      archiveReasonInput.style.display = isUnarchive ? 'none' : 'block';
+      archiveReasonInput.value = '';
+      openModal('archiveConfirmModal');
+      if (!isUnarchive) setTimeout(function () { archiveReasonInput.focus(); }, 0);
+      return new Promise(function (resolve) {
+        archiveModalResolve = resolve;
+      });
+    }
 
     function renderBirthdaysTable() {
       if (!birthdaysBody) return;
@@ -404,7 +460,7 @@
     async function loadBirthdays(range) {
       birthdaysBody.innerHTML = '<tr><td colspan="5" class="text-center muted">Loading...</td></tr>';
       try {
-        const res = await fetch('/api/birthdays?type=senior&range=' + encodeURIComponent(range || 'month'), { credentials: 'same-origin' });
+        const res = await fetch(appPath('/api/birthdays?type=senior&range=' + encodeURIComponent(range || 'month')), { credentials: 'same-origin' });
         const json = await res.json();
         birthdaysCache = (json && json.success && Array.isArray(json.data)) ? json.data : [];
         renderBirthdaysTable();
@@ -417,7 +473,7 @@
 
     async function updateBirthdaysBadge() {
       try {
-        const res = await fetch('/api/birthdays?type=senior&range=today', { credentials: 'same-origin' });
+        const res = await fetch(appPath('/api/birthdays?type=senior&range=today'), { credentials: 'same-origin' });
         const json = await res.json();
         const data = (json && json.success && Array.isArray(json.data)) ? json.data : [];
         const todayCount = data.filter(function (row) {
@@ -436,7 +492,7 @@
         const senior = getSeniorFromRow(row);
         const id = Number(senior.id || 0);
         if (!id) return;
-        if (viewSeniorFrame) viewSeniorFrame.src = '/add_senior?edit=' + encodeURIComponent(String(id)) + '&modal=1&view=1';
+        if (viewSeniorFrame) viewSeniorFrame.src = appPath('/add_senior') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1&view=1';
         currentViewSeniorId = String(id);
         openModal('viewModal');
       });
@@ -446,7 +502,7 @@
     if (printApplicationBtn) {
       printApplicationBtn.addEventListener('click', function () {
         if (!currentViewSeniorId) return;
-        window.open('/senior/' + encodeURIComponent(String(currentViewSeniorId)) + '/application-pdf', '_blank');
+        window.open(appPath('/senior/' + encodeURIComponent(String(currentViewSeniorId)) + '/application-pdf'), '_blank');
       });
     }
 
@@ -456,7 +512,7 @@
         const senior = getSeniorFromRow(row);
         const id = Number(senior.id || 0);
         if (!id) return;
-        if (editSeniorFrame) editSeniorFrame.src = '/add_senior?edit=' + encodeURIComponent(String(id)) + '&modal=1';
+        if (editSeniorFrame) editSeniorFrame.src = appPath('/add_senior') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1';
         openModal('editModal');
       });
     });
@@ -545,7 +601,7 @@
         const oldText = sendSmsModalBtn.textContent;
         sendSmsModalBtn.textContent = 'Sending...';
         try {
-          const response = await fetch('/send-sms', {
+          const response = await fetch(appPath('/send-sms'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({ message: message, recipients: recipients, recipient_type: 'Senior' })
@@ -567,7 +623,7 @@
       const tableBody = document.getElementById('smsHistoryTableBody');
       tableBody.innerHTML = '<tr><td colspan="7" class="text-center muted">Loading...</td></tr>';
       try {
-        const response = await fetch('/sms-history?recipient_type=Senior&limit=200', { credentials: 'same-origin' });
+        const response = await fetch(appPath('/sms-history?recipient_type=Senior&limit=200'), { credentials: 'same-origin' });
         const payload = await response.json();
         const rows = (payload && payload.success && Array.isArray(payload.data)) ? payload.data : [];
         if (!rows.length) {
@@ -595,14 +651,12 @@
         const row = button.closest('tr');
         const senior = getSeniorFromRow(row);
         const isArchived = (button.dataset.status || senior.status || '') === 'Archived';
-        const endpoint = isArchived ? '/unarchive-senior' : '/archive-senior';
+        const endpoint = appPath(isArchived ? '/unarchive-senior' : '/archive-senior');
         const payload = { senior_id: senior.id };
 
-        if (!isArchived) {
-          payload.reason = window.prompt('Enter archive reason (optional):', '') || '';
-        }
-
-        if (!window.confirm(isArchived ? 'Unarchive this Senior Citizen record?' : 'Archive this Senior Citizen record?')) return;
+        const reason = await requestStatusChange({ isUnarchive: isArchived });
+        if (reason === null) return;
+        if (!isArchived) payload.reason = reason.trim();
 
         try {
           const response = await fetch(endpoint, {
@@ -620,6 +674,68 @@
         }
       });
     });
+    if (archiveConfirmBtn) {
+      archiveConfirmBtn.addEventListener('click', function () {
+        if (!archiveModalResolve) return;
+        const resolve = archiveModalResolve;
+        archiveModalResolve = null;
+        const reason = archiveReasonInput ? archiveReasonInput.value : '';
+        closeModal('archiveConfirmModal');
+        resolve(reason || '');
+      });
+    }
     updateBirthdaysBadge();
+  })();
+
+  (function monitorSessionReplacement() {
+    const expectedUserId = <?= json_encode((int) ($user['_id'] ?? 0), JSON_UNESCAPED_UNICODE) ?>;
+    if (!expectedUserId) return;
+    const storageKey = 'swsActiveUserId';
+
+    try { localStorage.setItem(storageKey, String(expectedUserId)); } catch (_) {}
+
+    function forceLogout() {
+      window.location.replace(appPath('/?session_replaced=1'));
+    }
+
+    function checkLocalActiveUser() {
+      try {
+        const active = Number(localStorage.getItem(storageKey) || 0);
+        if (active && active !== expectedUserId) forceLogout();
+      } catch (_) {}
+    }
+
+    window.addEventListener('storage', function (event) {
+      if (event.key !== storageKey) return;
+      const active = Number(event.newValue || 0);
+      if (active && active !== expectedUserId) forceLogout();
+    });
+
+    async function checkSession() {
+      try {
+        const res = await fetch(appPath('/api/session-state'), { credentials: 'same-origin', cache: 'no-store' });
+        if (!res.ok) {
+          forceLogout();
+          return;
+        }
+        const data = await res.json();
+        const activeUserId = Number((data && data.user && data.user._id) || 0);
+        if (!data || data.success !== true || activeUserId !== expectedUserId) {
+          forceLogout();
+        }
+      } catch (_) {
+        forceLogout();
+      }
+    }
+
+    checkLocalActiveUser();
+    setInterval(checkSession, 3000);
+    setInterval(checkLocalActiveUser, 1000);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) {
+        checkLocalActiveUser();
+        checkSession();
+      }
+    });
   })();
 </script>

@@ -11,52 +11,61 @@
   <title>PDAO Admin Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/files/assets/css/admin.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
+    :root {
+      --bg-page: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%);
+      --panel-border: #dbe5f3;
+      --blue-main: #3b82f6;
+      --blue-soft: #bfdbfe;
+      --yellow-soft: #fef3c7;
+      --yellow-main: #facc15;
+    }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; }
+    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
-    .nav-link.active { background: #0f766e; color: #fff; }
-    .nav-link:hover { background: #edf2f7; }
+    .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
+    .nav-link:hover { background: #eaf3ff; }
     .main { padding: 20px; }
-    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.88); box-shadow: 0 10px 22px rgba(59, 130, 246, 0.08); }
     .top .welcome { color: #6b7280; font-size: 14px; }
-    .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-    .card-metric { border-radius: 12px; padding: 16px; color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.12); }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 14px; max-width: 980px; margin: 0 auto; }
+    .card-metric { border-radius: 14px; padding: 16px; color: #1e3a8a; border: 1px solid #dbe5f3; box-shadow: 0 14px 26px rgba(59, 130, 246, 0.10); text-align: center; }
     .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; }
     .card-metric .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
-    .bg-yellow { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-    .bg-blue { background: linear-gradient(135deg, #2563eb, #60a5fa); }
-    .bg-green { background: linear-gradient(135deg, #059669, #34d399); }
-    .bg-red { background: linear-gradient(135deg, #dc2626, #f87171); }
-    .panel { margin-top: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; }
+    .bg-yellow { background: linear-gradient(135deg, #fffbeb, #fde68a); color: #713f12; }
+    .bg-blue { background: linear-gradient(135deg, #eff6ff, #93c5fd); }
+    .bg-green { background: linear-gradient(135deg, #f0f9ff, #bfdbfe); }
+    .bg-red { background: linear-gradient(135deg, #fff7ed, #fed7aa); color: #9a3412; }
+    .panel { margin: 16px auto 0; max-width: 1160px; background: linear-gradient(180deg, #ffffff 0%, #fffcf3 100%); border: 1px solid var(--panel-border); border-radius: 14px; padding: 18px; box-shadow: 0 14px 26px rgba(59, 130, 246, 0.08); }
     .table-responsive { margin-top: 24px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; }
-    th { background: #f4f6f8; color: #5f6c79; font-weight: 600; }
+    th, td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; text-align: center; }
+    th { background: #eff6ff; color: #1e3a8a; font-weight: 700; }
     tr:last-child td { border-bottom: none; }
-    .action-group { display: flex; gap: 6px; }
-    .chip-btn { border: 0; background: #0f766e; color: #fff; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
-    .chip-btn:hover { background: #0d5f58; }
+    .action-group { display: flex; gap: 6px; justify-content: center; }
+    .chip-btn { border: 0; background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
+    .chip-btn:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
     .chart-shell { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 14px; align-items: stretch; }
-    .chart-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; background: #fff; }
+    .chart-card { border: 1px solid var(--panel-border); border-radius: 12px; padding: 12px; background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%); }
     .chart-toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; }
-    .chart-type-btn { border: 1px solid #d1d5db; background: #f9fafb; color: #111827; border-radius: 999px; font-weight: 700; font-size: 12px; padding: 6px 12px; cursor: pointer; }
-    .chart-type-btn.active { background: #0f766e; border-color: #0f766e; color: #fff; }
+    .chart-type-btn { border: 1px solid #cbd5e1; background: #f8fbff; color: #1e3a8a; border-radius: 999px; font-weight: 700; font-size: 12px; padding: 6px 12px; cursor: pointer; }
+    .chart-type-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
     .chart-box { height: 340px; position: relative; }
     .insight-box h6 { font-weight: 800; margin-bottom: 10px; }
     .kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .kpi { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f9fafb; }
+    .kpi { border: 1px solid #dbe5f3; border-radius: 10px; padding: 10px 12px; background: #fffbeb; }
     .kpi .label { font-size: 12px; color: #6b7280; font-weight: 700; }
     .kpi .value { font-size: 18px; font-weight: 900; margin-top: 4px; }
     .kpi .sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
     .insight-text { font-size: 13px; color: #374151; line-height: 1.5; }
     .chart-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .chart-table th, .chart-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
-    .chart-table th { background: #f4f6f8; color: #5f6c79; font-weight: 800; }
+    .chart-table th { background: #eff6ff; color: #1e3a8a; font-weight: 800; }
     .muted { color: #6b7280; }
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
@@ -113,7 +122,7 @@
       <section class="panel">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="/Map" class="btn btn-info" style="font-weight:600; border-radius:8px;">&#128506; PWD Map</a>
+            <a href="/Map" target="_blank" rel="noopener noreferrer" class="btn btn-info" style="font-weight:600; border-radius:8px;">&#128506; PWD Map</a>
             <h2 class="h6 mb-0" style="margin-bottom:0;">Barangay PWD Table</h2>
           </div>
           <div style="display: flex; gap: 8px; align-items: center;">
@@ -137,7 +146,7 @@
                     <td><?= htmlspecialchars($data['name'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= (int)$data['pwdCount'] ?></td>
                     <td>
-                      <div style="display: flex; gap: 8px;">
+                      <div style="display: flex; gap: 8px; justify-content: center;">
                         <button class="btn btn-primary btn-sm" type="button" onclick="viewChart('<?= htmlspecialchars($data['name'], ENT_QUOTES, 'UTF-8') ?>')">View Chart</button>
                         <button class="btn btn-secondary btn-sm" type="button" onclick="window.print()">Print</button>
                         <button class="btn btn-info btn-sm" type="button" onclick="monthlyReport('<?= htmlspecialchars($data['name'], ENT_QUOTES, 'UTF-8') ?>')">Monthly Report</button>
@@ -397,9 +406,11 @@ function buildPwdDisabilityReportTableHtml(scopeName, pwds, analyticsGroupLabel)
       <table class="table table-striped table-bordered table-hover">
         <thead class="table-dark">
           <tr>
+            <th>No.</th>
             <th>Disability Type</th>
             <th>Age Range</th>
             <th>Total</th>
+            <th>Percent</th>
             <th>Male</th>
             <th>Female</th>
             <th>Other/Unknown</th>
@@ -407,25 +418,28 @@ function buildPwdDisabilityReportTableHtml(scopeName, pwds, analyticsGroupLabel)
         </thead>
         <tbody>`;
 
+  const grandTotal = Object.values(stats).reduce((sum, s) => sum + (s.count || 0), 0);
+  let rowIndex = 1;
   keys.forEach(k => {
     if (!stats[k]) return;
     const s = stats[k];
     const minAge = s.ages.length ? Math.min(...s.ages) : 'N/A';
     const maxAge = s.ages.length ? Math.max(...s.ages) : 'N/A';
     const ageRange = s.ages.length ? `${minAge} - ${maxAge}` : 'N/A';
+    const percent = grandTotal > 0 ? ((s.count / grandTotal) * 100).toFixed(1) : '0.0';
 
     html += `
       <tr>
+        <td>${rowIndex++}</td>
         <td><strong>${escReport(k)}</strong></td>
         <td>${escReport(ageRange)}</td>
         <td><span class="badge bg-primary">${s.count}</span></td>
+        <td>${percent}%</td>
         <td>${s.male}</td>
         <td>${s.female}</td>
         <td>${s.otherGender}</td>
       </tr>`;
   });
-
-  html += '</tbody></table></div>';
 
   let totalMale = 0, totalFemale = 0, totalOther = 0, totalCount = 0;
   Object.values(stats).forEach(s => {
@@ -434,6 +448,20 @@ function buildPwdDisabilityReportTableHtml(scopeName, pwds, analyticsGroupLabel)
     totalOther += s.otherGender;
     totalCount += s.count;
   });
+
+  html += `
+      <tr>
+        <td></td>
+        <td><strong>TOTAL</strong></td>
+        <td></td>
+        <td><strong>${totalCount}</strong></td>
+        <td><strong>100%</strong></td>
+        <td><strong>${totalMale}</strong></td>
+        <td><strong>${totalFemale}</strong></td>
+        <td><strong>${totalOther}</strong></td>
+      </tr>`;
+
+  html += '</tbody></table></div>';
 
   const allAges = [].concat(...Object.values(stats).map(s => s.ages));
   const overallAgeRange = allAges.length ? `${Math.min(...allAges)} - ${Math.max(...allAges)}` : 'N/A';
@@ -474,37 +502,73 @@ function buildPwdReportDocumentHtml(scopeName, reportTitle, tableHtml) {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
   <style>
-    body { padding: 30px; font-family: Arial, sans-serif; }
-    .header-wrapper { position: relative; margin-bottom: 20px; min-height: 130px; }
-    .logo-left { position: absolute; top: 0; left: 0; width: 95px; }
-    .logo-right { position: absolute; top: 0; right: 0; width: 120px; }
-    .main-header { text-align: center; margin-top: 15px; }
-    .title-section { margin-top: 15px; text-align: center; }
+    @page { size: auto; margin: 8mm; }
+    body { padding: 10px; font-family: Arial, sans-serif; font-size: 14px; }
+    .container-fluid { width: 100%; max-width: 100%; padding-left: 6px; padding-right: 6px; }
+    .header-wrapper { position: relative; margin-bottom: 16px; min-height: 130px; }
+    .logo-left { position: absolute; top: 6px; left: 0; width: 92px; }
+    .logo-right { position: absolute; top: 2px; right: 0; width: 110px; }
+    .main-header { text-align: center; margin-top: 8px; line-height: 1.15; }
+    .main-header h4 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: .2px; }
+    .main-header h3 { margin: 0 0 6px; font-size: 14px; font-weight: 500; color: #333; }
+    .main-header p { margin: 0; font-size: 14px; font-weight: 500; }
+    .title-section { margin-top: 8px; text-align: center; }
+    .title-section h5 { margin: 3px 0; font-size: 16px; font-weight: 600; }
+    .as-of-label { margin-top: 10px; margin-bottom: 0; font-size: 13px; }
+    .as-of-date { margin-top: 2px; margin-bottom: 0; font-size: 13px; font-weight: 700; }
     .report-info {
-      margin: 20px auto; text-align: center; font-size: 13px; line-height: 1.8;
-      max-width: 800px; white-space: nowrap;
+      margin: 12px auto 10px; text-align: center; font-size: 12px; line-height: 1.5;
+      max-width: 100%; white-space: nowrap;
     }
     .info-item { display: inline-block; margin: 0 15px; }
     .underline { display: inline-block; border-bottom: 1px solid #000; width: 120px; height: 14px; vertical-align: bottom; margin-left: 5px; }
     .address-underline { width: 150px; }
-    .print-button-container { text-align: center; margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px; }
-    .print-button-container button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    .print-button-container { text-align: center; margin: 4px 0 12px; }
+    .print-button-container button { background-color: #2f80ed; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; }
     .print-button-container button:hover { background-color: #0056b3; }
-    @media print { .print-button-container { display: none; } body { padding: 0; } }
+    .table { width: 100%; margin-bottom: 8px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+    .table thead th {
+      background: #cfd3d8 !important;
+      color: #1f2937 !important;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid #e5e7eb !important;
+      padding: 4px 8px !important;
+    }
+    .table tbody td {
+      padding: 5px 8px !important;
+      font-size: 13px;
+      color: #1f2937;
+      border: 1px solid #f0f1f3 !important;
+      vertical-align: middle;
+      line-height: 1.2;
+      background: #ffffff;
+    }
+    .table tbody td:not(:first-child) { text-align: center; }
+    .table-striped tbody tr:nth-of-type(odd) td,
+    .table-striped tbody tr:nth-of-type(even) td { background: #ffffff; }
+    .table tbody tr:last-child td {
+      background: #eef0f3 !important;
+      font-weight: 700;
+    }
+    .summary { margin-top: 6px !important; }
+    .summary ul { margin-bottom: 4px; }
+    @media print { .print-button-container { display: none; } body { padding: 0; } .container-fluid { padding-left: 0; padding-right: 0; } }
   </style>
 </head>
 <body>
   <div class="print-button-container">
-    <button onclick="window.print()">🖨️ Print Report</button>
+    <button onclick="window.print()">Print Report</button>
   </div>
 
-  <div class="container">
+  <div class="container-fluid">
     <div class="header-wrapper">
       <img src="/assets/images/SilayLogo.jpg" class="logo-left">
       <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
       <div class="main-header">
-        <h4>Republic of the Philippines</h4>
-        <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
+        <h3>Republic of the Philippines</h3>
+        <h4>ENRIQUE B. MAGALONA</h4>
         <p>Persons with Disability Affairs Office</p>
       </div>
     </div>
@@ -513,9 +577,8 @@ function buildPwdReportDocumentHtml(scopeName, reportTitle, tableHtml) {
       <h5>PERSONS WITH DISABILITY AFFAIRS OFFICE</h5>
       <h5>${escReport(reportTitle)}</h5>
       <h5><strong>${escReport(scopeName)}</strong></h5>
-      <small class="text-center">
-        As of - <p><strong>${now.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</strong></p>
-      </small>
+      <p class="as-of-label">As of -</p>
+      <p class="as-of-date">${now.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
     </div>
 
     <div class="report-info">
@@ -530,17 +593,18 @@ function buildPwdReportDocumentHtml(scopeName, reportTitle, tableHtml) {
 </html>`;
 }
 
-function buildSimpleRows(pwds) {
+function buildSimpleRows(pwds, scopeLabel) {
   if (!Array.isArray(pwds) || pwds.length === 0) {
-    return '<tr><td colspan="6" class="text-center">No records found.</td></tr>';
+    return '<tr><td colspan="7" class="text-center">No records found.</td></tr>';
   }
-  return pwds.map((pwd, idx) => {
+  const rows = pwds.map((pwd, idx) => {
     const fullName = pwd.fullName
       || [pwd.last_name, pwd.first_name, pwd.middle_name].filter(Boolean).join(' ')
       || 'Unnamed';
     const disability = Array.isArray(pwd.disability) ? pwd.disability.join(', ') : (pwd.disability || 'N/A');
     return `<tr>
       <td>${idx + 1}</td>
+      <td>${escapeHtml(scopeLabel || 'N/A')}</td>
       <td>${escapeHtml(fullName)}</td>
       <td>${escapeHtml(pwd.gender || 'N/A')}</td>
       <td>${escapeHtml(pwd.age || 'N/A')}</td>
@@ -548,9 +612,16 @@ function buildSimpleRows(pwds) {
       <td>${escapeHtml(disability)}</td>
     </tr>`;
   }).join('');
+  return `${rows}
+    <tr>
+      <td></td>
+      <td><strong>TOTAL</strong></td>
+      <td colspan="5"><strong>${pwds.length}</strong></td>
+    </tr>`;
 }
 
 function buildReportHtml(title, subtitle, rowsHtml) {
+  const now = new Date();
   return `<!doctype html>
 <html>
 <head>
@@ -559,24 +630,78 @@ function buildReportHtml(title, subtitle, rowsHtml) {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
   <style>
-    body { font-family: Arial, sans-serif; padding: 24px; }
-    .header { text-align: center; margin-bottom: 18px; }
-    .print-actions { text-align: right; margin-bottom: 12px; }
-    @media print { .print-actions { display: none; } body { padding: 0; } }
+    @page { size: auto; margin: 8mm; }
+    body { padding: 10px; font-family: Arial, sans-serif; font-size: 14px; }
+    .container-fluid { width: 100%; max-width: 100%; padding-left: 6px; padding-right: 6px; }
+    .header-wrapper { position: relative; margin-bottom: 16px; min-height: 130px; }
+    .logo-left { position: absolute; top: 6px; left: 0; width: 92px; }
+    .logo-right { position: absolute; top: 2px; right: 0; width: 110px; }
+    .main-header { text-align: center; margin-top: 8px; line-height: 1.15; }
+    .main-header h4 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: .2px; }
+    .main-header h3 { margin: 0 0 6px; font-size: 14px; font-weight: 500; color: #333; }
+    .main-header p { margin: 0; font-size: 14px; font-weight: 500; }
+    .title-section { margin-top: 8px; text-align: center; }
+    .title-section h5 { margin: 3px 0; font-size: 16px; font-weight: 600; }
+    .as-of-label { margin-top: 10px; margin-bottom: 0; font-size: 13px; }
+    .as-of-date { margin-top: 2px; margin-bottom: 0; font-size: 13px; font-weight: 700; }
+    .print-button-container { text-align: center; margin: 4px 0 12px; }
+    .print-button-container button { background-color: #2f80ed; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .print-button-container button:hover { background-color: #0056b3; }
+    .report-scope { margin-top: 6px; font-size: 14px; }
+    .table { width: 100%; margin-top: 8px; margin-bottom: 8px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+    .table thead th {
+      background: #cfd3d8 !important;
+      color: #1f2937 !important;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid #e5e7eb !important;
+      padding: 4px 8px !important;
+    }
+    .table tbody td {
+      padding: 5px 8px !important;
+      font-size: 13px;
+      color: #1f2937;
+      border: 1px solid #f0f1f3 !important;
+      vertical-align: middle;
+      line-height: 1.2;
+      background: #ffffff;
+    }
+    .table tbody td:not(:first-child) { text-align: center; }
+    .table-striped tbody tr:nth-of-type(odd) td,
+    .table-striped tbody tr:nth-of-type(even) td { background: #ffffff; }
+    .table tbody tr:last-child td {
+      background: #eef0f3 !important;
+      font-weight: 700;
+    }
+    @media print { .print-button-container { display: none; } body { padding: 0; } .container-fluid { padding-left: 0; padding-right: 0; } }
   </style>
 </head>
 <body>
-  <div class="print-actions"><button class="btn btn-primary btn-sm" onclick="window.print()">Print</button></div>
-  <div class="header">
-    <h4>Republic of the Philippines</h4>
-    <h3>ENRIQUE B. MAGALONA</h3>
-    <h5>Persons with Disability Affairs Office</h5>
-    <h5>${escapeHtml(title)}</h5>
-    <div>${escapeHtml(subtitle)}</div>
+  <div class="print-button-container">
+    <button onclick="window.print()">Print Report</button>
+  </div>
+  <div class="container-fluid">
+    <div class="header-wrapper">
+      <img src="/assets/images/SilayLogo.jpg" class="logo-left">
+      <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+      <div class="main-header">
+        <h3>Republic of the Philippines</h3>
+        <h4>ENRIQUE B. MAGALONA</h4>
+        <p>Persons with Disability Affairs Office</p>
+      </div>
+    </div>
+    <div class="title-section">
+      <h5>PERSONS WITH DISABILITY AFFAIRS OFFICE</h5>
+      <h5>${escapeHtml(title)}</h5>
+      <p class="as-of-label">As of -</p>
+      <p class="as-of-date">${now.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      <div class="report-scope">${escapeHtml(subtitle)}</div>
+    </div>
   </div>
   <table class="table table-bordered table-striped">
     <thead class="thead-dark">
-      <tr><th>#</th><th>Name</th><th>Gender</th><th>Age</th><th>Contact</th><th>Disability</th></tr>
+      <tr><th>#</th><th>Scope</th><th>Name</th><th>Gender</th><th>Age</th><th>Contact</th><th>Disability</th></tr>
     </thead>
     <tbody>${rowsHtml}</tbody>
   </table>
@@ -792,7 +917,7 @@ async function openBarangayPrint(barangay) {
     const response = await fetch(`/api/pwds/barangay/${encodeURIComponent(barangay)}`, { credentials: 'same-origin' });
     const json = await response.json();
     if (!response.ok || !json.success) throw new Error((json && json.message) || 'Unable to load print data');
-    const html = buildReportHtml('PWD BARANGAY REPORT', barangay, buildSimpleRows(json.data || []));
+    const html = buildReportHtml('PWD BARANGAY REPORT', barangay, buildSimpleRows(json.data || [], barangay));
     await openPrintWindow(html);
   } catch (error) {
     alert(error.message || 'Error generating print view.');
