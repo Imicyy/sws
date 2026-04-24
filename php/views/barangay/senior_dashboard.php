@@ -6,7 +6,7 @@
   <title>Barangay — Senior Citizen Analytics</title>
   <link rel="stylesheet" href="/files/bower_components/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
-  <script src="/files/bower_components/chart.js/js/Chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --bg-page: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%);
@@ -39,6 +39,7 @@
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     table th { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #f8fafc; padding: 11px 10px; text-align: left; font-weight: 700; letter-spacing: .2px; }
     table td { padding: 11px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+    #dataTable th, #dataTable td { text-align: center; }
     table tr:hover { background: #fffbeb; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
     .modal.show { display: block; }
@@ -201,6 +202,8 @@
   </div>
 
   <script>
+    const LEFT_LOGO_SRC = <?= json_encode(asset_url('images/SilayLogo.jpg'), JSON_UNESCAPED_UNICODE) ?>;
+    const RIGHT_LOGO_SRC = <?= json_encode(asset_url('images/BagongPilipinas.jpg'), JSON_UNESCAPED_UNICODE) ?>;
     function appPath(p) {
       var b = window.__APP_BASE__ || '';
       return b + (p.charAt(0) === '/' ? p : '/' + p);
@@ -335,7 +338,8 @@
 
   <div class="container">
     <div class="header-wrapper">
-      <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+      <img src="${escapeHtml(LEFT_LOGO_SRC)}" class="logo-left">
+      <img src="${escapeHtml(RIGHT_LOGO_SRC)}" class="logo-right">
       <div class="main-header">
         <h4>Republic of the Philippines</h4>
         <h2><strong>ENRIQUE B. MAGALONA</strong></h2>
@@ -441,7 +445,8 @@
   <div class="print-button-container"><button onclick="window.print()">🖨️ Print Report</button></div>
   <div class="container-fluid">
     <div class="header-wrapper">
-      <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+      <img src="${escapeHtml(LEFT_LOGO_SRC)}" class="logo-left">
+      <img src="${escapeHtml(RIGHT_LOGO_SRC)}" class="logo-right">
       <div class="main-header">
         <h3>Republic of the Philippines</h3>
         <h4>ENRIQUE B. MAGALONA</h4>
@@ -549,7 +554,7 @@
               + '<td>' + escapeHtml(row.purok || 'Unknown') + '</td>'
               + '<td>' + Number(row.count || 0).toLocaleString() + '</td>'
               + '<td>'
-              + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+              + '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">'
               + '<button class="btn btn-primary btn-sm" type="button" onclick="showChartModal(\'' + safePurok + '\')">View Chart</button>'
               + '<button class="btn btn-secondary btn-sm" type="button" onclick="openPurokPrint(\'' + safePurok + '\')" style="background-color:#6c757d;border-color:#6c757d;color:#fff;">Print</button>'
               + '<button class="btn btn-info btn-sm" type="button" onclick="monthlyReport(\'' + safePurok + '\')" style="background-color:#17a2b8;border-color:#17a2b8;color:#fff;">Monthly Report</button>'

@@ -8,25 +8,25 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%); color: #1f2937; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; }
+    .sidebar { background: #fffef7; border-right: 1px solid #dbe5f3; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
-    .nav-link.active { background: #0f766e; color: #fff; }
-    .nav-link:hover { background: #edf2f7; }
+    .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
+    .nav-link:hover { background: #eaf3ff; }
     .main { padding: 24px; max-width: 1280px; margin: 0 auto; width: 100%; }
     .main > h1 { text-align: center; }
-    .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; width: 100%; max-width: 1080px; margin: 0 auto; }
+    .panel { background: linear-gradient(180deg, #ffffff 0%, #fffcf3 100%); border: 1px solid #dbe5f3; border-radius: 12px; padding: 16px; width: 100%; max-width: 1080px; margin: 0 auto; box-shadow: 0 12px 24px rgba(59, 130, 246, 0.08); }
     .form-group { margin-bottom: 16px; }
     label { font-weight: 600; margin-bottom: 6px; display: block; }
-    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-family: inherit; }
+    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #dbe5f3; border-radius: 6px; font-family: inherit; background: #fff; }
     textarea { resize: vertical; }
     button { padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
-    button.btn-primary { background: #0f766e; color: #fff; }
-    button.btn-primary:hover { background: #0d5f58; }
-    pre { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; font-size: 12px; }
+    button.btn-primary { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
+    button.btn-primary:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    pre { background: #f8fbff; border: 1px solid #dbe5f3; border-radius: 6px; padding: 12px; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -35,7 +35,9 @@
       <div class="brand">ENRIQUE B. MAGALONA</div>
       <div class="nav-title">Navigation</div>
       
-      <a class="nav-link" href="/pdao-admin-dashboard">Person With Disability Table</a>
+      <a class="nav-link" href="<?= (($_GET['from'] ?? '') === 'pdao') ? '/pdao-admin-dashboard' : '/Analytics' ?>">
+        <?= (($_GET['from'] ?? '') === 'pdao') ? 'Person With Disability Table' : 'Senior Citizen Table' ?>
+      </a>
       
       <a class="nav-link active" href="/admin-alert">Alerts</a>
       <a class="nav-link" href="/logout">Logout</a>

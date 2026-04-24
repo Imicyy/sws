@@ -8,8 +8,19 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-  <link rel="stylesheet" type="text/css" href="/files/assets/css/login.css?v=20260418-ui3">
   <style>
+    body {
+      margin: 0 !important;
+      min-height: 100vh !important;
+      background-image:
+        linear-gradient(180deg, rgba(238, 193, 30, 0.72) 0%, rgba(19, 35, 121, 0.74) 100%),
+        url("<?= htmlspecialchars(asset_url('images/ebmagtownhall.png'), ENT_QUOTES) ?>") !important;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    }
+
     body .main-container {
       min-height: 100vh !important;
       display: flex !important;
@@ -19,14 +30,15 @@
     }
 
     body .main-container .login-container {
-      max-width: 920px !important;
-      min-height: 560px !important;
+      max-width: 930px !important;
+      width: 100% !important;
+      min-height: 430px !important;
       display: flex !important;
-      gap: 0 !important;
       border-radius: 16px !important;
       overflow: hidden !important;
-      border: 1px solid rgba(255, 255, 255, 0.5) !important;
-      box-shadow: 0 22px 48px rgba(0, 16, 54, 0.32) !important;
+      border: 1px solid rgba(255, 255, 255, 0.45) !important;
+      box-shadow: 0 20px 48px rgba(7, 18, 51, 0.45) !important;
+      backdrop-filter: blur(4px) !important;
       margin: 0 auto !important;
     }
 
@@ -38,29 +50,70 @@
     }
 
     body .main-container .login-image {
-      background: linear-gradient(180deg, rgba(204, 185, 136, 0.72) 0%, rgba(180, 166, 136, 0.58) 100%) !important;
+      flex: 1.04 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      padding: 2.2rem 2rem !important;
+      color: #ffffff !important;
+      background:
+        linear-gradient(170deg, rgba(248, 211, 76, 0.22) 0%, rgba(255, 255, 255, 0.07) 44%, rgba(13, 29, 110, 0.34) 100%),
+        rgba(7, 22, 77, 0.18) !important;
       border-right: 1px solid rgba(255, 255, 255, 0.35) !important;
-      flex: 1.02 !important;
+    }
+
+    body .main-container .login-image h2 {
+      color: #0c2f8e !important;
+      font-size: 2.35rem !important;
+      font-weight: 700 !important;
+      line-height: 1.2 !important;
+      margin-bottom: 0.65rem !important;
+      text-shadow: 0 2px 8px rgba(255, 255, 255, 0.35) !important;
+    }
+
+    body .main-container .login-image h2 .text-gold {
+      color: #f0bc00 !important;
+      display: inline-block !important;
+    }
+
+    body .main-container .login-image p {
+      margin: 0 !important;
+      font-size: 0.82rem !important;
+      color: #27347d !important;
+      font-style: italic !important;
+      font-weight: 500 !important;
     }
 
     body .main-container .login-form {
-      background: #fff !important;
-      flex: 0.98 !important;
-      padding: 2.8rem 2.6rem !important;
+      background: #ffffff !important;
+      flex: 0.96 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      padding: 2.7rem 2.4rem !important;
+    }
+
+    body .main-container .login-form h3 {
+      color: #6a6a6a !important;
+      font-size: 2rem !important;
+      font-weight: 500 !important;
+      margin-bottom: 1.75rem !important;
     }
 
     body .main-container .login-image .logo-circle {
-      width: 92px !important;
-      height: 92px !important;
+      width: 118px !important;
+      height: 118px !important;
       border-radius: 50% !important;
-      background: rgba(255, 255, 255, 0.9) !important;
+      background: rgba(255, 255, 255, 0.94) !important;
       border: 3px solid rgba(242, 191, 18, 0.95) !important;
       box-shadow: 0 10px 24px rgba(11, 25, 44, 0.18) !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      margin: 0 auto 1rem !important;
-      padding: 10px !important;
+      margin: 0 auto 1.25rem !important;
+      padding: 9px !important;
     }
 
     body .main-container .login-image .logo-circle img {
@@ -71,6 +124,77 @@
       display: block !important;
       margin: 0 !important;
     }
+
+    body .main-container .form-group {
+      position: relative !important;
+      margin-bottom: 1rem !important;
+    }
+
+    body .main-container .form-group .form-control {
+      border: none !important;
+      border-bottom: 1px solid #d4d4d4 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      padding: 0.65rem 2rem 0.65rem 1.75rem !important;
+      font-size: 0.95rem !important;
+      color: #3a3a3a !important;
+      background: transparent !important;
+    }
+
+    body .main-container .form-group .fa-envelope,
+    body .main-container .form-group .fa-lock {
+      position: absolute !important;
+      left: 0.25rem !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      color: #9f9f9f !important;
+      font-size: 0.82rem !important;
+    }
+
+    body .main-container .password-toggle {
+      top: 50% !important;
+      right: 0.25rem !important;
+      transform: translateY(-50%) !important;
+      color: #9f9f9f !important;
+      background: none !important;
+      border: 0 !important;
+    }
+
+    body .main-container .btn-login {
+      margin-top: 1.2rem !important;
+      border: 0 !important;
+      border-radius: 24px !important;
+      padding: 0.75rem 1rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.08em !important;
+      text-transform: uppercase !important;
+      color: #fff !important;
+      background: linear-gradient(90deg, #f4c000 0%, #e2b100 100%) !important;
+      box-shadow: 0 7px 16px rgba(226, 177, 0, 0.35) !important;
+    }
+
+    body .main-container .login-cta a {
+      color: #6b6b6b !important;
+      text-decoration: none !important;
+      font-size: 0.9rem !important;
+    }
+
+    body .main-container .login-hint {
+      display: none !important;
+    }
+
+    @media (max-width: 991.98px) {
+      body .main-container .login-container {
+        max-width: 640px !important;
+        min-height: 0 !important;
+        flex-direction: column !important;
+      }
+
+      body .main-container .login-image {
+        border-right: 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35) !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -78,10 +202,9 @@
     <div class="login-container">
       <div class="login-image">
         <div class="logo-circle">
-          <img src="/files/assets/images/logo-ebmag.png" alt="Municipality of Enrique B. Magalona seal" class="logo" onerror="this.onerror=null;this.src='/assets/images/logo-ebmag.png';">
+          <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>" alt="Municipality of Enrique B. Magalona seal" class="logo">
         </div>
-        <h2>Municipality of</h2>
-        <h1 class="mb-4">Enrique B. Magalona Social Welfare System</h1>
+        <h2>Municipality of<br><span class="text-gold">Enrique B. Magalona<br>Social Welfare System</span></h2>
         <p>Saraviahanon Digitalasyon Para sa Asenso</p>
         <div class="login-hint mt-4">
           <div><strong>Test logins:</strong></div>

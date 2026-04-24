@@ -97,6 +97,10 @@
     .page-wrap { max-width: 100%; }
     .card-shell { background: #fff; border-radius: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.08); padding: 20px; }
     .table thead th { border-top: 0; background: #f8fafc; }
+    #user-table thead th,
+    #user-table tbody td { text-align: center; vertical-align: middle; }
+    #user-table tbody td:last-child { white-space: nowrap; }
+    .card-shell h3 { text-align: center; width: 100%; }
     .modal { display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.45); }
     .modal-content { background: #fff; margin: 6% auto; padding: 20px; border-radius: 12px; width: 94%; max-width: 620px; }
     .close-btn { float: right; cursor: pointer; font-size: 22px; }

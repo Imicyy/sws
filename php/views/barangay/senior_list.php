@@ -7,32 +7,41 @@
   <link rel="stylesheet" href="/files/bower_components/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #eef3ff 0%, #f8fbff 100%); color: #1f2937; line-height: 1.45; position: relative; }
+    :root {
+      --bg-page: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%);
+      --panel-border: #dbe5f3;
+      --blue-main: #3b82f6;
+      --blue-dark: #1d4ed8;
+      --yellow-soft: #fef3c7;
+      --yellow-main: #facc15;
+    }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; line-height: 1.45; position: relative; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; position: relative; z-index: 1; }
-    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; box-shadow: 10px 0 30px rgba(15, 23, 42, 0.04); }
+    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; box-shadow: 10px 0 30px rgba(59, 130, 246, 0.08); }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.7px; margin-bottom: 18px; color: #0f172a !important; opacity: 1 !important; visibility: visible !important; }
     .nav-title { font-size: 12px; color: #6b7280 !important; text-transform: uppercase; margin: 8px 10px; opacity: 1 !important; visibility: visible !important; }
     .sidebar .nav-link { display: flex !important; align-items: center !important; min-height: 40px !important; padding: 10px 12px; margin-bottom: 6px; border-radius: 10px; color: #1f2937 !important; text-decoration: none !important; font-weight: 600; font-size: 14px !important; line-height: 1.3 !important; letter-spacing: .1px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .2s ease; }
-    .sidebar .nav-link.active { background: #0f766e; color: #fff !important; }
-    .sidebar .nav-link:hover { background: #edf2f7; color: #0f172a !important; transform: translateX(2px); }
+    .sidebar .nav-link.active { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #fff !important; }
+    .sidebar .nav-link:hover { background: #eaf3ff; color: #0f172a !important; transform: translateX(2px); }
     .nav-fallback-item { padding: 8px 10px; margin-bottom: 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1f2937; cursor: pointer; }
-    .nav-fallback-item.active { background: #0f766e; color: #fff; }
+    .nav-fallback-item.active { background: var(--blue-main); color: #fff; }
     .main { padding: 24px; }
-    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 20px; box-shadow: 0 16px 30px rgba(15, 23, 42, 0.06); }
+    .card { background: #fff; border: 1px solid var(--panel-border); border-radius: 16px; padding: 20px; box-shadow: 0 16px 30px rgba(59, 130, 246, 0.08); }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { padding: 11px 10px; border-bottom: 1px solid #e8edf3; text-align: left; vertical-align: middle; }
-    th { background: #0f172a; color: #f8fafc; letter-spacing: .2px; position: sticky; top: 0; z-index: 1; }
+    th { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #f8fafc; letter-spacing: .2px; position: sticky; top: 0; z-index: 1; }
     tbody tr { transition: background-color .2s ease; }
-    tbody tr:hover { background: #f8fbff; }
-    .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    tbody tr:hover { background: #fffbeb; }
+    #seniorTable th, #seniorTable td { text-align: center; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; justify-content: center; }
     .actions .btn-sm { width: 34px; height: 34px; padding: 0; font-size: 15px; border-radius: 8px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
     .btn-view { color: #2563eb; }
     .btn-edit { color: #4f46e5; }
     .btn-archive { color: #dc2626; }
     .actions .btn-sm:hover { background: #f3f4f6; }
     .icon-only { display: inline-block; transform: translateY(-0.5px); }
-    .btn-print-app { background: #0f766e; color: #fff; border-color: #0f766e; }
-    .btn-print-app:hover { background: #0d5f59; color: #fff; }
+    .btn-print-app { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #fff; border-color: var(--blue-main); }
+    .btn-print-app:hover { background: linear-gradient(135deg, var(--blue-main), var(--blue-dark)); color: #fff; }
     .status-badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
     .status-active { background: #dcfce7; color: #166534; }
     .status-archived { background: #e5e7eb; color: #374151; }
@@ -43,18 +52,41 @@
     .modal-body { padding: 12px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 14px; border-top: 1px solid #e5e7eb; }
     .modal-actions button { border: 1px solid #d1d5db; background: #fff; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
-    .modal-actions .btn-print-app { background: #0f766e; border-color: #0f766e; color: #fff; }
+    .modal-actions .btn-print-app { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); border-color: var(--blue-main); color: #fff; }
     .modal-close { border: none; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
     .edit-frame-body { padding: 0; height: min(78vh, 760px); }
     .edit-frame-body iframe { width: 100%; height: 100%; border: none; }
     .toolbar-search { width: 100%; max-width: 320px; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 8px; }
     input, select, textarea { transition: border-color .2s ease, box-shadow .2s ease; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #0f766e !important; box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12); }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue-main) !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14); }
     .birthday-modal-table { width: 100%; border-collapse: collapse; }
     .birthday-modal-table th, .birthday-modal-table td { border: 1px solid #e5e7eb; padding: 8px; font-size: 12px; }
     .birthday-modal-table th { background: #f8fafc; }
     .modal-actions .primary { background: #2563eb; border-color: #2563eb; color: #fff; }
     .muted { color: #6b7280; font-size: 12px; }
+    .add-record-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--yellow-main);
+      background: linear-gradient(135deg, var(--yellow-soft), var(--yellow-main));
+      color: #713f12 !important;
+      font-weight: 700;
+      text-decoration: none !important;
+      line-height: 1.2;
+      box-shadow: 0 4px 10px rgba(250, 204, 21, 0.25);
+      transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+    .add-record-btn:hover,
+    .add-record-btn:focus {
+      color: #713f12 !important;
+      text-decoration: none !important;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(250, 204, 21, 0.30);
+      filter: brightness(0.98);
+    }
     @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; max-height: none; } }
   </style>
 </head>
@@ -77,9 +109,9 @@
           <h2 style="margin:0;text-align:center;">Senior — <?= htmlspecialchars((string)($assignedBarangayName ?? ''), ENT_QUOTES, 'UTF-8') ?></h2>
           <div style="display:flex;align-items:center;gap:8px;position:absolute;right:0;">
             <button type="button" class="btn btn-sm" id="birthdaysBtn" style="border:1px solid #d1d5db;border-radius:8px;padding:9px 12px;background:#fff;font-weight:700;">
-              🎂 Birthdays <span id="birthdaysBadge" style="display:none;margin-left:6px;background:#0f766e;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;">0</span>
+              🎂 Birthdays <span id="birthdaysBadge" style="display:none;margin-left:6px;background:#3b82f6;color:#fff;border-radius:999px;padding:2px 8px;font-size:12px;">0</span>
             </button>
-            <a href="<?= htmlspecialchars(app_url('/add_senior'), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-info" style="background:#0f766e;border-color:#0f766e;color:#fff;">ADD SENIOR</a>
+            <a href="<?= htmlspecialchars(app_url('/add_senior'), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" class="add-record-btn">ADD SENIOR</a>
           </div>
         </div>
 

@@ -83,7 +83,7 @@
       <div class="brand">ENRIQUE B. MAGALONA</div>
       <div class="nav-title">Navigation</div>
       <a class="nav-link active" href="/pdao-admin-dashboard">Person With Disability Table</a>
-      <a class="nav-link" href="/admin-alert">Alerts</a>
+      <a class="nav-link" href="/admin-alert?from=pdao">Alerts</a>
       <a class="nav-link" href="/logout">Logout</a>
     </aside>
     <main class="main">

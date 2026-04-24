@@ -10,50 +10,56 @@
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1f2937; }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%) !important; color: #1f2937; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; }
+    .sidebar { background: #fffef7 !important; border-right: 1px solid #dbe5f3 !important; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
-    .nav-link.active { background: #0f766e; color: #fff; }
-    .nav-link:hover { background: #edf2f7; }
+    .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6) !important; color: #fff !important; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
+    .nav-link:hover { background: #eaf3ff !important; }
     .main { padding: 20px; }
     .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .top .welcome { color: #6b7280; font-size: 14px; }
-    .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 14px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
     .card-metric { border-radius: 12px; padding: 16px; color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.12); }
-    .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; }
-    .card-metric .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
+    .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; text-align: center; }
+    .card-metric .value { font-size: 26px; font-weight: 700; margin-top: 6px; text-align: center; }
     .bg-yellow { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
     .bg-blue { background: linear-gradient(135deg, #2563eb, #60a5fa); }
     .bg-green { background: linear-gradient(135deg, #059669, #34d399); }
     .bg-red { background: linear-gradient(135deg, #dc2626, #f87171); }
-    .panel { margin-top: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; }
+    .panel { margin-top: 16px; background: linear-gradient(180deg, #ffffff 0%, #fffcf3 100%) !important; border: 1px solid #dbe5f3 !important; border-radius: 12px; padding: 18px; box-shadow: 0 12px 24px rgba(59, 130, 246, 0.08); }
     .table-responsive { margin-top: 24px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; }
-    th { background: #f4f6f8; color: #5f6c79; font-weight: 600; }
+    th { background: #eff6ff; color: #1e3a8a; font-weight: 700; }
     tr:last-child td { border-bottom: none; }
     .action-group { display: flex; gap: 6px; }
-    .chip-btn { border: 0; background: #0f766e; color: #fff; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
-    .chip-btn:hover { background: #0d5f58; }
+    .chip-btn { border: 0; background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
+    .chip-btn:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
     .chart-shell { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 14px; align-items: stretch; }
-    .chart-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; background: #fff; }
+    .chart-card { border: 1px solid #dbe5f3; border-radius: 12px; padding: 12px; background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%); }
     .chart-toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; }
-    .chart-type-btn { border: 1px solid #d1d5db; background: #f9fafb; color: #111827; border-radius: 999px; font-weight: 700; font-size: 12px; padding: 6px 12px; cursor: pointer; }
-    .chart-type-btn.active { background: #0f766e; border-color: #0f766e; color: #fff; }
+    .chart-type-btn { border: 1px solid #cbd5e1; background: #f8fbff; color: #1e3a8a; border-radius: 999px; font-weight: 700; font-size: 12px; padding: 6px 12px; cursor: pointer; }
+    .chart-type-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
     .chart-box { height: 340px; position: relative; }
     .insight-box h6 { font-weight: 800; margin-bottom: 10px; }
     .kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .kpi { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f9fafb; }
+    .kpi { border: 1px solid #dbe5f3; border-radius: 10px; padding: 10px 12px; background: #fffbeb; }
     .kpi .label { font-size: 12px; color: #6b7280; font-weight: 700; }
     .kpi .value { font-size: 18px; font-weight: 900; margin-top: 4px; }
     .kpi .sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
     .insight-text { font-size: 13px; color: #374151; line-height: 1.5; }
     .chart-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .chart-table th, .chart-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
-    .chart-table th { background: #f4f6f8; color: #5f6c79; font-weight: 800; }
+    .chart-table th { background: #eff6ff; color: #1e3a8a; font-weight: 800; }
     .muted { color: #6b7280; }
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
@@ -73,7 +79,7 @@
       
       <a class="nav-link active" href="/Analytics">Senior Citizen Table</a>
       
-      <a class="nav-link" href="/admin-alert">Alerts</a>
+      <a class="nav-link" href="/admin-alert?from=osca">Alerts</a>
       <a class="nav-link" href="/logout">Logout</a>
     </aside>
 
@@ -457,6 +463,89 @@ function buildOscaReportHtml(reportTitle, scopeName, rows) {
 </html>`;
 }
 
+function buildSeniorDetailReportHtml(title, scopeName, rows) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const total = safeRows.length;
+  const male = safeRows.filter((r) => /^male$/i.test(String(r.gender || ''))).length;
+  const female = safeRows.filter((r) => /^female$/i.test(String(r.gender || ''))).length;
+  const rowsHtml = safeRows.length
+    ? safeRows.map((r, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${escapeHtml(r.fullName || 'Unnamed')}</td>
+        <td>${escapeHtml(r.contact || 'N/A')}</td>
+        <td>${escapeHtml(r.gender || 'N/A')}</td>
+        <td>${escapeHtml(r.age || 'N/A')}</td>
+      </tr>
+    `).join('')
+    : '<tr><td colspan="5" class="text-center">No data available.</td></tr>';
+
+  return `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(title)} - ${escapeHtml(scopeName || 'Unknown')}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/bower_components/bootstrap/css/bootstrap.min.css">
+  <style>
+    @page { size: auto; margin: 8mm; }
+    body { padding: 10px; font-family: Arial, sans-serif; font-size: 14px; }
+    .container-fluid { width: 100%; max-width: 100%; padding-left: 6px; padding-right: 6px; }
+    .header-wrapper { position: relative; margin-bottom: 16px; min-height: 130px; }
+    .logo-left { position: absolute; top: 6px; left: 0; width: 92px; }
+    .logo-right { position: absolute; top: 2px; right: 0; width: 110px; }
+    .main-header { text-align: center; margin-top: 8px; line-height: 1.15; }
+    .main-header h4 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: .2px; }
+    .main-header h3 { margin: 0 0 6px; font-size: 14px; font-weight: 500; color: #333; }
+    .main-header p { margin: 0; font-size: 14px; font-weight: 500; }
+    .title-section { margin-top: 8px; text-align: center; }
+    .title-section h5 { margin: 3px 0; font-size: 16px; font-weight: 600; }
+    .as-of-label { margin-top: 10px; margin-bottom: 0; font-size: 13px; }
+    .as-of-date { margin-top: 2px; margin-bottom: 0; font-size: 13px; font-weight: 700; }
+    .print-button-container { text-align: center; margin: 4px 0 12px; }
+    .print-button-container button { background-color: #2f80ed; color: white; padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .table { width: 100%; margin-top: 8px; margin-bottom: 8px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+    .table thead th { background: #cfd3d8 !important; color: #1f2937 !important; text-align: center; font-size: 13px; font-weight: 700; border: 1px solid #e5e7eb !important; padding: 4px 8px !important; }
+    .table tbody td { padding: 5px 8px !important; font-size: 13px; color: #1f2937; border: 1px solid #f0f1f3 !important; vertical-align: middle; line-height: 1.2; background: #ffffff; text-align: center; }
+    .table tbody td:nth-child(2) { text-align: left; }
+    .summary-box { margin-top: 6px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+    @media print { .print-button-container { display: none; } body { padding: 0; } .container-fluid { padding-left: 0; padding-right: 0; } }
+  </style>
+</head>
+<body>
+  <div class="print-button-container"><button onclick="window.print()">🖨️ Print Report</button></div>
+  <div class="container-fluid">
+    <div class="header-wrapper">
+      <img src="/assets/images/SilayLogo.jpg" class="logo-left">
+      <img src="/assets/images/BagongPilipinas.jpg" class="logo-right">
+      <div class="main-header">
+        <h3>Republic of the Philippines</h3>
+        <h4>ENRIQUE B. MAGALONA</h4>
+        <p>Office Senior Citizens Affairs</p>
+      </div>
+    </div>
+    <div class="title-section">
+      <h5>OFFICE OF SENIOR CITIZENS AFFAIRS</h5>
+      <h5>${escapeHtml(title)}</h5>
+      <h5><strong>${escapeHtml(scopeName || 'Unknown')}</strong></h5>
+      <p class="as-of-label">As of -</p>
+      <p class="as-of-date">${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    </div>
+    <table class="table table-bordered table-striped">
+      <thead><tr><th>#</th><th>Name</th><th>Contact</th><th>Gender</th><th>Age</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div class="summary-box">
+      <h5>Report Summary</h5>
+      <p><strong>Total Count:</strong> ${total}</p>
+      <p><strong>Total Male:</strong> ${male}</p>
+      <p><strong>Total Female:</strong> ${female}</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 function setChartType(type) {
   currentChartView = type;
   document.getElementById('chartTypeDonutBtn').classList.toggle('active', type === 'donut');
@@ -575,20 +664,7 @@ async function openBarangayPrint(barangay) {
   const json = await res.json();
   if (!res.ok || !json.success) throw new Error((json && json.message) || 'Unable to load seniors');
   const seniors = json.data || [];
-  let male = 0;
-  let female = 0;
-  seniors.forEach((s) => {
-    const g = String(s.gender || '');
-    if (/^male$/i.test(g)) male += 1;
-    else if (/^female$/i.test(g)) female += 1;
-  });
-  const rows = [{
-    barangay,
-    male,
-    female,
-    total: seniors.length
-  }];
-  await openPrintWindow(buildOscaReportHtml('SENIOR CITIZEN BARANGAY REPORT', barangay, rows));
+  await openPrintWindow(buildSeniorDetailReportHtml('SENIOR BARANGAY REPORT', barangay, seniors));
 }
 
 window.monthlyReport = async function(barangay) {

@@ -99,6 +99,9 @@
     table th { background: #f9fafb; padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
     table td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
     table tr:hover { background: #f9fafb; }
+    .main h1 { text-align: center; }
+    table th, table td { text-align: center; vertical-align: middle; }
+    table td:last-child { white-space: nowrap; }
     .filter-bar { display: flex; gap: 12px; margin-bottom: 14px; }
     input { padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; }
     button { padding: 8px 14px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
@@ -223,11 +226,24 @@
       const loginInfo = document.getElementById('loginPaginationInfo');
       const loginControls = document.getElementById('loginPaginationControls');
       const loginSearch = document.getElementById('loginSearch');
+      const loginDate = document.getElementById('loginDate');
       let loginCurrentPage = 1;
+
+      function getFilteredLoginRows() {
+        const searchValue = String((loginSearch && loginSearch.value) || '').trim().toLowerCase();
+        const dateValue = String((loginDate && loginDate.value) || '').trim(); // YYYY-MM-DD
+        return loginRows.filter((row) => {
+          const emailText = String((row.children[1] && row.children[1].textContent) || '').toLowerCase();
+          const timestampText = String((row.children[5] && row.children[5].textContent) || '');
+          const matchesSearch = searchValue === '' || emailText.includes(searchValue);
+          const matchesDate = dateValue === '' || timestampText.includes(dateValue);
+          return matchesSearch && matchesDate;
+        });
+      }
       
       function renderLoginPagination() {
         loginRows.forEach(row => row.style.display = 'none');
-        const filtered = loginRows;
+        const filtered = getFilteredLoginRows();
         const total = filtered.length;
         const totalPages = Math.max(1, Math.ceil(total / pageSize));
         if (loginCurrentPage > totalPages) loginCurrentPage = 1;
@@ -251,9 +267,20 @@
           loginControls.appendChild(btn);
         }
       }
+
+      window.filterLoginLogs = function () {
+        loginCurrentPage = 1;
+        renderLoginPagination();
+      };
       
       // Initial render
       renderLoginPagination();
+      if (loginSearch) {
+        loginSearch.addEventListener('input', window.filterLoginLogs);
+      }
+      if (loginDate) {
+        loginDate.addEventListener('change', window.filterLoginLogs);
+      }
       
       // View Details Modal
       const viewDetailsModal = document.getElementById('view-details-modal');

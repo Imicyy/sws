@@ -3813,25 +3813,37 @@ class Controller
             }
 
             if (($_GET['status'] ?? '') !== 'all') {
-                $filters[] = "status <> 'Archived'";
+                $filters[] = "p.status <> 'Archived'";
             }
 
             $month = isset($_GET['month']) ? (int) $_GET['month'] : 0;
             $year = isset($_GET['year']) ? (int) $_GET['year'] : 0;
             if ($month >= 1 && $month <= 12) {
-                $filters[] = 'MONTH(created_at) = ?';
+                $filters[] = 'MONTH(p.created_at) = ?';
                 $params[] = $month;
                 if ($year >= 2000) {
-                    $filters[] = 'YEAR(created_at) = ?';
+                    $filters[] = 'YEAR(p.created_at) = ?';
                     $params[] = $year;
                 }
             } elseif ($year >= 2000) {
-                $filters[] = 'YEAR(created_at) = ?';
+                $filters[] = 'YEAR(p.created_at) = ?';
                 $params[] = $year;
             }
 
             $whereSql = count($filters) ? ('WHERE ' . implode(' AND ', $filters)) : '';
-            $rows = $this->queryAll("SELECT * FROM pwd {$whereSql} ORDER BY created_at DESC", $params);
+            $rows = $this->queryAll(
+                "SELECT p.*,
+                        COALESCE(NULLIF(TRIM(dd.disability), ''), 'N/A') AS disability
+                   FROM pwd p
+              LEFT JOIN (
+                        SELECT pwd_id, GROUP_CONCAT(DISTINCT disability ORDER BY disability SEPARATOR ', ') AS disability
+                          FROM pwd_disabilities
+                      GROUP BY pwd_id
+                   ) dd ON dd.pwd_id = p.id
+                   {$whereSql}
+               ORDER BY p.created_at DESC",
+                $params
+            );
 
             $this->jsonResponse(['success' => true, 'pwds' => $rows]);
         } catch (Throwable $e) {
