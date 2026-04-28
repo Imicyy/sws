@@ -12,10 +12,13 @@
   <style>
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%) !important; color: #1f2937; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fffef7 !important; border-right: 1px solid #dbe5f3 !important; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); }
+    .sidebar { background: #fffef7 !important; border-right: 1px solid #dbe5f3 !important; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
-    .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
+    .nav-center { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; align-items: center; justify-content: center; }
+    .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; width: 100%; max-width: 220px; text-align: center; }
+    .logout-btn { margin-top: auto; display: block; width: 100%; max-width: 220px; text-align: center; padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 6px 14px rgba(220,38,38,0.18); text-decoration: none; }
+    .logout-btn:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }
     .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6) !important; color: #fff !important; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
     .nav-link:hover { background: #eaf3ff !important; }
     .main { padding: 20px; }
@@ -76,11 +79,11 @@
     <aside class="sidebar">
       <div class="brand">ENRIQUE B. MAGALONA</div>
       <div class="nav-title">Navigation</div>
-      
-      <a class="nav-link active" href="/Analytics">Senior Citizen Table</a>
-      
-      <a class="nav-link" href="/admin-alert?from=osca">Alerts</a>
-      <a class="nav-link" href="/logout">Logout</a>
+      <div class="nav-center">
+        <a class="nav-link active" href="/Analytics">Senior Citizen Table</a>
+        <a class="nav-link" href="/admin-alert?from=osca">Alerts</a>
+      </div>
+      <a class="logout-btn" href="/logout">Logout</a>
     </aside>
 
     <main class="main">

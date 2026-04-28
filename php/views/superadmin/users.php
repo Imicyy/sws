@@ -26,6 +26,7 @@
       overflow-y: auto;
       border-right: 1px solid #dbe5f3;
       box-shadow: 10px 0 24px rgba(37, 99, 235, 0.08);
+      display: flex; flex-direction: column;
     }
     .sidebar-header { 
       padding: 0 20px 24px; 
@@ -43,7 +44,8 @@
     .sidebar-nav li { 
       margin: 0; 
     }
-    .sidebar-nav a { 
+    .nav-center { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; align-items: center; justify-content: center; }
+    .sidebar-nav a, .nav-center a { 
       display: block; 
       padding: 12px 20px; 
       color: #1e3a8a; 
@@ -53,7 +55,10 @@
       border-radius: 10px;
       margin: 0 10px 6px;
       font-weight: 600;
+      width: 100%; max-width: 220px; text-align: center;
     }
+    .logout-btn { margin-top: auto; display: block; width: 100%; max-width: 220px; text-align: center; padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 6px 14px rgba(220,38,38,0.18); text-decoration: none; }
+    .logout-btn:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }
     .sidebar-nav a:hover { 
       background: #dbeafe;
       color: #1e3a8a; 
@@ -144,12 +149,12 @@
       <div class="user-name"><?= htmlspecialchars((string)($user['name'] ?? 'Super Admin'), ENT_QUOTES, 'UTF-8') ?></div>
       <div class="sidebar-nav-label">Navigation</div>
     </div>
-    <ul class="sidebar-nav">
-      <li><a href="/index-superadmin" class="<?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">Dashboard</a></li>
-      <li><a href="/superadmin-users" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-users') !== false ? 'active' : '' ?>">User Management</a></li>
-      <li><a href="/superadmin-logs" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-logs') !== false ? 'active' : '' ?>">System Logs</a></li>
-      <li class="nav-logout"><a href="/logout">Logout</a></li>
-    </ul>
+    <div class="nav-center">
+      <a href="/index-superadmin" class="<?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">Dashboard</a>
+      <a href="/superadmin-users" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-users') !== false ? 'active' : '' ?>">User Management</a>
+      <a href="/superadmin-logs" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-logs') !== false ? 'active' : '' ?>">System Logs</a>
+    </div>
+    <a class="logout-btn" href="/logout">Logout</a>
   </div>
 
   <!-- Main Content -->
