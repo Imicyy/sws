@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title>Social Welfare System - Office of Senior Citizen Affairs Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
@@ -19,12 +19,14 @@
     * { box-sizing: border-box; }
     html, body { width: 100%; min-height: 100%; }
     .layout { display: flex; align-items: stretch; min-height: 100vh; width: 100%; }
-    .sidebar { flex: 0 0 260px; width: 260px; background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); }
+    .sidebar { flex: 0 0 260px; width: 260px; background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; margin-top: 16px; }
-    .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
+    .nav-link { display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
     .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; box-shadow: 0 10px 22px rgba(59, 130, 246, 0.24); }
     .nav-link:hover { background: #eaf3ff; }
+    .sidebar .logout-link { margin-top: auto; background: #fee2e2; color: #991b1b; font-weight: 700; }
+    .sidebar .logout-link:hover { background: #ef4444; color: #fff; }
     .top-actions {
       display: flex;
       align-items: center;
@@ -123,10 +125,95 @@
     .detail-item { font-size: 13px; line-height: 1.45; }
     .detail-label { font-weight: 700; color: #374151; }
     .detail-value { color: #111827; }
+    .edit-log-title { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: #1d4ed8; }
+    .edit-log-wrapper { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; }
     .edit-log-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .edit-log-table th, .edit-log-table td { border: 1px solid #e5e7eb; padding: 8px; vertical-align: top; }
-    .edit-log-table th { background: #f3f4f6; color: #374151; }
+    .edit-log-table th, .edit-log-table td { padding: 8px; border: 1px solid #e5e7eb; text-align: left; vertical-align: top; }
+    .edit-log-table th { background: #fef9c3; color: #0f172a; position: sticky; top: 0; font-weight: 700; z-index: 1; white-space: nowrap; }
     .edit-log-muted { color: #6b7280; font-size: 12px; }
+    #viewSeniorModal .modal-dialog,
+    #editSeniorModal .modal-dialog { max-width: 1100px !important; }
+    #viewSeniorModal .modal-content,
+    #editSeniorModal .modal-content { background:#fff !important; border-radius:12px !important; box-shadow:0 20px 50px rgba(0,0,0,.25) !important; border:none !important; overflow:hidden !important; }
+    #viewSeniorModal .modal-header,
+    #editSeniorModal .modal-header { display:flex !important; align-items:center !important; justify-content:space-between !important; padding:12px 14px !important; border-bottom:1px solid #e5e7eb !important; background:#fff !important; color:#0f172a !important; }
+    #viewSeniorModal .modal-body,
+    #editSeniorModal .modal-body { padding:12px !important; background:#fff !important; max-height:75vh !important; overflow-y:auto !important; }
+    #viewSeniorModal .modal-footer,
+    #editSeniorModal .modal-footer { display:flex !important; justify-content:flex-end !important; gap:8px !important; padding:12px 14px !important; border-top:1px solid #e5e7eb !important; background:#fff !important; }
+    #viewSeniorModal .btn, #editSeniorModal .btn { border:1px solid #d1d5db !important; background:#fff !important; border-radius:8px !important; padding:8px 12px !important; font-size:12px !important; font-weight:700 !important; color:#111827 !important; min-width:auto !important; text-transform:none !important; letter-spacing:0 !important; }
+    #viewSeniorModal #viewNextBtn, #editSeniorModal #editNextBtn { background:#2563eb !important; border-color:#2563eb !important; color:#fff !important; }
+    #viewSeniorModal #printApplicationBtn { background:linear-gradient(135deg,#60a5fa,#3b82f6) !important; border-color:#3b82f6 !important; color:#fff !important; }
+    .senior-frame-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 2500;
+    }
+    .senior-frame-modal.open { display: flex; }
+    .senior-frame-card {
+      width: min(1240px, 100%);
+      height: 92vh;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+    }
+    .senior-frame-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    .senior-frame-header h3 { margin: 0; font-size: 18px; color: #111827; font-weight: 700; }
+    .senior-frame-close {
+      border: none;
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      color: #4b5563;
+      cursor: pointer;
+    }
+    .senior-frame-body {
+      flex: 1 1 auto;
+      overflow: hidden;
+      background: #f3f6fb;
+      padding: 0;
+    }
+    .senior-frame-body iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #f3f6fb;
+    }
+    .senior-frame-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 14px 16px;
+      border-top: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    .senior-frame-actions button {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      background: #fff;
+      color: #111827;
+    }
     @media (max-width: 980px) {
       .layout { flex-direction: column; }
       .sidebar { flex: none; width: 100%; position: static; height: auto; max-height: none; }
@@ -141,7 +228,7 @@
       <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">OSCA Department</span></div>
       <div class="nav-title">Navigation</div>
       <a class="nav-link active" href="/osca-dashboard">Dashboard</a>
-      <a class="nav-link" href="/logout">Logout</a>
+      <a class="nav-link logout-link" href="/logout">Logout</a>
     </aside>
 
     <main class="main">
@@ -264,22 +351,53 @@
     </main>
   </div>
 
-  <div class="modal fade" id="viewSeniorModal" tabindex="-1" role="dialog" aria-labelledby="viewSeniorModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 900px;">
-      <div class="modal-content">
-        <div class="modal-header">
+  <div id="seniorViewFrameModal" class="senior-frame-modal" role="dialog" aria-modal="true" aria-labelledby="seniorViewFrameTitle">
+    <div class="senior-frame-card">
+      <div class="senior-frame-header">
+        <h3 id="seniorViewFrameTitle">View Senior Citizen Information</h3>
+        <button type="button" class="senior-frame-close" data-close-senior-frame="seniorViewFrameModal">&times;</button>
+      </div>
+      <div class="senior-frame-body">
+        <iframe id="seniorViewFrame" title="View Senior Form" loading="lazy" src="about:blank"></iframe>
+      </div>
+      <div class="senior-frame-actions">
+        <button type="button" id="printApplicationBtn">Print Application</button>
+        <button type="button" data-close-senior-frame="seniorViewFrameModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="seniorEditFrameModal" class="senior-frame-modal" role="dialog" aria-modal="true" aria-labelledby="seniorEditFrameTitle">
+    <div class="senior-frame-card">
+      <div class="senior-frame-header">
+        <h3 id="seniorEditFrameTitle">Edit Senior Citizen Information</h3>
+        <button type="button" class="senior-frame-close" data-close-senior-frame="seniorEditFrameModal">&times;</button>
+      </div>
+      <div class="senior-frame-body">
+        <iframe id="seniorEditFrame" title="Edit Senior Form" loading="lazy" src="about:blank"></iframe>
+      </div>
+      <div class="senior-frame-actions">
+        <button type="button" data-close-senior-frame="seniorEditFrameModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade barangay-like-modal" id="viewSeniorModal" tabindex="-1" role="dialog" aria-labelledby="viewSeniorModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1100px;">
+      <div class="modal-content" style="background:#fff;border-radius:12px;border:none;box-shadow:0 20px 50px rgba(0,0,0,.25);overflow:hidden;">
+        <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e5e7eb;background:#fff;color:#0f172a;">
           <h5 class="modal-title" id="viewSeniorModalTitle">View Senior Citizen Information</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#0f172a;opacity:.9;text-shadow:none;">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body" style="max-height: 75vh; overflow-y: auto; padding: 20px;">
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto; padding: 12px;">
           <div id="viewSeniorMeta" class="mb-3" style="display: flex; flex-wrap: wrap; gap: 12px; color: #374151; font-size: 13px;">
            
           </div>
 
-          <div class="mb-3" style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; background: #ffffff;">
-            <div style="font-size: 13px; font-weight: 700; color: #0f766e; margin-bottom: 8px;">Edit Logs</div>
+          <div class="mb-3 edit-log-wrapper" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px;overflow:auto;max-height:220px;background:#fff;">
+            <div class="edit-log-title" style="margin:0 0 8px 0;font-size:14px;line-height:1.2;color:#1d4ed8;font-weight:700;">Edit Logs</div>
             <div id="viewEditLogsContainer" class="edit-log-muted">No edit logs yet.</div>
           </div>
 
@@ -494,26 +612,26 @@
             </fieldset>
           </div>
         </div>
-        <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid #e5e7eb;">
-          <button type="button" class="btn btn-secondary" id="viewPrevBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; display: none;">Back</button>
-          <button type="button" class="btn btn-primary" id="viewNextBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; background: #0f766e; color: #ffffff; border: none;">Next</button>
-          <button type="button" class="btn btn-outline-primary" id="printApplicationBtn" style="min-width: 160px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700;">Print Application</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">Close</button>
+        <div class="modal-footer" style="padding:12px 14px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:8px;background:#fff;">
+          <button type="button" class="btn btn-secondary" id="viewPrevBtn" style="border:1px solid #d1d5db;background:#fff;color:#111827;min-width:auto;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;display:none;">Back</button>
+          <button type="button" class="btn btn-primary" id="viewNextBtn" style="border:1px solid #d1d5db;background:#fff;color:#111827;min-width:auto;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;">Next</button>
+          <button type="button" class="btn btn-outline-primary" id="printApplicationBtn" style="border:1px solid #3b82f6;background:linear-gradient(135deg,#60a5fa,#3b82f6);color:#fff;min-width:auto;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;">Print Application</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border:1px solid #d1d5db;background:#fff;color:#111827;min-width:auto;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;">Close</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="modal fade" id="editSeniorModal" tabindex="-1" role="dialog" aria-labelledby="editSeniorModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 900px;">
-      <div class="modal-content">
-        <div class="modal-header">
+  <div class="modal fade barangay-like-modal" id="editSeniorModal" tabindex="-1" role="dialog" aria-labelledby="editSeniorModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1100px;">
+      <div class="modal-content" style="background:#fff;border-radius:12px;border:none;box-shadow:0 20px 50px rgba(0,0,0,.25);overflow:hidden;">
+        <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e5e7eb;background:#fff;color:#0f172a;">
           <h5 class="modal-title" id="editSeniorModalTitle">Edit Senior Citizen Information</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#0f172a;opacity:.9;text-shadow:none;">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body" style="max-height: 75vh; overflow-y: auto; padding: 20px;">
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto; padding: 12px;">
           <form id="editSeniorForm" novalidate>
             <input type="hidden" id="editResidentId" name="residentId">
             
@@ -812,10 +930,10 @@
             </fieldset>
           </form>
         </div>
-        <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid #e5e7eb;">
-          <button type="button" class="btn btn-secondary" id="editPrevBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; display: none;">Back</button>
-          <button type="button" class="btn btn-primary" id="editNextBtn" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; background: #0f766e; color: #ffffff; border: none;">Next</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal" style="min-width: 100px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">Cancel</button>
+        <div class="modal-footer" style="padding:12px 14px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:8px;background:#fff;">
+          <button type="button" class="btn btn-secondary" id="editPrevBtn" style="border:1px solid #d1d5db;background:#fff;color:#111827;min-width:auto;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;display:none;">Back</button>
+          <button type="button" class="btn btn-primary" id="editNextBtn" style="border:1px solid #d1d5db;background:#fff;color:#111827;min-width:auto;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;">Next</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border:1px solid #d1d5db;background:#fff;color:#111827;min-width:auto;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;">Cancel</button>
         </div>
       </div>
     </div>
@@ -872,11 +990,373 @@
     </div>
   </div>
 
+<style>
+  /* Final override: force popup look to match barangay/senior_list */
+  .barangay-like-modal .modal-dialog { max-width: 1100px !important; }
+  .barangay-like-modal .modal-content {
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    border: none !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25) !important;
+    overflow: hidden !important;
+  }
+  .barangay-like-modal .modal-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 12px 14px !important;
+    color: #0f172a !important;
+  }
+  .barangay-like-modal .modal-title {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    font-size: 20px !important;
+  }
+  .barangay-like-modal .close {
+    color: #0f172a !important;
+    opacity: .9 !important;
+    text-shadow: none !important;
+  }
+  .barangay-like-modal .modal-body {
+    padding: 12px !important;
+    background: #ffffff !important;
+    max-height: 75vh !important;
+    overflow-y: auto !important;
+  }
+  .barangay-like-modal .modal-footer {
+    background: #ffffff !important;
+    border-top: 1px solid #e5e7eb !important;
+    padding: 12px 14px !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+  .barangay-like-modal .modal-footer .btn {
+    border: 1px solid #d1d5db !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    min-width: auto !important;
+  }
+  .barangay-like-modal #printApplicationBtn {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+    border-color: #3b82f6 !important;
+    color: #ffffff !important;
+  }
+  .barangay-like-modal .view-fieldset,
+  .barangay-like-modal .edit-fieldset {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+  }
+  .barangay-like-modal .view-fieldset legend,
+  .barangay-like-modal .edit-fieldset legend {
+    color: #0f766e !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+  }
+  .barangay-like-modal .form-control,
+  .barangay-like-modal textarea.form-control,
+  .barangay-like-modal select.form-control {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+  }
+  .barangay-like-modal .edit-log-wrapper {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    max-height: 220px !important;
+    overflow: auto !important;
+  }
+  .barangay-like-modal .edit-log-title {
+    margin: 0 0 8px 0 !important;
+    font-size: 14px !important;
+    color: #1d4ed8 !important;
+    font-weight: 700 !important;
+  }
+  .barangay-like-modal .edit-log-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 12px !important;
+  }
+  .barangay-like-modal .edit-log-table th,
+  .barangay-like-modal .edit-log-table td {
+    border: 1px solid #e5e7eb !important;
+    padding: 8px !important;
+    text-align: left !important;
+    vertical-align: top !important;
+  }
+  .barangay-like-modal .edit-log-table th {
+    background: #fef9c3 !important;
+    color: #0f172a !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  #viewSeniorModal .modal-dialog,
+  #editSeniorModal .modal-dialog { max-width: 1100px !important; }
+  #viewSeniorModal .modal-content,
+  #editSeniorModal .modal-content {
+    background: #fff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25) !important;
+    border: none !important;
+    overflow: hidden !important;
+  }
+  #viewSeniorModal .modal-header,
+  #editSeniorModal .modal-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 14px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background: #fff !important;
+    color: #0f172a !important;
+  }
+  #viewSeniorModal .modal-title,
+  #editSeniorModal .modal-title { color: #0f172a !important; font-weight: 700 !important; }
+  #viewSeniorModal .close,
+  #editSeniorModal .close { color: #0f172a !important; opacity: .9 !important; text-shadow: none !important; }
+  #viewSeniorModal .modal-body,
+  #editSeniorModal .modal-body {
+    max-height: 75vh !important;
+    overflow-y: auto !important;
+    padding: 12px !important;
+    background: #fff !important;
+  }
+  #viewSeniorModal .modal-footer,
+  #editSeniorModal .modal-footer {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    padding: 12px 14px !important;
+    border-top: 1px solid #e5e7eb !important;
+    background: #fff !important;
+  }
+  #viewSeniorModal .modal-footer .btn,
+  #editSeniorModal .modal-footer .btn {
+    border: 1px solid #d1d5db !important;
+    background: #fff !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    min-width: auto !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+  }
+  #viewSeniorModal #printApplicationBtn {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+    border-color: #3b82f6 !important;
+    color: #fff !important;
+  }
+  #viewSeniorModal .view-fieldset,
+  #editSeniorModal .edit-fieldset {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  #viewSeniorModal .view-fieldset legend,
+  #editSeniorModal .edit-fieldset legend {
+    color: #0f766e !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+  }
+  #viewSeniorModal .form-control,
+  #editSeniorModal .form-control,
+  #viewSeniorModal textarea.form-control,
+  #editSeniorModal textarea.form-control,
+  #viewSeniorModal select.form-control,
+  #editSeniorModal select.form-control {
+    background: #fff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+  }
+  #viewSeniorModal .edit-log-wrapper {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    max-height: 220px !important;
+    overflow: auto !important;
+    background: #fff !important;
+  }
+  #viewSeniorModal .edit-log-title { color: #1d4ed8 !important; font-size: 14px !important; font-weight: 700 !important; margin-bottom: 8px !important; }
+  #viewSeniorModal .edit-log-table { width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; }
+  #viewSeniorModal .edit-log-table th,
+  #viewSeniorModal .edit-log-table td { padding: 8px !important; border: 1px solid #e5e7eb !important; text-align: left !important; vertical-align: top !important; }
+  #viewSeniorModal .edit-log-table th { background: #fef9c3 !important; color: #0f172a !important; position: sticky !important; top: 0 !important; z-index: 1 !important; white-space: nowrap !important; }
+</style>
+
+<style id="staff-pwd-modal-skin">
+  /* Single source of truth: make Senior popup match staff_pwd modal design */
+  #viewSeniorModal .modal-dialog,
+  #editSeniorModal .modal-dialog {
+    max-width: 1240px !important;
+    width: min(1240px, 100%) !important;
+    height: 92vh !important;
+    max-height: 92vh !important;
+    margin: 1.75rem auto !important;
+  }
+  #viewSeniorModal .modal-content,
+  #editSeniorModal .modal-content {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    border-radius: 12px !important;
+    border: 1px solid #d1d5db !important;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25) !important;
+  }
+  #viewSeniorModal .modal-header,
+  #editSeniorModal .modal-header {
+    padding: 14px 16px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background: #fff !important;
+    color: #111827 !important;
+  }
+  #viewSeniorModal .modal-title,
+  #editSeniorModal .modal-title { margin: 0 !important; font-size: 18px !important; font-weight: 700 !important; color: #111827 !important; }
+  #viewSeniorModal .close,
+  #editSeniorModal .close { color: #4b5563 !important; opacity: 1 !important; text-shadow: none !important; }
+  #viewSeniorModal .modal-body,
+  #editSeniorModal .modal-body {
+    flex: 1 1 auto !important;
+    overflow: auto !important;
+    padding: 16px !important;
+    background: #f3f6fb !important;
+    max-height: none !important;
+  }
+  #viewSeniorModal .modal-footer,
+  #editSeniorModal .modal-footer {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    padding: 14px 16px !important;
+    border-top: 1px solid #e5e7eb !important;
+    background: #fff !important;
+  }
+  #viewSeniorModal .modal-footer .btn,
+  #editSeniorModal .modal-footer .btn {
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    background: #fff !important;
+    color: #111827 !important;
+    min-width: auto !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+  }
+  #viewSeniorModal #viewNextBtn,
+  #editSeniorModal #editNextBtn {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+  }
+  #viewSeniorModal #printApplicationBtn {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: #fff !important;
+  }
+</style>
+
+<style id="staff-senior-modal-final-skin">
+  /* Exact popup shell look of staff_pwd modal */
+  #viewSeniorModal.barangay-like-modal .modal-dialog,
+  #editSeniorModal.barangay-like-modal .modal-dialog {
+    width: min(1240px, 100%) !important;
+    max-width: 1240px !important;
+    height: 92vh !important;
+    max-height: 92vh !important;
+  }
+  #viewSeniorModal.barangay-like-modal .modal-content,
+  #editSeniorModal.barangay-like-modal .modal-content {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    border-radius: 12px !important;
+    border: 1px solid #d1d5db !important;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25) !important;
+  }
+  #viewSeniorModal.barangay-like-modal .modal-header,
+  #editSeniorModal.barangay-like-modal .modal-header {
+    padding: 14px 16px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background: #fff !important;
+    color: #111827 !important;
+  }
+  #viewSeniorModal.barangay-like-modal .modal-title,
+  #editSeniorModal.barangay-like-modal .modal-title {
+    margin: 0 !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+  }
+  #viewSeniorModal.barangay-like-modal .modal-body,
+  #editSeniorModal.barangay-like-modal .modal-body {
+    flex: 1 1 auto !important;
+    overflow: auto !important;
+    padding: 16px !important;
+    background: #f3f6fb !important;
+    max-height: none !important;
+  }
+  #viewSeniorModal.barangay-like-modal .modal-footer,
+  #editSeniorModal.barangay-like-modal .modal-footer {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    padding: 14px 16px !important;
+    border-top: 1px solid #e5e7eb !important;
+    background: #fff !important;
+  }
+  #viewSeniorModal.barangay-like-modal .modal-footer .btn,
+  #editSeniorModal.barangay-like-modal .modal-footer .btn {
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    background: #fff !important;
+    color: #111827 !important;
+    min-width: auto !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+  }
+  #viewSeniorModal.barangay-like-modal #viewNextBtn,
+  #editSeniorModal.barangay-like-modal #editNextBtn {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+  }
+  #viewSeniorModal.barangay-like-modal #printApplicationBtn {
+    background: #3b82f6 !important;
+    color: #fff !important;
+    border-color: #3b82f6 !important;
+  }
+</style>
+
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script>
     const barangays = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
     const barangayFilter = document.getElementById('barangayFilter');
     const purokFilter = document.getElementById('purokFilter');
+
 
     function getVisibleRows() {
       return Array.from(document.querySelectorAll('#seniorTable tbody tr')).filter(row => row.style.display !== 'none');
@@ -1023,7 +1503,9 @@
 
     function setPdfText(form, field, value) {
       try {
-        form.getTextField(field).setText(String(value || ''));
+        const textField = form.getTextField(field);
+        textField.setText(String(value || ''));
+        try { textField.setFontSize(10); } catch (error) {}
       } catch (error) {}
     }
 
@@ -1035,6 +1517,58 @@
       } catch (error) {}
     }
 
+    function setPdfTextByNamePattern(form, patterns, value) {
+      if (!form || !Array.isArray(patterns) || !patterns.length) return false;
+      const normalizedPatterns = patterns
+        .map(function (p) { return String(p || '').toLowerCase().trim(); })
+        .filter(Boolean);
+      if (!normalizedPatterns.length) return false;
+
+      let wrote = false;
+      form.getFields().forEach(function (field) {
+        if (!field || typeof field.getName !== 'function') return;
+        const name = String(field.getName() || '');
+        const nameLower = name.toLowerCase();
+        const isMatch = normalizedPatterns.every(function (p) { return nameLower.includes(p); });
+        if (!isMatch) return;
+        try {
+          const tf = form.getTextField(name);
+          tf.setText(String(value || ''));
+          try { tf.setFontSize(10); } catch (error) {}
+          wrote = true;
+        } catch (error) {}
+      });
+      return wrote;
+    }
+
+    function fillBirthDateSplitCells(form, dobParts) {
+      if (!dobParts) return;
+      const mm = String(dobParts.mm || '').padStart(2, '0');
+      const dd = String(dobParts.dd || '').padStart(2, '0');
+      const yyyy = String(dobParts.yyyy || '').padStart(4, '0');
+      const digits = [mm[0] || '', mm[1] || '', dd[0] || '', dd[1] || '', yyyy[0] || '', yyyy[1] || '', yyyy[2] || '', yyyy[3] || ''];
+
+      const candidateSequences = [
+        ['Text Field129', 'Text Field130', 'Text Field128', 'Text Field131', 'Text Field127', 'Text Field132', 'Text Field133', 'Text Field134'],
+        ['Text Field127', 'Text Field128', 'Text Field129', 'Text Field130', 'Text Field131', 'Text Field132', 'Text Field133', 'Text Field134'],
+        ['Text Field134', 'Text Field133', 'Text Field132', 'Text Field131', 'Text Field130', 'Text Field129', 'Text Field128', 'Text Field127']
+      ];
+
+      candidateSequences.forEach(function (fields) {
+        fields.forEach(function (fieldName, index) {
+          setPdfText(form, fieldName, digits[index] || '');
+        });
+      });
+
+      // Named fallbacks if template uses semantic field names.
+      setPdfTextByNamePattern(form, ['birth', 'month'], mm);
+      setPdfTextByNamePattern(form, ['birth', 'day'], dd);
+      setPdfTextByNamePattern(form, ['birth', 'year'], yyyy);
+      setPdfTextByNamePattern(form, ['dob', 'month'], mm);
+      setPdfTextByNamePattern(form, ['dob', 'day'], dd);
+      setPdfTextByNamePattern(form, ['dob', 'year'], yyyy);
+    }
+
     function formatMmDdYyyy(value) {
       if (!value) return '';
       const date = new Date(value);
@@ -1043,6 +1577,17 @@
       const dd = String(date.getDate()).padStart(2, '0');
       const yyyy = String(date.getFullYear());
       return mm + '/' + dd + '/' + yyyy;
+    }
+
+    function getDateParts(value) {
+      if (!value) return { mm: '', dd: '', yyyy: '' };
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return { mm: '', dd: '', yyyy: '' };
+      return {
+        mm: String(date.getMonth() + 1).padStart(2, '0'),
+        dd: String(date.getDate()).padStart(2, '0'),
+        yyyy: String(date.getFullYear())
+      };
     }
 
     async function ensurePdfLibLoaded() {
@@ -1089,6 +1634,22 @@
         }
       }
       throw new Error(lastError);
+    }
+
+    async function fetchSeniorRecordForPrint(recordId) {
+      const id = Number(recordId || 0);
+      if (!Number.isFinite(id) || id <= 0) {
+        throw new Error('Invalid Senior record ID');
+      }
+      const response = await fetch('/api/senior-record/' + encodeURIComponent(String(id)), {
+        cache: 'no-store',
+        credentials: 'same-origin'
+      });
+      const payload = await response.json().catch(function () { return null; });
+      if (!response.ok || !payload || payload.success !== true || !payload.data) {
+        throw new Error((payload && payload.message) ? payload.message : 'Failed to load Senior record for printing');
+      }
+      return payload.data;
     }
 
     async function buildSeniorApplicationPdf(senior) {
@@ -1142,10 +1703,11 @@
       setPdfText(form, 'MOTHER MIDDLE NAME', mother.middle_name || '');
 
       const dob = formatMmDdYyyy(info.date_of_birth || '');
+      const dobParts = getDateParts(info.date_of_birth || '');
       setPdfText(form, 'BIRTHDATE', dob);
-      setPdfText(form, 'Text Field129', dob);
-      setPdfText(form, 'Text Field128', dob);
-      setPdfText(form, 'Text Field127', dob);
+      setPdfText(form, 'DATE OF BIRTH', dob);
+      // Template-specific DOB cells (m m d d y y ... split boxes).
+      fillBirthDateSplitCells(form, dobParts);
 
       setPdfCheck(form, 'TRAVEL YES', (info.capability_to_travel || '') === 'Yes');
       setPdfCheck(form, 'TRAVEL NO', (info.capability_to_travel || '') === 'No');
@@ -2080,13 +2642,67 @@
       viewShowStep(0);
     }
 
+    const seniorViewFrameModal = document.getElementById('seniorViewFrameModal');
+    const seniorEditFrameModal = document.getElementById('seniorEditFrameModal');
+    const seniorViewFrame = document.getElementById('seniorViewFrame');
+    const seniorEditFrame = document.getElementById('seniorEditFrame');
+
+    function openSeniorFrameModal(modalElement, frameElement, src) {
+      if (!modalElement || !frameElement) return;
+      frameElement.src = src;
+      modalElement.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSeniorFrameModal(modalElement, frameElement) {
+      if (!modalElement || !frameElement) return;
+      modalElement.classList.remove('open');
+      frameElement.src = 'about:blank';
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('click', function (event) {
+      const closeButton = event.target.closest('[data-close-senior-frame]');
+      if (!closeButton) return;
+      const targetId = closeButton.getAttribute('data-close-senior-frame');
+      if (targetId === 'seniorViewFrameModal') {
+        closeSeniorFrameModal(seniorViewFrameModal, seniorViewFrame);
+      } else if (targetId === 'seniorEditFrameModal') {
+        closeSeniorFrameModal(seniorEditFrameModal, seniorEditFrame);
+      }
+    });
+
+    window.addEventListener('message', function (event) {
+      if (!event || event.origin !== window.location.origin) return;
+      const type = event.data && event.data.type;
+      if (type === 'senior-view-close') {
+        closeSeniorFrameModal(seniorViewFrameModal, seniorViewFrame);
+      } else if (type === 'senior-edit-cancel') {
+        closeSeniorFrameModal(seniorEditFrameModal, seniorEditFrame);
+      } else if (type === 'senior-edit-saved') {
+        closeSeniorFrameModal(seniorEditFrameModal, seniorEditFrame);
+        window.location.reload();
+      }
+    });
+
     // Global event handler for view/edit/archive buttons
     document.addEventListener('click', function (event) {
       const viewButton = event.target.closest('.view-btn');
       if (viewButton) {
         const senior = parseSeniorPayload(viewButton);
         if (senior) {
-          openSeniorViewModal(senior);
+          const seniorId = Number(senior.id || 0);
+          if (seniorId > 0) {
+            currentViewSeniorId = String(seniorId);
+            currentViewSeniorData = senior;
+            openSeniorFrameModal(
+              seniorViewFrameModal,
+              seniorViewFrame,
+              '/add_senior?edit=' + encodeURIComponent(String(seniorId)) + '&view=1&modal=1&nocache=' + Date.now()
+            );
+          } else {
+            openSeniorViewModal(senior);
+          }
         }
         return;
       }
@@ -2096,7 +2712,16 @@
         const senior = parseSeniorPayload(editButton);
         const rowResidentId = parseInt(editButton.getAttribute('data-senior-id') || '0', 10);
         if (senior) {
-          openSeniorEditModal(senior, rowResidentId);
+          const seniorId = Number((senior && senior.id) || rowResidentId || 0);
+          if (seniorId > 0) {
+            openSeniorFrameModal(
+              seniorEditFrameModal,
+              seniorEditFrame,
+              '/add_senior?edit=' + encodeURIComponent(String(seniorId)) + '&modal=1&nocache=' + Date.now()
+            );
+          } else {
+            openSeniorEditModal(senior, rowResidentId);
+          }
         }
         return;
       }
@@ -2162,7 +2787,9 @@
         return;
       }
       try {
-        const bytes = await buildSeniorApplicationPdf(currentViewSeniorData);
+        const fullRecord = await fetchSeniorRecordForPrint(currentViewSeniorId);
+        currentViewSeniorData = fullRecord;
+        const bytes = await buildSeniorApplicationPdf(fullRecord);
         const blob = new Blob([bytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
         window.open(url, '_blank');
@@ -2204,10 +2831,72 @@
       return true;
     }
 
+    function isLikelyDirtyText(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return false;
+      const lettersOnly = raw.replace(/[^A-Z]/gi, '');
+      if (lettersOnly.length < 12 || /\s/.test(raw)) return false;
+      const vowels = (lettersOnly.match(/[AEIOU]/gi) || []).length;
+      const vowelRatio = vowels / lettersOnly.length;
+      const hasLongConsonantRun = /[BCDFGHJKLMNPQRSTVWXYZ]{6,}/i.test(lettersOnly);
+      const hasRepeating = /(.)\1{4,}/i.test(lettersOnly);
+      return hasLongConsonantRun || hasRepeating || vowelRatio < 0.2;
+    }
+
+    function validateEditSeniorDirtyText() {
+      const checks = [
+        ['editFirstName', 'First Name'],
+        ['editMiddleName', 'Middle Name'],
+        ['editLastName', 'Last Name'],
+        ['editSpouseName', 'Spouse Name'],
+        ['editFatherFirstName', "Father's First Name"],
+        ['editFatherMiddleName', "Father's Middle Name"],
+        ['editFatherLastName', "Father's Last Name"],
+        ['editMotherFirstName', "Mother's First Name"],
+        ['editMotherMiddleName', "Mother's Middle Name"],
+        ['editMotherLastName', "Mother's Last Name"],
+        ['editPlaceOfBirth', 'Place of Birth'],
+        ['editServiceBusinessEmployment', 'Service / Business / Employment'],
+        ['editServiceBusinessEmploymentStep5', 'Service / Business / Employment']
+      ];
+
+      for (const item of checks) {
+        const el = document.getElementById(item[0]);
+        if (!el) continue;
+        if (isLikelyDirtyText(el.value)) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Input',
+            text: 'Invalid text detected in "' + item[1] + '". Please avoid random/dirty data.'
+          });
+          el.focus();
+          return false;
+        }
+      }
+
+      const contactNames = Array.from(document.querySelectorAll('.edit-contact-name'));
+      for (let i = 0; i < contactNames.length; i += 1) {
+        if (isLikelyDirtyText(contactNames[i].value)) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Input',
+            text: 'Invalid text detected in "Contact Name #' + (i + 1) + '". Please avoid random/dirty data.'
+          });
+          contactNames[i].focus();
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     function submitEditSeniorUpdate() {
       const form = document.getElementById('editSeniorForm');
       if (!form) return;
       if (!validateEditSeniorPayload()) {
+        return;
+      }
+      if (!validateEditSeniorDirtyText()) {
         return;
       }
 

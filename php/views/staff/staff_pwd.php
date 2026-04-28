@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title>Social Welfare System - PDAO Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
@@ -23,12 +23,14 @@
     * { box-sizing: border-box; }
     html, body { width: 100%; min-height: 100%; }
     .layout { display: flex; align-items: stretch; min-height: 100vh; width: 100%; }
-    .sidebar { flex: 0 0 260px; width: 260px; background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); }
+    .sidebar { flex: 0 0 260px; width: 260px; background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; margin-top: 16px; }
-    .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
+    .nav-link { display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
     .nav-link.active { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22); }
     .nav-link:hover { background: #eaf3ff; }
+    .sidebar .logout-link { margin-top: auto; background: #fee2e2; color: #991b1b; font-weight: 700; }
+    .sidebar .logout-link:hover { background: #ef4444; color: #fff; }
     .main { flex: 1 1 auto; min-width: 0; padding: 20px; }
     .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; padding: 14px 16px; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--panel-border); border-radius: 14px; box-shadow: 0 12px 24px rgba(59, 130, 246, 0.08); backdrop-filter: blur(2px); }
     .top .welcome { color: #6b7280; font-size: 14px; }
@@ -244,13 +246,13 @@
       <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">PDAO Department</span></div>
       <div class="nav-title">Navigation</div>
       <a class="nav-link active" href="<?= htmlspecialchars(app_url('/pdao-dashboard'), ENT_QUOTES, 'UTF-8') ?>">Dashboard</a>
-      <a class="nav-link" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
+      <a class="nav-link logout-link" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
     </aside>
 
     <main class="main">
       <div class="top">
         <div class="top-left">
-          <h1 class="h4 mb-0">PDAO Dashboard</h1>
+          <h1 class="h4 mb-0">Person With Disability - Dashboard</h1>
         </div>
         <div class="top-right">
           <div class="notif-container" style="display:flex;align-items:center;margin-right:12px;">
@@ -574,6 +576,83 @@
       try {
         const field = form.getTextField(fieldName);
         field.setText(String(value || ''));
+        field.setFontSize(10);
+      } catch (error) {}
+    }
+
+    function setTextFieldByNamePattern(form, patterns, value) {
+      try {
+        const normalizedPatterns = Array.isArray(patterns) ? patterns : [patterns];
+        const fields = form.getFields();
+        fields.forEach(function (field) {
+          if (!field || typeof field.getName !== 'function') return;
+          const fieldName = String(field.getName() || '');
+          const normalizedName = fieldName.toLowerCase().replace(/[^a-z]/g, '');
+          const matched = normalizedPatterns.some(function (pattern) {
+            return normalizedName.indexOf(String(pattern).toLowerCase()) !== -1;
+          });
+          if (matched) {
+            setTextField(form, fieldName, value);
+          }
+        });
+      } catch (error) {}
+    }
+
+    function setLocationFieldsByGeometry(form) {
+      try {
+        const textFields = [];
+        const fields = form.getFields();
+        fields.forEach(function (field) {
+          if (!field || typeof field.getName !== 'function' || typeof field.getText !== 'function') return;
+          const name = String(field.getName() || '');
+          const normalized = name.toLowerCase().replace(/[^a-z]/g, '');
+          if (normalized.includes('municipality') || normalized.includes('province') || normalized.includes('region')) {
+            return;
+          }
+          let rect = null;
+          try {
+            const widgets = field.acroField && typeof field.acroField.getWidgets === 'function'
+              ? field.acroField.getWidgets()
+              : [];
+            if (widgets && widgets[0] && typeof widgets[0].getRectangle === 'function') {
+              rect = widgets[0].getRectangle();
+            }
+          } catch (error) {}
+          if (!rect || typeof rect.x !== 'number' || typeof rect.y !== 'number') return;
+          const currentValue = String(field.getText() || '').trim();
+          textFields.push({ name: name, x: rect.x, y: rect.y, w: Number(rect.width || 0), value: currentValue });
+        });
+
+        const emptyCandidates = textFields.filter(function (f) { return f.value === ''; });
+        if (emptyCandidates.length < 3) return;
+
+        const rows = [];
+        emptyCandidates
+          .sort(function (a, b) { return (b.y - a.y) || (a.x - b.x); })
+          .forEach(function (f) {
+            const row = rows.find(function (r) { return Math.abs(r.y - f.y) <= 2.5; });
+            if (row) {
+              row.items.push(f);
+            } else {
+              rows.push({ y: f.y, items: [f] });
+            }
+          });
+
+        const row = rows.find(function (r) {
+          if (r.items.length < 3) return false;
+          const items = r.items.slice().sort(function (a, b) { return a.x - b.x; });
+          const widths = items.slice(0, 3).map(function (i) { return i.w; });
+          const minX = items[0].x;
+          const maxX = items[Math.min(items.length - 1, 2)].x;
+          const avgW = widths.reduce(function (acc, n) { return acc + n; }, 0) / widths.length;
+          return minX <= 25 && maxX >= 120 && avgW >= 40 && avgW <= 90;
+        });
+
+        if (!row) return;
+        const sorted = row.items.slice().sort(function (a, b) { return a.x - b.x; });
+        setTextField(form, sorted[0].name, 'ENRIQUE B. MAGALONA');
+        setTextField(form, sorted[1].name, 'NEGROS OCCIDENTAL');
+        setTextField(form, sorted[2].name, 'NIR');
       } catch (error) {}
     }
 
@@ -583,6 +662,43 @@
         if (checked) field.check();
         else field.uncheck();
       } catch (error) {}
+    }
+
+    function setRadioField(form, fieldName, option) {
+      try {
+        const field = form.getRadioGroup(fieldName);
+        if (option) {
+          field.select(option);
+        } else {
+          field.clear();
+        }
+      } catch (error) {}
+    }
+
+    function normalizeToken(value) {
+      return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function selectRadioOptionByPattern(form, radioFieldNames, optionPatterns) {
+      const patterns = (Array.isArray(optionPatterns) ? optionPatterns : [optionPatterns]).map(normalizeToken).filter(Boolean);
+      const names = Array.isArray(radioFieldNames) ? radioFieldNames : [radioFieldNames];
+      for (let i = 0; i < names.length; i += 1) {
+        const groupName = names[i];
+        try {
+          const group = form.getRadioGroup(groupName);
+          if (!group || typeof group.getOptions !== 'function') continue;
+          const options = group.getOptions();
+          const match = options.find(function (opt) {
+            const token = normalizeToken(opt);
+            return patterns.some(function (p) { return token.includes(p) || p.includes(token); });
+          });
+          if (match) {
+            group.select(match);
+            return true;
+          }
+        } catch (error) {}
+      }
+      return false;
     }
 
     async function ensurePdfLibLoaded() {
@@ -635,6 +751,13 @@
       if (!pwd || !pwd.id) {
         throw new Error('Missing PWD record.');
       }
+      function pick() {
+        for (let i = 0; i < arguments.length; i += 1) {
+          const value = arguments[i];
+          if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+        }
+        return '';
+      }
       await ensurePdfLibLoaded();
       const templateBytes = await fetchTemplateBytes([
         '/pdf-template/pwd',
@@ -647,23 +770,27 @@
       const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
       const form = pdfDoc.getForm();
 
-      setTextField(form, 'LAST NAME', pwd.last_name || '');
-      setTextField(form, 'FIRST NAME', pwd.first_name || '');
-      setTextField(form, 'MIDDLE NAME', pwd.middle_name || '');
-      setTextField(form, 'Barangay', [pwd.barangay || '', pwd.purok || ''].filter(Boolean).join(' / '));
-      setTextField(form, 'DATE OF BIRTH', asDateMmDdYyyy(pwd.birthday || pwd.date_of_birth || ''));
-      setTextField(form, 'Employment Category', pwd.employment_type || '');
-      setTextField(form, 'SSS NO', pwd.sss_id || '');
-      setTextField(form, 'GSIS NO', pwd.gsis_sss_no || '');
-      setTextField(form, 'PSN NO', pwd.psn_no || '');
-      setTextField(form, 'PhilHealth NO', pwd.philhealth_no || '');
+      setTextField(form, 'LAST NAME', pick(pwd.last_name, pwd.lastName));
+      setTextField(form, 'FIRST NAME', pick(pwd.first_name, pwd.firstName));
+      setTextField(form, 'MIDDLE NAME', pick(pwd.middle_name, pwd.middleName));
+      setTextField(form, 'Barangay', [pick(pwd.barangay), pick(pwd.purok)].filter(Boolean).join(' / '));
+      setTextFieldByNamePattern(form, ['municipality'], 'ENRIQUE B. MAGALONA');
+      setTextFieldByNamePattern(form, ['province'], 'NEGROS OCCIDENTAL');
+      setTextFieldByNamePattern(form, ['region'], 'NIR');
+      setLocationFieldsByGeometry(form);
+      setTextField(form, 'DATE OF BIRTH', asDateMmDdYyyy(pick(pwd.birthday, pwd.date_of_birth)));
+      setTextField(form, 'Employment Category', pick(pwd.employment_type, pwd.employmentType));
+      setTextField(form, 'SSS NO', pick(pwd.sss_id, pwd.sssId));
+      setTextField(form, 'GSIS NO', pick(pwd.gsis_sss_no, pwd.gsisSssNo));
+      setTextField(form, 'PSN NO', pick(pwd.psn_no, pwd.psnNo));
+      setTextField(form, 'PhilHealth NO', pick(pwd.philhealth_no, pwd.philhealthNo));
 
-      setTextField(form, 'LAST NAMEFATHERS NAME', pwd.father_last_name || '');
-      setTextField(form, 'FIRST NAMEFATHERS NAME', pwd.father_first_name || '');
-      setTextField(form, 'MIDDLE NAMEFATHERS NAME', pwd.father_middle_name || '');
-      setTextField(form, 'LAST NAMEMOTHERS NAME', pwd.mother_last_name || '');
-      setTextField(form, 'FIRST NAMEMOTHERS NAME', pwd.mother_first_name || '');
-      setTextField(form, 'MIDDLE NAMEMOTHERS NAME', pwd.mother_middle_name || '');
+      setTextField(form, 'LAST NAMEFATHERS NAME', pick(pwd.father_last_name, pwd.fatherLastName));
+      setTextField(form, 'FIRST NAMEFATHERS NAME', pick(pwd.father_first_name, pwd.fatherFirstName));
+      setTextField(form, 'MIDDLE NAMEFATHERS NAME', pick(pwd.father_middle_name, pwd.fatherMiddleName));
+      setTextField(form, 'LAST NAMEMOTHERS NAME', pick(pwd.mother_last_name, pwd.motherLastName));
+      setTextField(form, 'FIRST NAMEMOTHERS NAME', pick(pwd.mother_first_name, pwd.motherFirstName));
+      setTextField(form, 'MIDDLE NAMEMOTHERS NAME', pick(pwd.mother_middle_name, pwd.motherMiddleName));
 
       const contacts = Array.isArray(pwd.contacts) ? pwd.contacts : [];
       const primary = contacts.find(function (c) { return c && c.phone; }) || null;
@@ -672,12 +799,64 @@
       setTextField(form, 'Landline No', phone);
       setTextField(form, 'Email Address', primary && primary.email ? primary.email : '');
 
-      setCheckField(form, 'Male', (pwd.gender || '') === 'Male');
-      setCheckField(form, 'Female', (pwd.gender || '') === 'Female');
+      setCheckField(form, 'Male', pick(pwd.gender) === 'Male');
+      setCheckField(form, 'Female', pick(pwd.gender) === 'Female');
+      const civilStatus = pick(pwd.civil_status, pwd.marital_status);
+      const civilStatusMap = {
+        Single: 'Single',
+        'Single but Head of the Family': 'Single',
+        Separated: 'Separated',
+        'Cohabitation (live-in)': 'Cohabitation livein',
+        Married: 'Married',
+        'Widow/er': 'Widower',
+        Widowed: 'Widower'
+      };
+      setRadioField(form, '7 CIVIL STATUS', civilStatusMap[civilStatus] || '');
       setCheckField(form, 'APPLICANT', true);
+
+      const educational = normalizeToken(pick(pwd.education_level));
+      const educationTarget = educational.includes('notattended') ? 'None'
+        : educational.includes('elementary') ? 'Elementary'
+        : educational.includes('college') || educational.includes('postgraduate') || educational.includes('vocational') || educational.includes('highschool')
+          ? 'Junior High School'
+          : 'Junior High School';
+      setRadioField(form, '12 EDUCATIONAL ATTAINMENT', educationTarget);
+      selectRadioOptionByPattern(form, ['12 EDUCATIONAL ATTAINMENT', 'Select Educational Level', 'Educational Attainment'], [educationTarget, educational]);
+      setCheckField(form, 'Senior High School', educational.includes('highschool'));
+      setCheckField(form, 'College', educational.includes('college') || educational.includes('postgraduate'));
+      setCheckField(form, 'Vocational', educational.includes('vocational'));
+      setCheckField(form, 'Post Graduate', educational.includes('postgraduate'));
+
+      const employmentStatusRaw = pick(pwd.employment_status);
+      const employmentStatus = normalizeToken(employmentStatusRaw);
+      const employmentStatusOption = employmentStatus.includes('self') ? 'Selfemployed'
+        : employmentStatus.includes('unemployed') ? 'Unemployed'
+        : 'Employed';
+      setRadioField(form, '13 STATUS OF EMPLOYMENT', employmentStatusOption);
+      selectRadioOptionByPattern(form, ['13 STATUS OF EMPLOYMENT', 'Status of Employment'], [employmentStatusOption, employmentStatusRaw]);
+
+      const employmentCategoryRaw = pick(pwd.employment_category);
+      setRadioField(form, '13 a CATEGORY OF EMPLOYMENT', employmentCategoryRaw);
+      selectRadioOptionByPattern(form, ['13 a CATEGORY OF EMPLOYMENT', 'Category of Employment'], [employmentCategoryRaw]);
+
+      const employmentTypeRaw = pick(pwd.employment_type, pwd.employmentType);
+      selectRadioOptionByPattern(form, ['Type of Employment', 'Employment Type'], [employmentTypeRaw]);
+      setCheckField(form, employmentTypeRaw, true);
 
       try { form.flatten(); } catch (error) {}
       return pdfDoc.save();
+    }
+
+    async function fetchPwdRecordForPrint(id) {
+      const response = await fetch(appPath('/api/pwd-record/' + encodeURIComponent(String(id))), {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' }
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload || payload.success === false || !payload.data) {
+        throw new Error((payload && (payload.message || payload.error)) ? (payload.message || payload.error) : 'Unable to load PWD record for printing.');
+      }
+      return payload.data;
     }
 
     function updateRowFromPayload(row, payloadData) {
@@ -1083,9 +1262,13 @@
         return;
       }
       try {
-        const bytes = await buildPwdApplicationPdf(currentViewPwdData || { id: currentViewPwdId });
-        const blob = new Blob([bytes], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
+        const fullRecord = await fetchPwdRecordForPrint(currentViewPwdId);
+        const bytes = await buildPwdApplicationPdf(fullRecord);
+        const rawLastName = String(fullRecord.last_name || fullRecord.lastName || 'APPLICANT').trim();
+        const safeLastName = rawLastName.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'APPLICANT';
+        const fileName = safeLastName.toUpperCase() + '.pdf';
+        const file = new File([bytes], fileName, { type: 'application/pdf' });
+        const url = URL.createObjectURL(file);
         window.open(url, '_blank');
         setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
       } catch (error) {
@@ -1104,7 +1287,7 @@
           return;
         }
         if (editPwdFrame) {
-          editPwdFrame.src = appPath('/add_pwd') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1';
+          editPwdFrame.src = appPath('/add_pwd') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1&nocache=' + String(Date.now());
         }
         openModal('editModal');
       });

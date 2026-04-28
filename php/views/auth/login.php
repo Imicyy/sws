@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title>Social Welfare System - Log In</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -173,12 +173,6 @@
       box-shadow: 0 7px 16px rgba(226, 177, 0, 0.35) !important;
     }
 
-    body .main-container .login-cta a {
-      color: #6b6b6b !important;
-      text-decoration: none !important;
-      font-size: 0.9rem !important;
-    }
-
     body .main-container .login-hint {
       display: none !important;
     }
@@ -229,9 +223,6 @@
           </div>
           <button type="submit" class="btn btn-login btn-block">Sign In</button>
         </form>
-        <div class="mt-3 text-center login-cta">
-          <a href="/register">Create account</a>
-        </div>
       </div>
     </div>
   </div>
@@ -255,6 +246,49 @@
         toggleIcon.classList.toggle('fa-eye-slash', isHidden);
         toggleBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
       });
+    })();
+
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const verify = params.get('verify');
+      if (!verify || typeof Swal === 'undefined') return;
+
+      if (verify === 'success') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Email verified',
+          text: 'Your account is verified. You can now sign in.',
+          confirmButtonColor: '#2962ff'
+        });
+      } else if (verify === 'already') {
+        Swal.fire({
+          icon: 'info',
+          title: 'Already verified',
+          text: 'Your email is already verified. Please sign in.',
+          confirmButtonColor: '#2962ff'
+        });
+      } else if (verify === 'expired') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Verification expired',
+          text: 'The verification link has expired. Please contact the administrator.',
+          confirmButtonColor: '#2962ff'
+        });
+      } else if (verify === 'invalid') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid verification link',
+          text: 'The verification link is invalid.',
+          confirmButtonColor: '#2962ff'
+        });
+      } else if (verify === 'error') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Verification failed',
+          text: 'Unable to verify this email right now. Please try again later.',
+          confirmButtonColor: '#2962ff'
+        });
+      }
     })();
   </script>
 </body>

@@ -29,6 +29,12 @@ $router->add('GET', '/register', static function () use ($controller) {
 $router->add('POST', '/create-user', static function () use ($controller) {
     $controller->createUser();
 });
+$router->add('GET', '/verify-email', static function () use ($controller) {
+    $controller->verifyEmail();
+});
+$router->add('POST', '/verify-email-code', static function () use ($controller) {
+    $controller->verifyEmailCode();
+});
 $router->add('POST', '/login', static function () use ($controller) {
     $controller->login();
 });
@@ -187,6 +193,14 @@ $router->add('GET', '/get-pdao-analytics', static function () use ($controller) 
 }, [$requireAuth]);
 $router->add('GET', '/api/pwds', static function () use ($controller) {
     $controller->getAllPwds();
+}, [$requireAuth]);
+$router->add('GET', '/api/pwd-record/{id}', static function (array $params) use ($controller) {
+    $_GET['id'] = (int) ($params['id'] ?? 0);
+    $controller->getPwdRecordById();
+}, [$requireAuth]);
+$router->add('GET', '/api/senior-record/{id}', static function (array $params) use ($controller) {
+    $_GET['id'] = (int) ($params['id'] ?? 0);
+    $controller->getSeniorRecordById();
 }, [$requireAuth]);
 $router->add('GET', '/api/senior-citizens-for-report', static function () use ($controller) {
     $controller->getSeniorCitizensForReport();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title><?= htmlspecialchars((string)($title ?? 'Superadmin Users'), ENT_QUOTES, 'UTF-8') ?></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #f4f7fb; display: flex; }
+    body { background: linear-gradient(135deg, #fffde8 0%, #eef4ff 52%, #fff9d9 100%); display: flex; }
     
     /* Sidebar Styles */
     .sidebar { 
@@ -95,16 +95,46 @@
     }
     
     .page-wrap { max-width: 100%; }
-    .card-shell { background: #fff; border-radius: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.08); padding: 20px; }
-    .table thead th { border-top: 0; background: #f8fafc; }
+    .card-shell { background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border: 1px solid #dbe5f3; border-radius: 12px; box-shadow: 0 12px 26px rgba(37, 99, 235, 0.12); padding: 20px; }
+    .table thead th { border-top: 0; background: linear-gradient(135deg, #eff6ff, #fef9c3); color: #1e3a8a; }
     #user-table thead th,
     #user-table tbody td { text-align: center; vertical-align: middle; }
     #user-table tbody td:last-child { white-space: nowrap; }
     .card-shell h3 { text-align: center; width: 100%; }
     .modal { display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.45); }
-    .modal-content { background: #fff; margin: 6% auto; padding: 20px; border-radius: 12px; width: 94%; max-width: 620px; }
+    .modal-content { background: #fff; margin: 6% auto; padding: 20px; border-radius: 12px; width: 94%; max-width: 620px; border: 1px solid #dbe5f3; box-shadow: 0 12px 24px rgba(37,99,235,0.14); }
     .close-btn { float: right; cursor: pointer; font-size: 22px; }
     .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+    #paginationControls { display: flex; gap: 6px; align-items: center; }
+    #paginationControls .btn-outline-secondary {
+      padding: 8px 14px;
+      border: 1px solid #3b82f6;
+      background: #3b82f6;
+      color: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      line-height: 1.1;
+      min-width: 34px;
+    }
+    #paginationControls .btn-outline-secondary:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+    #paginationControls .btn-outline-secondary.active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+    }
+    #paginationControls .btn-outline-secondary:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      background: #93c5fd;
+      border-color: #93c5fd;
+      color: #eff6ff;
+    }
   </style>
 </head>
 <body>
@@ -153,10 +183,8 @@
           </select>
         </div>
         <div class="col-md-2">
-          <select id="pageSize" class="form-control form-control-sm">
-            <option value="5">5 / page</option>
+          <select id="pageSize" class="form-control form-control-sm" disabled>
             <option value="10" selected>10 / page</option>
-            <option value="20">20 / page</option>
           </select>
         </div>
       </div>
@@ -295,7 +323,27 @@
       function renderPagination(totalPages) {
         paginationControls.innerHTML = '';
         if (totalPages <= 1) return;
-        for (let i = 1; i <= totalPages; i++) {
+        const maxVisiblePages = 10;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = startPage + maxVisiblePages - 1;
+        if (endPage > totalPages) {
+          endPage = totalPages;
+          startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        const prevBtn = document.createElement('button');
+        prevBtn.type = 'button';
+        prevBtn.className = 'btn btn-outline-secondary';
+        prevBtn.textContent = 'Previous';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', function () {
+          if (currentPage <= 1) return;
+          currentPage -= 1;
+          applyTable();
+        });
+        paginationControls.appendChild(prevBtn);
+
+        for (let i = startPage; i <= endPage; i++) {
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'btn btn-outline-secondary' + (i === currentPage ? ' active' : '');
@@ -306,12 +354,24 @@
           });
           paginationControls.appendChild(btn);
         }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.className = 'btn btn-outline-secondary';
+        nextBtn.textContent = 'Next';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', function () {
+          if (currentPage >= totalPages) return;
+          currentPage += 1;
+          applyTable();
+        });
+        paginationControls.appendChild(nextBtn);
       }
 
       function applyTable() {
         rows.forEach((row) => { row.style.display = 'none'; });
         const filtered = getFilteredRows();
-        const pageSize = parseInt(pageSizeSelect.value, 10) || 10;
+        const pageSize = 10;
         const total = filtered.length;
         const totalPages = Math.max(1, Math.ceil(total / pageSize));
         if (currentPage > totalPages) currentPage = 1;

@@ -24,7 +24,7 @@ function setText(form, fieldName, value = '') {
   try {
     const field = form.getTextField(fieldName);
     field.setText(String(value || ''));
-    field.setFontSize(8);
+    field.setFontSize(10);
   } catch (_) {}
 }
 
@@ -122,6 +122,12 @@ function fillPwd(form, pwdRecord) {
   setText(form, 'MIDDLE NAME', pick(pwdRecord.middle_name, pwdRecord.middleName, 'N/A'));
   setText(form, 'SUFFIX', '');
   setText(form, 'Barangay', [pick(pwdRecord.barangay), pick(pwdRecord.purok)].filter(Boolean).join(' / '));
+  setText(form, 'Municipality', 'ENRIQUE B. MAGALONA');
+  setText(form, 'Municipality*', 'ENRIQUE B. MAGALONA');
+  setText(form, 'Province', 'NEGROS OCCIDENTAL');
+  setText(form, 'Province*', 'NEGROS OCCIDENTAL');
+  setText(form, 'Region', 'NIR');
+  setText(form, 'Region*', 'NIR');
   setText(form, 'DATE OF BIRTH', formatDate(pick(pwdRecord.birthday, pwdRecord.date_of_birth)));
 
   const gender = pick(pwdRecord.gender);

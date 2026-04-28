@@ -3,13 +3,16 @@ $editSenior = is_array($editSenior ?? null) ? $editSenior : null;
 $isEditMode = !empty($isEditMode);
 $isModal = isset($_GET['modal']) && $_GET['modal'] === '1';
 $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
+$restrictSeniorBarangay = !empty($restrictSeniorBarangay ?? false);
+$barangayKeys = array_keys(is_array($barangays ?? null) ? $barangays : []);
+$soloBarangay = $restrictSeniorBarangay && count($barangayKeys) === 1 ? (string) $barangayKeys[0] : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title>Senior Citizen FORM</title>
   <link rel="stylesheet" type="text/css" href="/files/assets/css/fill.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
@@ -105,6 +108,13 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       color: #ffffff;
       text-decoration: none;
       transform: translateY(-1px);
+    }
+
+    body.modal-mode .navigation {
+      justify-content: flex-end;
+    }
+    body.modal-mode.view-mode .navigation {
+      justify-content: flex-end;
     }
 
     .form-panel {
@@ -234,6 +244,35 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
     }
 
     .form-panel .form-row:last-child {
+      margin-bottom: 0;
+    }
+    .section-inline-title {
+      margin: 6px 0 10px;
+      color: #1d4ed8;
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .child-actions-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+    .contact-actions-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+    body.modal-mode:not(.view-mode) #addContact {
+      border-radius: 4px;
+      min-width: 210px;
+      width: auto;
+      padding: 10px 14px;
+    }
+    .child-entry {
+      margin-bottom: 10px;
+    }
+    .child-entry:last-child {
       margin-bottom: 0;
     }
 
@@ -526,9 +565,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
   <div class="page-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <?php if ($isModal): ?>
-          <a class="topbar-btn" href="#" id="closeModalBtn">Close</a>
-        <?php else: ?>
+        <?php if (!$isModal): ?>
           <a class="topbar-btn" href="/osca-dashboard">← Back to Dashboard</a>
         <?php endif; ?>
         <div>
@@ -553,17 +590,23 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       <fieldset id="personalInfo" class="active">
         <legend>Personal Information</legend>
         <div class="form-row">
-          <div class="form-group"><label for="first_name">First Name</label><input type="text" id="first_name" name="first_name" required placeholder="First Name"></div>
-          <div class="form-group"><label for="middle_name">Middle Name</label><input type="text" id="middle_name" name="middle_name" required placeholder="Middle Name"></div>
-          <div class="form-group"><label for="last_name">Last Name</label><input type="text" id="last_name" name="last_name" required placeholder="Last Name"></div>
+          <div class="form-group"><label for="first_name">First Name</label><input type="text" id="first_name" name="first_name" required placeholder="First Name" maxlength="50" pattern="[A-Za-z ]+" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="middle_name">Middle Name</label><input type="text" id="middle_name" name="middle_name" required placeholder="Middle Name" maxlength="50" pattern="[A-Za-z ]+" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="last_name">Last Name</label><input type="text" id="last_name" name="last_name" required placeholder="Last Name" maxlength="50" pattern="[A-Za-z ]+" title="Only letters and spaces are allowed (max 50 characters)."></div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="barangay">Barangay</label>
             <select id="barangay" name="barangay" required onchange="updatePurokOptions()">
-              <option value="" disabled selected>Select Barangay</option>
+              <?php if (!$restrictSeniorBarangay): ?>
+                <option value="" disabled selected>Select Barangay</option>
+              <?php endif; ?>
               <?php foreach (($barangays ?? []) as $barangayName => $purokList): ?>
-                <option value="<?= htmlspecialchars((string) $barangayName, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars((string) $barangayName, ENT_QUOTES, 'UTF-8') ?></option>
+                <?php
+                  $bn = (string) $barangayName;
+                  $preselect = ($restrictSeniorBarangay && $soloBarangay !== '' && $bn === $soloBarangay);
+                ?>
+                <option value="<?= htmlspecialchars($bn, ENT_QUOTES, 'UTF-8') ?>"<?= $preselect ? ' selected' : '' ?>><?= htmlspecialchars($bn, ENT_QUOTES, 'UTF-8') ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -583,7 +626,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
         <div class="form-row"><div class="form-group"><label for="place_of_birth">Place of Birth</label><input type="text" id="place_of_birth" name="place_of_birth" required placeholder="Place of Birth"></div></div>
         <div class="form-row">
           <div class="form-group"><label for="civil_status">Civil Status</label><select id="civil_status" name="civil_status" required onchange="toggleSpouseInput()"><option value="Single but Head of the Family">Single but Head of the Family</option><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option></select></div>
-          <div class="form-group" id="spouseGroup" style="display:none;"><label for="spouse_name">Name of Spouse</label><input type="text" id="spouse_name" name="spouse_name" placeholder="Name of Spouse"></div>
+          <div class="form-group" id="spouseGroup" style="display:none;"><label for="spouse_name">Name of Spouse</label><input type="text" id="spouse_name" name="spouse_name" placeholder="Name of Spouse" maxlength="50" pattern="[A-Za-z ]+" title="Only letters and spaces are allowed (max 50 characters)."></div>
         </div>
       </fieldset>
 
@@ -605,36 +648,36 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
             </div>
           </div>
         </div>
-        <div class="form-row"><div class="form-group"><button type="button" id="addContact" class="add-child-btn">+ Add Another Contact</button></div></div>
+        <div class="contact-actions-row"><button type="button" id="addContact" class="add-child-btn">+ Add Another Contact</button></div>
       </fieldset>
 
       <fieldset id="familyComposition">
         <legend>Family Composition</legend>
         <div class="form-row">
-          <div class="form-group"><label for="fatherLastName">Father's Last Name</label><input type="text" id="fatherLastName" name="fatherLastName" placeholder="Last Name"></div>
-          <div class="form-group"><label for="fatherFirstName">Father's First Name</label><input type="text" id="fatherFirstName" name="fatherFirstName" placeholder="First Name"></div>
-          <div class="form-group"><label for="fatherMiddleName">Father's Middle Name</label><input type="text" id="fatherMiddleName" name="fatherMiddleName" placeholder="Middle Name"></div>
+          <div class="form-group"><label for="fatherLastName">Father's Last Name</label><input type="text" id="fatherLastName" name="fatherLastName" placeholder="Last Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="fatherFirstName">Father's First Name</label><input type="text" id="fatherFirstName" name="fatherFirstName" placeholder="First Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="fatherMiddleName">Father's Middle Name</label><input type="text" id="fatherMiddleName" name="fatherMiddleName" placeholder="Middle Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
           <div class="form-group"><label for="fatherExtension">Extension (Jr/Sr)</label><input type="text" id="fatherExtension" name="fatherExtension" placeholder="Extension (Jr, Sr)"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label for="motherLastName">Mother's Last Name</label><input type="text" id="motherLastName" name="motherLastName" placeholder="Last Name"></div>
-          <div class="form-group"><label for="motherFirstName">Mother's First Name</label><input type="text" id="motherFirstName" name="motherFirstName" placeholder="First Name"></div>
-          <div class="form-group"><label for="motherMiddleName">Mother's Middle Name</label><input type="text" id="motherMiddleName" name="motherMiddleName" placeholder="Middle Name"></div>
+          <div class="form-group"><label for="motherLastName">Mother's Last Name</label><input type="text" id="motherLastName" name="motherLastName" placeholder="Last Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="motherFirstName">Mother's First Name</label><input type="text" id="motherFirstName" name="motherFirstName" placeholder="First Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="motherMiddleName">Mother's Middle Name</label><input type="text" id="motherMiddleName" name="motherMiddleName" placeholder="Middle Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
         </div>
-        <div class="form-row">
-          <legend>Child(ren) Information</legend>
-          <div id="childrenContainer">
-            <div class="child-entry">
-              <div class="form-row">
-                <div class="form-group"><label>Full Name</label><input type="text" name="childFullName[]" placeholder="Full Name"></div>
-                <div class="form-group"><label>Occupation</label><input type="text" name="childOccupation[]" placeholder="Occupation"></div>
-                <div class="form-group"><label>Age</label><input type="number" name="childAge[]" placeholder="Age"></div>
-                <div class="form-group"><label>Working/Not Working</label><select class="child-working-status" name="childWorkingStatus[]"><option value="not_working">Select</option><option value="not_working">Not Working</option><option value="working">Working</option></select></div>
-                <div class="form-group income-field" style="display:none;"><label>Income</label><input type="number" name="childIncome[]" placeholder="Income"></div>
-                <button type="button" class="delete-child" style="display:none;">Delete</button>
-              </div>
+        <h3 class="section-inline-title">Child(ren) Information</h3>
+        <div id="childrenContainer">
+          <div class="child-entry">
+            <div class="form-row">
+              <div class="form-group"><label>Full Name</label><input type="text" name="childFullName[]" placeholder="Full Name"></div>
+              <div class="form-group"><label>Occupation</label><input type="text" name="childOccupation[]" placeholder="Occupation"></div>
+              <div class="form-group"><label>Age</label><input type="number" name="childAge[]" placeholder="Age"></div>
+              <div class="form-group"><label>Working/Not Working</label><select class="child-working-status" name="childWorkingStatus[]"><option value="not_working">Select</option><option value="not_working">Not Working</option><option value="working">Working</option></select></div>
+              <div class="form-group income-field" style="display:none;"><label>Income</label><input type="number" name="childIncome[]" placeholder="Income"></div>
+              <button type="button" class="delete-child" style="display:none;">Delete</button>
             </div>
           </div>
+        </div>
+        <div class="child-actions-row">
           <button type="button" id="addChild" class="add-child-btn">➕ Add Another Child</button>
         </div>
       </fieldset>
@@ -788,6 +831,52 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       }
     }
 
+    function toUppercaseName(value) {
+      const cleaned = String(value || '')
+        .replace(/[^A-Za-z\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trimStart()
+        .slice(0, 50);
+      return cleaned.toUpperCase();
+    }
+
+    function attachNameValidation() {
+      const nameFieldIds = [
+        'first_name', 'middle_name', 'last_name',
+        'spouse_name',
+        'fatherLastName', 'fatherFirstName', 'fatherMiddleName',
+        'motherLastName', 'motherFirstName', 'motherMiddleName'
+      ];
+      nameFieldIds.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute('maxlength', '50');
+        el.addEventListener('input', function () {
+          const start = el.selectionStart || 0;
+          el.value = toUppercaseName(el.value);
+          const endPos = Math.min(start, el.value.length);
+          try { el.setSelectionRange(endPos, endPos); } catch (_) {}
+        });
+        el.addEventListener('blur', function () {
+          el.value = toUppercaseName(el.value).trim();
+        });
+      });
+    }
+
+    function attachUppercaseValidation() {
+      document.querySelectorAll('input[type="text"], input[type="email"], textarea').forEach(function (el) {
+        el.addEventListener('input', function () {
+          const start = el.selectionStart || 0;
+          const end = el.selectionEnd || 0;
+          el.value = String(el.value || '').toUpperCase();
+          try { el.setSelectionRange(start, end); } catch (_) {}
+        });
+        el.addEventListener('blur', function () {
+          el.value = String(el.value || '').toUpperCase().trim();
+        });
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
       const closeModalBtn = document.getElementById('closeModalBtn');
       if (closeModalBtn) {
@@ -801,10 +890,13 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
         });
       }
 
-      if (document.getElementById('barangay').value) {
+      const barangayEl = document.getElementById('barangay');
+      if (barangayEl && barangayEl.value) {
         updatePurokOptions();
       }
       toggleSpouseInput();
+      attachNameValidation();
+      attachUppercaseValidation();
     });
   </script>
 
@@ -863,9 +955,92 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
         return validAge;
       }
 
+      function isLikelyDirtyText(value) {
+        const raw = String(value || '').trim();
+        if (!raw) return false;
+        const lettersOnly = raw.replace(/[^A-Z]/gi, '');
+        if (lettersOnly.length < 12 || /\s/.test(raw)) return false;
+        const vowels = (lettersOnly.match(/[AEIOU]/gi) || []).length;
+        const vowelRatio = vowels / lettersOnly.length;
+        const hasLongConsonantRun = /[BCDFGHJKLMNPQRSTVWXYZ]{6,}/i.test(lettersOnly);
+        const hasRepeating = /(.)\1{4,}/i.test(lettersOnly);
+        return hasLongConsonantRun || hasRepeating || vowelRatio < 0.2;
+      }
+
+      function showDirtyDataWarning(label) {
+        const message = 'Invalid text detected in "' + label + '". Please avoid random/dirty data.';
+        if (typeof window.Swal !== 'undefined' && typeof window.Swal.fire === 'function') {
+          window.Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Input',
+            text: message,
+            confirmButtonColor: '#0f766e'
+          });
+          return;
+        }
+        alert(message);
+      }
+
+      function validateDirtyTextFields() {
+        const checks = [
+          ['#first_name', 'First Name'],
+          ['#middle_name', 'Middle Name'],
+          ['#last_name', 'Last Name'],
+          ['#spouse_name', 'Spouse Name'],
+          ['#fatherFirstName', "Father's First Name"],
+          ['#fatherMiddleName', "Father's Middle Name"],
+          ['#fatherLastName', "Father's Last Name"],
+          ['#motherFirstName', "Mother's First Name"],
+          ['#motherMiddleName', "Mother's Middle Name"],
+          ['#motherLastName', "Mother's Last Name"],
+          ['#place_of_birth', 'Place of Birth'],
+          ['#religion', 'Religion'],
+          ['#service', 'Service / Employment']
+        ];
+        for (const pair of checks) {
+          const el = document.querySelector(pair[0]);
+          if (!el) continue;
+          if (isLikelyDirtyText(el.value)) {
+            showDirtyDataWarning(pair[1]);
+            el.focus();
+            return false;
+          }
+        }
+        const contactNames = Array.from(document.querySelectorAll('.contact-entry input[name$="[name]"]'));
+        for (let i = 0; i < contactNames.length; i += 1) {
+          if (isLikelyDirtyText(contactNames[i].value)) {
+            showDirtyDataWarning('Contact Name #' + (i + 1));
+            contactNames[i].focus();
+            return false;
+          }
+        }
+        return true;
+      }
+
       async function submitSeniorForm() {
+        if (!validateDirtyTextFields()) return;
         const submitButton = document.getElementById('nextBtn');
         const formData = new FormData(form);
+        const contactRows = Array.from(document.querySelectorAll('.contact-entry')).map(function (contact) {
+          return {
+            type: contact.querySelector('.contact-type').value,
+            name: contact.querySelector('input[name$="[name]"]').value,
+            relationship: contact.querySelector('input[name$="[relationship]"]').value,
+            phone: contact.querySelector('input[name$="[phone]"]').value,
+            email: contact.querySelector('input[name$="[email]"]').value || undefined
+          };
+        });
+        const childRows = Array.from(document.querySelectorAll('.child-entry')).map(function (child) {
+          return {
+            full_name: child.querySelector('input[name="childFullName[]"]').value,
+            occupation: child.querySelector('input[name="childOccupation[]"]').value,
+            age: parseInt(child.querySelector('input[name="childAge[]"]').value, 10) || undefined,
+            working_status: child.querySelector('select[name="childWorkingStatus[]"]').value,
+            income: child.querySelector('input[name="childIncome[]"]').value || undefined
+          };
+        }).filter(function (child) {
+          return child.full_name;
+        });
 
         const requestData = {
           residentId: isEditMode ? Number(document.getElementById('residentId')?.value || 0) : undefined,
@@ -898,6 +1073,8 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
           educational_attainment: formData.get('educational_attainment') ? [formData.get('educational_attainment')] : [],
           community_service: Array.from(document.querySelectorAll('#service input[name="community_service[]"]:checked')).map(function (el) { return el.value; }),
           community_service_other_text: document.getElementById('community-service-other-text')?.value || undefined,
+          contacts: contactRows,
+          children: childRows,
           identifying_information: {
             name: {
               first_name: formData.get('first_name'),
@@ -922,7 +1099,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
             current_pension: formData.get('pension'),
             capability_to_travel: formData.get('capability_to_travel') === 'Yes' ? 'Yes' : 'No',
             religion: formData.get('religion'),
-            contacts: []
+            contacts: contactRows
           },
           family_composition: {
             spouse: {
@@ -939,17 +1116,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
               first_name: formData.get('motherFirstName'),
               middle_name: formData.get('motherMiddleName')
             },
-            children: Array.from(document.querySelectorAll('.child-entry')).map(function (child) {
-              return {
-                full_name: child.querySelector('input[name="childFullName[]"]').value,
-                occupation: child.querySelector('input[name="childOccupation[]"]').value,
-                age: parseInt(child.querySelector('input[name="childAge[]"]').value, 10) || undefined,
-                working_status: child.querySelector('select[name="childWorkingStatus[]"]').value,
-                income: child.querySelector('input[name="childIncome[]"]').value || undefined
-              };
-            }).filter(function (child) {
-              return child.full_name;
-            })
+            children: childRows
           },
           education_hr_profile: {
             educational_attainment: formData.get('educational_attainment'),
@@ -961,16 +1128,6 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
           community_service: Array.from(document.querySelectorAll('#service input[name="community_service[]"]:checked')).map(function (el) { return el.value; }),
           community_service_other_text: document.getElementById('community-service-other-text')?.value || undefined
         };
-
-        requestData.identifying_information.contacts = Array.from(document.querySelectorAll('.contact-entry')).map(function (contact) {
-          return {
-            type: contact.querySelector('.contact-type').value,
-            name: contact.querySelector('input[name$="[name]"]').value,
-            relationship: contact.querySelector('input[name$="[relationship]"]').value,
-            phone: contact.querySelector('input[name$="[phone]"]').value,
-            email: contact.querySelector('input[name$="[email]"]').value || undefined
-          };
-        });
 
         if (typeof window.Swal !== 'undefined' && typeof window.Swal.fire === 'function') {
           window.Swal.fire({
@@ -1187,7 +1344,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       }
 
       // Contact Management
-      let contactCounter = 1;
+      let contactCounter = document.querySelectorAll('.contact-entry').length || 1;
 
       function updateDeleteButtonVisibility() {
         const contactEntries = document.querySelectorAll('.contact-entry');
@@ -1356,8 +1513,11 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       }
 
       function createContactEntry(contact, idx) {
-        if (idx > 0) addContactEntry();
-        const entries = document.querySelectorAll('.contact-entry');
+        let entries = document.querySelectorAll('.contact-entry');
+        while (entries.length <= idx) {
+          addContactEntry();
+          entries = document.querySelectorAll('.contact-entry');
+        }
         const entry = entries[idx];
         if (!entry) return;
         const typeEl = entry.querySelector('.contact-type');
@@ -1373,8 +1533,11 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       }
 
       function createChildEntry(child, idx) {
-        if (idx > 0) addChildEntry();
-        const entries = document.querySelectorAll('.child-entry');
+        let entries = document.querySelectorAll('.child-entry');
+        while (entries.length <= idx) {
+          addChildEntry();
+          entries = document.querySelectorAll('.child-entry');
+        }
         const entry = entries[idx];
         if (!entry) return;
         const fullName = entry.querySelector('input[name="childFullName[]"]');
@@ -1440,15 +1603,11 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
 
         const contacts = Array.isArray(info.contacts) ? info.contacts : [];
         if (contacts.length) {
-          const first = document.querySelector('.contact-entry');
-          if (first) first.remove();
           contacts.forEach(function (contact, idx) { createContactEntry(contact, idx); });
         }
 
         const children = Array.isArray(family.children) ? family.children : [];
         if (children.length) {
-          const firstChild = document.querySelector('.child-entry');
-          if (firstChild) firstChild.remove();
           children.forEach(function (child, idx) { createChildEntry(child, idx); });
         }
 

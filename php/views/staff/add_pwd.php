@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title>Person With Disability FORM</title>
   <link rel="stylesheet" type="text/css" href="/files/assets/css/fill.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
@@ -433,6 +433,30 @@
     .form-panel .remove-contact:hover {
       background: #fecaca;
     }
+    .contact-actions-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    body.modal-mode:not(.view-mode) #addContact {
+      border-radius: 4px;
+      min-width: 210px;
+      width: auto;
+      padding: 10px 14px;
+    }
+    body.modal-mode:not(.view-mode) .remove-contact {
+      border-radius: 4px;
+      min-width: 92px;
+      padding: 9px 12px;
+      font-weight: 700;
+    }
+    body.modal-mode:not(.view-mode) #removeContact {
+      border-radius: 4px;
+      min-width: 110px;
+      padding: 10px 14px;
+      font-weight: 700;
+    }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(8px); }
@@ -617,14 +641,15 @@ $editPwd = is_array($editPwd ?? null) ? $editPwd : null;
 $formAction = $isEditMode ? '/update-pwd' : '/register-pwd';
 $isModal = isset($_GET['modal']) && $_GET['modal'] === '1';
 $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
+$restrictPwdBarangay = !empty($restrictPwdBarangay ?? false);
+$barangayKeys = array_keys(is_array($barangays ?? null) ? $barangays : []);
+$soloBarangay = $restrictPwdBarangay && count($barangayKeys) === 1 ? (string) $barangayKeys[0] : '';
 ?>
 <body class="<?= $isModal ? 'modal-mode' : '' ?><?= $isViewMode ? ' view-mode' : '' ?>">
   <div class="page-shell">
     <div class="topbar">
       <div class="topbar-left">
-        <?php if ($isModal): ?>
-          <a class="topbar-btn" href="#" id="closeModalBtn">Close</a>
-        <?php else: ?>
+        <?php if (!$isModal): ?>
           <a class="topbar-btn" href="/pdao-dashboard">← Back to Dashboard</a>
         <?php endif; ?>
         <div>
@@ -659,17 +684,23 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       <fieldset id="personalInfo" class="active">
         <legend>Personal Information</legend>
         <div class="form-row">
-          <div class="form-group"><label for="first_name">First Name</label><input type="text" id="first_name" name="first_name" required placeholder="First Name" maxlength="25" pattern="[A-Za-z ]+"></div>
-          <div class="form-group"><label for="middle_name">Middle Name</label><input type="text" id="middle_name" name="middle_name" placeholder="Middle Name" maxlength="25" pattern="[A-Za-z ]+"></div>
-          <div class="form-group"><label for="last_name">Last Name</label><input type="text" id="last_name" name="last_name" required placeholder="Last Name" maxlength="25" pattern="[A-Za-z ]+"></div>
+          <div class="form-group"><label for="first_name">First Name</label><input type="text" id="first_name" name="first_name" required placeholder="First Name" maxlength="50" pattern="[A-Za-z ]+" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="middle_name">Middle Name</label><input type="text" id="middle_name" name="middle_name" placeholder="Middle Name" maxlength="50" pattern="[A-Za-z ]+" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="last_name">Last Name</label><input type="text" id="last_name" name="last_name" required placeholder="Last Name" maxlength="50" pattern="[A-Za-z ]+" title="Only letters and spaces are allowed (max 50 characters)."></div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="barangay">Barangay</label>
             <select id="barangay" name="barangay" required onchange="updatePurokOptions()">
-              <option value="" disabled selected>Select Barangay</option>
+              <?php if (!$restrictPwdBarangay): ?>
+                <option value="" disabled selected>Select Barangay</option>
+              <?php endif; ?>
               <?php foreach (($barangays ?? []) as $barangayName => $purokList): ?>
-                <option value="<?= htmlspecialchars((string) $barangayName, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars((string) $barangayName, ENT_QUOTES, 'UTF-8') ?></option>
+                <?php
+                  $bn = (string) $barangayName;
+                  $preselect = ($restrictPwdBarangay && $soloBarangay !== '' && $bn === $soloBarangay);
+                ?>
+                <option value="<?= htmlspecialchars($bn, ENT_QUOTES, 'UTF-8') ?>"<?= $preselect ? ' selected' : '' ?>><?= htmlspecialchars($bn, ENT_QUOTES, 'UTF-8') ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -690,7 +721,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
               <option value="Married">Married</option>
             </select>
           </div>
-          <div class="form-group" id="spouseGroup" style="display:none;"><label for="spouse_name">Name of Spouse</label><input type="text" id="spouse_name" name="spouse_name" placeholder="Name of Spouse" maxlength="25" pattern="[A-Za-z ]+"></div>
+          <div class="form-group" id="spouseGroup" style="display:none;"><label for="spouse_name">Name of Spouse</label><input type="text" id="spouse_name" name="spouse_name" placeholder="Name of Spouse" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
         </div>
       </fieldset>
 
@@ -708,37 +739,39 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
             </div>
             <div class="form-row">
               <div class="form-group"><label>Email Address</label><input type="email" name="contacts[1][email]" maxlength="100" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="Please enter a valid email address"></div>
-              <div class="form-group"><button type="button" class="remove-contact" disabled>Remove</button></div>
             </div>
           </div>
         </div>
-        <div class="form-row"><div class="form-group"><button type="button" id="addContact" class="add-child-btn">+ Add Another Contact</button></div></div>
+        <div class="contact-actions-row">
+          <button type="button" id="removeContact" class="remove-contact" disabled>Remove</button>
+          <button type="button" id="addContact" class="add-child-btn">+ Add Another Contact</button>
+        </div>
       </fieldset>
 
       <fieldset id="familyComposition">
         <legend>Family Composition</legend>
         <div class="form-row">
-          <div class="form-group"><label for="fatherLastName">Father's Last Name</label><input type="text" id="fatherLastName" name="fatherLastName" placeholder="Last Name" maxlength="25"></div>
-          <div class="form-group"><label for="fatherFirstName">Father's First Name</label><input type="text" id="fatherFirstName" name="fatherFirstName" placeholder="First Name" maxlength="25"></div>
-          <div class="form-group"><label for="fatherMiddleName">Father's Middle Name</label><input type="text" id="fatherMiddleName" name="fatherMiddleName" placeholder="Middle Name" maxlength="25"></div>
+          <div class="form-group"><label for="fatherLastName">Father's Last Name</label><input type="text" id="fatherLastName" name="fatherLastName" placeholder="Last Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="fatherFirstName">Father's First Name</label><input type="text" id="fatherFirstName" name="fatherFirstName" placeholder="First Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="fatherMiddleName">Father's Middle Name</label><input type="text" id="fatherMiddleName" name="fatherMiddleName" placeholder="Middle Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
           <div class="form-group"><label for="fatherExtension">Extension (Jr/Sr)</label><input type="text" id="fatherExtension" name="fatherExtension" placeholder="Extension (Jr, Sr)" maxlength="25"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label for="motherLastName">Mother's Last Name</label><input type="text" id="motherLastName" name="motherLastName" placeholder="Last Name" maxlength="25"></div>
-          <div class="form-group"><label for="motherFirstName">Mother's First Name</label><input type="text" id="motherFirstName" name="motherFirstName" placeholder="First Name" maxlength="25"></div>
-          <div class="form-group"><label for="motherMiddleName">Mother's Middle Name</label><input type="text" id="motherMiddleName" name="motherMiddleName" placeholder="Middle Name" maxlength="25"></div>
+          <div class="form-group"><label for="motherLastName">Mother's Last Name</label><input type="text" id="motherLastName" name="motherLastName" placeholder="Last Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="motherFirstName">Mother's First Name</label><input type="text" id="motherFirstName" name="motherFirstName" placeholder="First Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
+          <div class="form-group"><label for="motherMiddleName">Mother's Middle Name</label><input type="text" id="motherMiddleName" name="motherMiddleName" placeholder="Middle Name" maxlength="50" pattern="[A-Za-z ]*" title="Only letters and spaces are allowed (max 50 characters)."></div>
         </div>
       </fieldset>
 
       <fieldset id="requiredDocuments" class="hidden">
         <legend>ID'S</legend>
         <div class="form-row">
-          <div class="form-group"><label for="sss_id">SSS NO</label><input type="number" id="sss_id" name="sss_id" maxlength="10" title="10-digit SSS number" oninput="enforceMaxLength(this, 10)"></div>
-          <div class="form-group"><label for="gsis_sss_no">GSIS NO</label><input type="number" id="gsis_sss_no" name="gsis_sss_no" maxlength="12" title="8-12 digit GSIS number" oninput="enforceMaxLength(this, 12)"></div>
+          <div class="form-group"><label for="sss_id">SSS NO</label><input type="text" id="sss_id" name="sss_id" maxlength="10" pattern="\d{10}" title="10-digit SSS number" placeholder="e.g. 1234567890" inputmode="numeric" oninput="enforceMaxLength(this, 10)"></div>
+          <div class="form-group"><label for="gsis_sss_no">GSIS NO</label><input type="text" id="gsis_sss_no" name="gsis_sss_no" maxlength="12" pattern="\d{12}" title="12-digit GSIS number" placeholder="e.g. 123456789012" inputmode="numeric" oninput="enforceMaxLength(this, 12)"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label for="psn_no">PSN NO</label><input type="number" id="psn_no" name="psn_no" maxlength="9" title="9-digit PSN number" oninput="enforceMaxLength(this, 9)"></div>
-          <div class="form-group"><label for="philhealth_no">Philhealth No</label><input type="number" id="philhealth_no" name="philhealth_no" maxlength="12" title="12-digit PhilHealth number" oninput="enforceMaxLength(this, 12)"></div>
+          <div class="form-group"><label for="psn_no">PSN NO</label><input type="text" id="psn_no" name="psn_no" maxlength="9" pattern="\d{9}" title="9-digit PSN number" placeholder="e.g. 123456789" inputmode="numeric" oninput="enforceMaxLength(this, 9)"></div>
+          <div class="form-group"><label for="philhealth_no">Philhealth No</label><input type="text" id="philhealth_no" name="philhealth_no" maxlength="12" pattern="\d{12}" title="12-digit PhilHealth number" placeholder="e.g. 123456789012" inputmode="numeric" oninput="enforceMaxLength(this, 12)"></div>
         </div>
       </fieldset>
 
@@ -847,9 +880,11 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
     }
 
     function enforceMaxLength(input, maxLength) {
-      if (input.value.length > maxLength) {
-        input.value = input.value.slice(0, maxLength);
+      let value = String(input.value || '').replace(/\D/g, '');
+      if (value.length > maxLength) {
+        value = value.slice(0, maxLength);
       }
+      input.value = value;
     }
 
     function calculateAge() {
@@ -870,9 +905,51 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       spouseGroup.style.display = civilStatus.value === 'Married' ? 'block' : 'none';
     }
 
-    document.getElementById('first_name').addEventListener('input', function () {
-      this.value = this.value.replace(/[^A-Za-z ]/g, '');
-    });
+    function toUppercaseName(value) {
+      const cleaned = String(value || '')
+        .replace(/[^A-Za-z\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trimStart()
+        .slice(0, 50);
+      return cleaned.toUpperCase();
+    }
+
+    function attachNameValidation() {
+      const nameFieldIds = [
+        'first_name', 'middle_name', 'last_name',
+        'spouse_name',
+        'fatherLastName', 'fatherFirstName', 'fatherMiddleName',
+        'motherLastName', 'motherFirstName', 'motherMiddleName'
+      ];
+      nameFieldIds.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute('maxlength', '50');
+        el.addEventListener('input', function () {
+          const start = el.selectionStart || 0;
+          el.value = toUppercaseName(el.value);
+          const endPos = Math.min(start, el.value.length);
+          try { el.setSelectionRange(endPos, endPos); } catch (_) {}
+        });
+        el.addEventListener('blur', function () {
+          el.value = toUppercaseName(el.value).trim();
+        });
+      });
+    }
+
+    function attachUppercaseValidation() {
+      document.querySelectorAll('input[type="text"], input[type="email"], textarea').forEach(function (el) {
+        el.addEventListener('input', function () {
+          const start = el.selectionStart || 0;
+          const end = el.selectionEnd || 0;
+          el.value = String(el.value || '').toUpperCase();
+          try { el.setSelectionRange(start, end); } catch (_) {}
+        });
+        el.addEventListener('blur', function () {
+          el.value = String(el.value || '').toUpperCase().trim();
+        });
+      });
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
       const closeModalBtn = document.getElementById('closeModalBtn');
@@ -891,6 +968,8 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
         updatePurokOptions();
       }
       toggleSpouseInput();
+      attachNameValidation();
+      attachUppercaseValidation();
     });
   </script>
 
@@ -901,6 +980,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
       const prevBtn = document.getElementById('prevBtn');
       const nextBtn = document.getElementById('nextBtn');
       const addContactBtn = document.getElementById('addContact');
+      const removeContactBtn = document.getElementById('removeContact');
       const contactsContainer = document.getElementById('contactsContainer');
       const fieldsets = Array.from(document.querySelectorAll('#housingForm fieldset'));
       const steps = Array.from(document.querySelectorAll('.progress-bar .step'));
@@ -928,6 +1008,10 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
         });
 
         form.querySelectorAll('button').forEach(function (btn) {
+          if (btn.id === 'addContact' || btn.id === 'removeContact') {
+            btn.disabled = true;
+            return;
+          }
           if (btn.id !== 'prevBtn' && btn.id !== 'nextBtn') {
             btn.style.display = 'none';
           }
@@ -996,6 +1080,63 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
         }).format(date);
       }
 
+      function isLikelyDirtyText(value) {
+        const raw = String(value || '').trim();
+        if (!raw) return false;
+        const lettersOnly = raw.replace(/[^A-Z]/gi, '');
+        if (lettersOnly.length < 12 || /\s/.test(raw)) return false;
+        const vowels = (lettersOnly.match(/[AEIOU]/gi) || []).length;
+        const vowelRatio = vowels / lettersOnly.length;
+        const hasLongConsonantRun = /[BCDFGHJKLMNPQRSTVWXYZ]{6,}/i.test(lettersOnly);
+        const hasRepeating = /(.)\1{4,}/i.test(lettersOnly);
+        return hasLongConsonantRun || hasRepeating || vowelRatio < 0.2;
+      }
+
+      function showDirtyDataWarning(label) {
+        const message = 'Invalid text detected in "' + label + '". Please avoid random/dirty data.';
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+          window.Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Input',
+            text: message,
+            confirmButtonColor: '#0f766e'
+          });
+          return;
+        }
+        alert(message);
+      }
+
+      function validateDirtyTextFields() {
+        const checks = [
+          ['#firstName', 'First Name'],
+          ['#middleName', 'Middle Name'],
+          ['#lastName', 'Last Name'],
+          ['#placeOfBirth', 'Place of Birth'],
+          ['#religion', 'Religion'],
+          ['#fatherName', "Father's Name"],
+          ['#motherName', "Mother's Name"],
+          ['#guardianName', "Guardian's Name"]
+        ];
+        for (const pair of checks) {
+          const el = document.querySelector(pair[0]);
+          if (!el) continue;
+          if (isLikelyDirtyText(el.value)) {
+            showDirtyDataWarning(pair[1]);
+            el.focus();
+            return false;
+          }
+        }
+        const contactNames = Array.from(document.querySelectorAll('.contact-entry input[name$="[name]"]'));
+        for (let i = 0; i < contactNames.length; i += 1) {
+          if (isLikelyDirtyText(contactNames[i].value)) {
+            showDirtyDataWarning('Contact Name #' + (i + 1));
+            contactNames[i].focus();
+            return false;
+          }
+        }
+        return true;
+      }
+
       async function loadPwdEditLogs() {
         if (!isViewMode) return;
 
@@ -1043,6 +1184,7 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
 
       async function submitPwdForm() {
         if (isSubmitting) return;
+        if (!validateDirtyTextFields()) return;
         isSubmitting = true;
 
         if (nextBtn) {
@@ -1266,11 +1408,11 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
         }, 1);
 
         function updateRemoveButtons() {
-          const removeButtons = contactsContainer.querySelectorAll('.remove-contact');
-          const shouldDisable = removeButtons.length <= 1;
-          removeButtons.forEach(function (btn) {
-            btn.disabled = shouldDisable;
-          });
+          const allEntries = contactsContainer.querySelectorAll('.contact-entry');
+          const shouldDisable = allEntries.length <= 1;
+          if (removeContactBtn) {
+            removeContactBtn.disabled = shouldDisable;
+          }
         }
 
         function buildContactEntry(contactId, contactData) {
@@ -1294,7 +1436,6 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
             </div>
             <div class="form-row">
               <div class="form-group"><label>Email Address</label><input type="email" name="contacts[${contactId}][email]" maxlength="100" pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$" title="Please enter a valid email address" value="${String(safeEmail).replace(/"/g, '&quot;')}"></div>
-              <div class="form-group"><button type="button" class="remove-contact">Remove</button></div>
             </div>
           `;
           return wrapper;
@@ -1311,34 +1452,24 @@ $isViewMode = isset($_GET['view']) && $_GET['view'] === '1';
           updateRemoveButtons();
         });
 
-        contactsContainer.addEventListener('click', function (event) {
-          const removeBtn = event.target.closest('.remove-contact');
-          if (!removeBtn) return;
-          event.preventDefault();
-
-          if (isViewMode) {
-            return;
-          }
-
-          const allEntries = contactsContainer.querySelectorAll('.contact-entry');
-          if (allEntries.length <= 1) {
-            if (window.Swal && typeof window.Swal.fire === 'function') {
-              window.Swal.fire({
-                title: 'Cannot Remove',
-                text: 'At least one contact is required.',
-                icon: 'warning',
-                confirmButtonColor: '#0f766e'
-              });
+        if (removeContactBtn) {
+          removeContactBtn.addEventListener('click', function (event) {
+            event.preventDefault();
+            if (isViewMode) {
+              return;
             }
-            return;
-          }
-
-          const entry = removeBtn.closest('.contact-entry');
-          if (entry) {
-            entry.remove();
-            updateRemoveButtons();
-          }
-        });
+            const allEntries = contactsContainer.querySelectorAll('.contact-entry');
+            if (allEntries.length <= 1) {
+              updateRemoveButtons();
+              return;
+            }
+            const lastEntry = allEntries[allEntries.length - 1];
+            if (lastEntry) {
+              lastEntry.remove();
+              updateRemoveButtons();
+            }
+          });
+        }
 
         updateRemoveButtons();
 

@@ -17,12 +17,14 @@
     }
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; line-height: 1.45; position: relative; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; position: relative; z-index: 1; }
-    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; box-shadow: 10px 0 30px rgba(59, 130, 246, 0.08); }
+    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; box-shadow: 10px 0 30px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.7px; margin-bottom: 18px; color: #0f172a !important; opacity: 1 !important; visibility: visible !important; }
     .nav-title { font-size: 12px; color: #6b7280 !important; text-transform: uppercase; margin: 8px 10px; opacity: 1 !important; visibility: visible !important; }
-    .sidebar .nav-link { display: flex !important; align-items: center !important; min-height: 40px !important; padding: 10px 12px; margin-bottom: 6px; border-radius: 10px; color: #1f2937 !important; text-decoration: none !important; font-weight: 600; font-size: 14px !important; line-height: 1.3 !important; letter-spacing: .1px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .2s ease; }
+    .sidebar .nav-link { display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; min-height: 40px !important; padding: 10px 12px; margin-bottom: 6px; border-radius: 10px; color: #1f2937 !important; text-decoration: none !important; font-weight: 600; font-size: 14px !important; line-height: 1.3 !important; letter-spacing: .1px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .2s ease; }
     .sidebar .nav-link.active { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #fff !important; }
     .sidebar .nav-link:hover { background: #eaf3ff; color: #0f172a !important; transform: translateX(2px); }
+    .sidebar .logout-link { background: #fee2e2 !important; color: #991b1b !important; font-weight: 700 !important; }
+    .sidebar .logout-link:hover { background: #ef4444 !important; color: #fff !important; transform: none !important; }
     .nav-fallback-item { padding: 8px 10px; margin-bottom: 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1f2937; cursor: pointer; }
     .nav-fallback-item.active { background: var(--blue-main); color: #fff; }
     .main { padding: 24px; }
@@ -51,10 +53,18 @@
     .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid #e5e7eb; }
     .modal-body { padding: 12px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 14px; border-top: 1px solid #e5e7eb; }
+    #viewModal .modal-actions { justify-content: flex-end; }
     .modal-actions button { border: 1px solid #d1d5db; background: #fff; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
     .modal-actions .btn-print-app { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); border-color: var(--blue-main); color: #fff; }
     .modal-close { border: none; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
-    .edit-frame-body { padding: 0; height: min(78vh, 760px); }
+    .modal-body-view-inner { display: flex; flex-direction: column; gap: 10px; padding: 12px; max-height: min(82vh, 860px); }
+    .view-edit-log-panel { flex: 0 0 auto; max-height: 220px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; padding: 10px; }
+    .view-edit-log-panel h6 { margin: 0 0 8px 0; font-size: 14px; line-height: 1.2; color: #1d4ed8; font-weight: 700; }
+    .view-edit-log-table-wrap { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+    .view-edit-log-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .view-edit-log-table th, .view-edit-log-table td { padding: 8px; border: 1px solid #e5e7eb; text-align: left; vertical-align: top; }
+    .view-edit-log-table th { background: #fef9c3; color: #0f172a; position: sticky; top: 0; font-weight: 700; z-index: 1; white-space: nowrap; }
+    .edit-frame-body { padding: 0; flex: 1 1 auto; min-height: 320px; height: min(58vh, 560px); }
     .edit-frame-body iframe { width: 100%; height: 100%; border: none; }
     .toolbar-search { width: 100%; max-width: 320px; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 8px; }
     input, select, textarea { transition: border-color .2s ease, box-shadow .2s ease; }
@@ -100,7 +110,7 @@
       <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior-dashboard'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizen Analytics</a>
       <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-pwd'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability List</a>
       <a class="nav-link active" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#ffffff !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizens List</a>
-      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
+      <a class="nav-link logout-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;margin-top:auto !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
     </aside>
 
     <main class="main">
@@ -164,7 +174,7 @@
                   $status = (string)($s['status'] ?? 'Active');
                   $statusClass = $status === 'Archived' ? 'status-archived' : 'status-active';
                 ?>
-                <tr data-purok="<?= htmlspecialchars((string)($s['purok'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" data-senior='<?= htmlspecialchars(json_encode($s, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'>
+                <tr data-senior-id="<?= (int)($s['id'] ?? 0) ?>" data-purok="<?= htmlspecialchars((string)($s['purok'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" data-senior='<?= htmlspecialchars(json_encode($s, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'>
                   <td><?= htmlspecialchars(strtoupper($full), ENT_QUOTES, 'UTF-8') ?></td>
                   <td><?= htmlspecialchars((string)($s['age'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                   <td><?= htmlspecialchars((string)($s['barangay'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
@@ -175,7 +185,7 @@
                     <div class="actions">
                       <button type="button" class="btn-sm btn-view view-btn" title="View" aria-label="View"><span class="icon-only"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M1 12C2.9 8.4 6.1 6 12 6C17.9 6 21.1 8.4 23 12C21.1 15.6 17.9 18 12 18C6.1 18 2.9 15.6 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"></circle></svg></span></button>
                       <button type="button" class="btn-sm btn-edit edit-btn" title="Edit" aria-label="Edit"><span class="icon-only"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M16.5 3.5C17.3 2.7 18.7 2.7 19.5 3.5L20.5 4.5C21.3 5.3 21.3 6.7 20.5 7.5L9 19L4 20L5 15L16.5 3.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
-                      <button type="button" class="btn-sm btn-archive archive-btn" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" title="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>" aria-label="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>"><span class="icon-only"><?= $status === 'Archived' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12C3 7 7 3 12 3C15 3 17.6 4.2 19.3 6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M21 3V7H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 12C21 17 17 21 12 21C9 21 6.4 19.8 4.7 17.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M3 21V17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M8 6V4H16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19 6L18 20H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>' ?></span></button>
+                      <button type="button" class="btn-sm btn-archive archive-btn" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" title="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>" aria-label="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>"><span class="icon-only"><?= $status === 'Archived' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12C3 7 7 3 12 3C15 3 17.6 4.2 19.3 6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M21 3V7H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 12C21 17 17 21 12 21C9 21 6.4 19.8 4.7 17.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M3 21V17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M5 7L6 20H18L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 11H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M9 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M4 4H20V7H4V4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>' ?></span></button>
                     </div>
                   </td>
                 </tr>
@@ -190,10 +200,15 @@
     <div class="modal-card">
       <div class="modal-header">
         <h5 style="margin:0;">View Senior Record</h5>
-        <button type="button" class="modal-close" data-close="viewModal">&times;</button>
       </div>
-      <div class="modal-body edit-frame-body">
-        <iframe id="viewSeniorFrame" title="View Senior Form" loading="lazy" src="about:blank"></iframe>
+      <div class="modal-body modal-body-view-inner">
+        <div id="viewEditLogsSection" class="view-edit-log-panel">
+          <h6>Edit Logs</h6>
+          <div id="viewEditLogsBody" class="muted" style="font-size:12px;">Open a record to see changes.</div>
+        </div>
+        <div class="edit-frame-body">
+          <iframe id="viewSeniorFrame" title="View Senior Form" loading="lazy" src="about:blank"></iframe>
+        </div>
       </div>
       <div class="modal-actions">
         <button type="button" id="printApplicationBtn" class="btn-print-app">Print Application</button>
@@ -205,7 +220,6 @@
     <div class="modal-card">
       <div class="modal-header">
         <h5 style="margin:0;">Edit Senior Record</h5>
-        <button type="button" class="modal-close" data-close="editModal">&times;</button>
       </div>
       <div class="modal-body edit-frame-body">
         <iframe id="editSeniorFrame" title="Edit Senior Form" loading="lazy" src="about:blank"></iframe>
@@ -333,6 +347,11 @@
       if (!modal) return;
       modal.classList.remove('show');
       if (id === 'viewModal' && viewSeniorFrame) viewSeniorFrame.src = 'about:blank';
+      if (id === 'viewModal') {
+        const logsEl = document.getElementById('viewEditLogsBody');
+        if (logsEl) logsEl.innerHTML = 'Open a record to see changes.';
+        currentViewSeniorId = null;
+      }
       if (id === 'editModal' && editSeniorFrame) editSeniorFrame.src = 'about:blank';
       if (id === 'archiveConfirmModal' && archiveModalResolve) {
         const resolve = archiveModalResolve;
@@ -346,6 +365,79 @@
       const raw = row.getAttribute('data-senior');
       if (!raw) return {};
       try { return JSON.parse(raw) || {}; } catch (_) { return {}; }
+    }
+
+    function getSeniorIdFromRow(row) {
+      if (!row) return 0;
+      const ds = Number(row.getAttribute('data-senior-id') || 0);
+      if (Number.isFinite(ds) && ds > 0) return ds;
+      const s = getSeniorFromRow(row);
+      const nid = Number(s.id ?? s._id ?? 0);
+      return Number.isFinite(nid) ? nid : 0;
+    }
+
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text === null || text === undefined ? '' : String(text);
+      return d.innerHTML;
+    }
+
+    function formatLogDateTime(value) {
+      if (!value) return '—';
+      const d = new Date(value);
+      if (!Number.isNaN(d.getTime())) {
+        return d.toLocaleString('en-PH', {
+          month: 'short',
+          day: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        });
+      }
+      return escapeHtml(String(value));
+    }
+
+    function renderViewEditLogs(rows) {
+      const el = document.getElementById('viewEditLogsBody');
+      if (!el) return;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        el.innerHTML = '<span class="muted">No edit history logged yet.</span>';
+        return;
+      }
+      const body = rows.map(function (log) {
+        return '<tr>'
+          + '<td>' + escapeHtml(log.field || '—') + '</td>'
+          + '<td>' + escapeHtml(log.old_value ?? '—') + '</td>'
+          + '<td>' + escapeHtml(log.new_value ?? '—') + '</td>'
+          + '<td>' + escapeHtml(log.edited_by || '—') + '</td>'
+          + '<td>' + formatLogDateTime(log.edited_at || '') + '</td>'
+          + '</tr>';
+      }).join('');
+      el.innerHTML = '<div class="view-edit-log-table-wrap"><div style="overflow:auto;max-height:140px;"><table class="view-edit-log-table"><thead><tr>'
+        + '<th>Field</th><th>Old Value</th><th>New Value</th><th>Editor</th><th>Date and Time</th>'
+        + '</tr></thead><tbody>' + body + '</tbody></table></div></div>';
+    }
+
+    async function loadViewSeniorEditLogs(residentId) {
+      const el = document.getElementById('viewEditLogsBody');
+      if (!el) return;
+      if (!residentId) {
+        el.innerHTML = '<span class="muted">Unable to load edit history.</span>';
+        return;
+      }
+      el.innerHTML = '<span class="muted">Loading edit history...</span>';
+      try {
+        const res = await fetch(appPath('/api/senior-edit-logs/' + encodeURIComponent(String(residentId))), { credentials: 'same-origin' });
+        const json = await res.json();
+        if (!res.ok || !json || json.success !== true) {
+          throw new Error((json && json.message) ? json.message : 'Failed to load edit history.');
+        }
+        renderViewEditLogs(json.data || []);
+      } catch (e) {
+        el.innerHTML = '<span style="color:#b91c1c;font-size:12px;">' + escapeHtml(e.message || 'Failed to load.') + '</span>';
+      }
     }
 
     function formatBirthDate(value) {
@@ -374,7 +466,7 @@
         archiveBtn.setAttribute('aria-label', label);
         archiveBtn.innerHTML = '<span class="icon-only">' + (status === 'Archived'
           ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12C3 7 7 3 12 3C15 3 17.6 4.2 19.3 6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M21 3V7H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 12C21 17 17 21 12 21C9 21 6.4 19.8 4.7 17.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M3 21V17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
-          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M8 6V4H16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19 6L18 20H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>') + '</span>';
+          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M5 7L6 20H18L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 11H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M9 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M4 4H20V7H4V4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>') + '</span>';
       }
       const senior = getSeniorFromRow(row);
       senior.status = status;
@@ -521,11 +613,11 @@
     document.querySelectorAll('.view-btn').forEach(function (button) {
       button.addEventListener('click', function () {
         const row = button.closest('tr');
-        const senior = getSeniorFromRow(row);
-        const id = Number(senior.id || 0);
+        const id = getSeniorIdFromRow(row);
         if (!id) return;
         if (viewSeniorFrame) viewSeniorFrame.src = appPath('/add_senior') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1&view=1';
         currentViewSeniorId = String(id);
+        loadViewSeniorEditLogs(id);
         openModal('viewModal');
       });
     });
@@ -541,10 +633,11 @@
     document.querySelectorAll('.edit-btn').forEach(function (button) {
       button.addEventListener('click', function () {
         const row = button.closest('tr');
-        const senior = getSeniorFromRow(row);
-        const id = Number(senior.id || 0);
+        const id = getSeniorIdFromRow(row);
         if (!id) return;
-        if (editSeniorFrame) editSeniorFrame.src = appPath('/add_senior') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1';
+        if (editSeniorFrame) {
+          editSeniorFrame.src = appPath('/add_senior') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1&nocache=' + String(Date.now());
+        }
         openModal('editModal');
       });
     });
@@ -682,9 +775,10 @@
       button.addEventListener('click', async function () {
         const row = button.closest('tr');
         const senior = getSeniorFromRow(row);
+        const rid = getSeniorIdFromRow(row);
         const isArchived = (button.dataset.status || senior.status || '') === 'Archived';
         const endpoint = appPath(isArchived ? '/unarchive-senior' : '/archive-senior');
-        const payload = { senior_id: senior.id };
+        const payload = { senior_id: rid || senior.id };
 
         const reason = await requestStatusChange({ isUnarchive: isArchived });
         if (reason === null) return;

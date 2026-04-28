@@ -17,12 +17,14 @@
     }
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; line-height: 1.45; position: relative; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; position: relative; z-index: 1; }
-    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; box-shadow: 10px 0 30px rgba(59, 130, 246, 0.08); }
+    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; max-height: 100vh; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: start; box-shadow: 10px 0 30px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.7px; margin-bottom: 18px; color: #0f172a !important; opacity: 1 !important; visibility: visible !important; }
     .nav-title { font-size: 12px; color: #6b7280 !important; text-transform: uppercase; margin: 8px 10px; opacity: 1 !important; visibility: visible !important; }
-    .sidebar .nav-link { display: flex !important; align-items: center !important; min-height: 40px !important; padding: 10px 12px; margin-bottom: 6px; border-radius: 10px; color: #1f2937 !important; text-decoration: none !important; font-weight: 600; font-size: 14px !important; line-height: 1.3 !important; letter-spacing: .1px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .2s ease; }
+    .sidebar .nav-link { display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; min-height: 40px !important; padding: 10px 12px; margin-bottom: 6px; border-radius: 10px; color: #1f2937 !important; text-decoration: none !important; font-weight: 600; font-size: 14px !important; line-height: 1.3 !important; letter-spacing: .1px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .2s ease; }
     .sidebar .nav-link.active { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #fff !important; }
     .sidebar .nav-link:hover { background: #eaf3ff; color: #0f172a !important; transform: translateX(2px); }
+    .sidebar .logout-link { background: #fee2e2 !important; color: #991b1b !important; font-weight: 700 !important; }
+    .sidebar .logout-link:hover { background: #ef4444 !important; color: #fff !important; transform: none !important; }
     .nav-fallback-item { padding: 8px 10px; margin-bottom: 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1f2937; cursor: pointer; }
     .nav-fallback-item.active { background: var(--blue-main); color: #fff; }
     .main { padding: 24px; }
@@ -100,7 +102,7 @@
       <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior-dashboard'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizen Analytics</a>
       <a class="nav-link active" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#ffffff !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-pwd'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability List</a>
       <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizens List</a>
-      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
+      <a class="nav-link logout-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;margin-top:auto !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
     </aside>
 
     <main class="main">
@@ -175,7 +177,7 @@
                     <div class="actions">
                       <button type="button" class="btn-sm btn-view view-btn" title="View" aria-label="View"><span class="icon-only"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M1 12C2.9 8.4 6.1 6 12 6C17.9 6 21.1 8.4 23 12C21.1 15.6 17.9 18 12 18C6.1 18 2.9 15.6 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"></circle></svg></span></button>
                       <button type="button" class="btn-sm btn-edit edit-btn" title="Edit" aria-label="Edit"><span class="icon-only"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M16.5 3.5C17.3 2.7 18.7 2.7 19.5 3.5L20.5 4.5C21.3 5.3 21.3 6.7 20.5 7.5L9 19L4 20L5 15L16.5 3.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
-                      <button type="button" class="btn-sm btn-archive archive-btn" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" title="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>" aria-label="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>"><span class="icon-only"><?= $status === 'Archived' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12C3 7 7 3 12 3C15 3 17.6 4.2 19.3 6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M21 3V7H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 12C21 17 17 21 12 21C9 21 6.4 19.8 4.7 17.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M3 21V17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M8 6V4H16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19 6L18 20H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>' ?></span></button>
+                      <button type="button" class="btn-sm btn-archive archive-btn" data-status="<?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8') ?>" title="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>" aria-label="<?= $status === 'Archived' ? 'Unarchive' : 'Archive' ?>"><span class="icon-only"><?= $status === 'Archived' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12C3 7 7 3 12 3C15 3 17.6 4.2 19.3 6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M21 3V7H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 12C21 17 17 21 12 21C9 21 6.4 19.8 4.7 17.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M3 21V17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M5 7L6 20H18L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 11H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M9 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M4 4H20V7H4V4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>' ?></span></button>
                     </div>
                   </td>
                 </tr>
@@ -190,7 +192,6 @@
     <div class="modal-card">
       <div class="modal-header">
         <h5 style="margin:0;">View PWD Record</h5>
-        <button type="button" class="modal-close" data-close="viewModal">&times;</button>
       </div>
       <div class="modal-body edit-frame-body">
         <iframe id="viewPwdFrame" title="View PWD Form" loading="lazy" src="about:blank"></iframe>
@@ -205,7 +206,6 @@
     <div class="modal-card">
       <div class="modal-header">
         <h5 style="margin:0;">Edit PWD Record</h5>
-        <button type="button" class="modal-close" data-close="editModal">&times;</button>
       </div>
       <div class="modal-body edit-frame-body">
         <iframe id="editPwdFrame" title="Edit PWD Form" loading="lazy" src="about:blank"></iframe>
@@ -355,6 +355,287 @@
       return d.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
+    function asDateMmDdYyyy(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      const yyyy = String(date.getFullYear());
+      return mm + '/' + dd + '/' + yyyy;
+    }
+
+    function setTextField(form, fieldName, value) {
+      try {
+        const field = form.getTextField(fieldName);
+        field.setText(String(value || ''));
+        field.setFontSize(10);
+      } catch (_) {}
+    }
+
+    function setTextFieldByNamePattern(form, patterns, value) {
+      try {
+        const normalizedPatterns = Array.isArray(patterns) ? patterns : [patterns];
+        const fields = form.getFields();
+        fields.forEach(function (field) {
+          if (!field || typeof field.getName !== 'function') return;
+          const fieldName = String(field.getName() || '');
+          const normalizedName = fieldName.toLowerCase().replace(/[^a-z]/g, '');
+          const matched = normalizedPatterns.some(function (pattern) {
+            return normalizedName.indexOf(String(pattern).toLowerCase()) !== -1;
+          });
+          if (matched) {
+            setTextField(form, fieldName, value);
+          }
+        });
+      } catch (_) {}
+    }
+
+    function setLocationFieldsByGeometry(form) {
+      try {
+        const textFields = [];
+        const fields = form.getFields();
+        fields.forEach(function (field) {
+          if (!field || typeof field.getName !== 'function' || typeof field.getText !== 'function') return;
+          const name = String(field.getName() || '');
+          const normalized = name.toLowerCase().replace(/[^a-z]/g, '');
+          if (normalized.includes('municipality') || normalized.includes('province') || normalized.includes('region')) {
+            return;
+          }
+          let rect = null;
+          try {
+            const widgets = field.acroField && typeof field.acroField.getWidgets === 'function'
+              ? field.acroField.getWidgets()
+              : [];
+            if (widgets && widgets[0] && typeof widgets[0].getRectangle === 'function') {
+              rect = widgets[0].getRectangle();
+            }
+          } catch (_) {}
+          if (!rect || typeof rect.x !== 'number' || typeof rect.y !== 'number') return;
+          const currentValue = String(field.getText() || '').trim();
+          textFields.push({ name: name, x: rect.x, y: rect.y, w: Number(rect.width || 0), value: currentValue });
+        });
+
+        const emptyCandidates = textFields.filter(function (f) { return f.value === ''; });
+        if (emptyCandidates.length < 3) return;
+
+        const rows = [];
+        emptyCandidates
+          .sort(function (a, b) { return (b.y - a.y) || (a.x - b.x); })
+          .forEach(function (f) {
+            const row = rows.find(function (r) { return Math.abs(r.y - f.y) <= 2.5; });
+            if (row) row.items.push(f);
+            else rows.push({ y: f.y, items: [f] });
+          });
+
+        const row = rows.find(function (r) {
+          if (r.items.length < 3) return false;
+          const items = r.items.slice().sort(function (a, b) { return a.x - b.x; });
+          const widths = items.slice(0, 3).map(function (i) { return i.w; });
+          const minX = items[0].x;
+          const maxX = items[Math.min(items.length - 1, 2)].x;
+          const avgW = widths.reduce(function (acc, n) { return acc + n; }, 0) / widths.length;
+          return minX <= 25 && maxX >= 120 && avgW >= 40 && avgW <= 90;
+        });
+
+        if (!row) return;
+        const sorted = row.items.slice().sort(function (a, b) { return a.x - b.x; });
+        setTextField(form, sorted[0].name, 'ENRIQUE B. MAGALONA');
+        setTextField(form, sorted[1].name, 'NEGROS OCCIDENTAL');
+        setTextField(form, sorted[2].name, 'NIR');
+      } catch (_) {}
+    }
+
+    function setCheckField(form, fieldName, checked) {
+      try {
+        const field = form.getCheckBox(fieldName);
+        if (checked) field.check();
+        else field.uncheck();
+      } catch (_) {}
+    }
+
+    function setRadioField(form, fieldName, option) {
+      try {
+        const field = form.getRadioGroup(fieldName);
+        if (option) field.select(option);
+        else field.clear();
+      } catch (_) {}
+    }
+
+    function normalizeToken(value) {
+      return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function selectRadioOptionByPattern(form, radioFieldNames, optionPatterns) {
+      const patterns = (Array.isArray(optionPatterns) ? optionPatterns : [optionPatterns]).map(normalizeToken).filter(Boolean);
+      const names = Array.isArray(radioFieldNames) ? radioFieldNames : [radioFieldNames];
+      for (let i = 0; i < names.length; i += 1) {
+        const groupName = names[i];
+        try {
+          const group = form.getRadioGroup(groupName);
+          if (!group || typeof group.getOptions !== 'function') continue;
+          const options = group.getOptions();
+          const match = options.find(function (opt) {
+            const token = normalizeToken(opt);
+            return patterns.some(function (p) { return token.includes(p) || p.includes(token); });
+          });
+          if (match) {
+            group.select(match);
+            return true;
+          }
+        } catch (_) {}
+      }
+      return false;
+    }
+
+    async function ensurePdfLibLoaded() {
+      if (window.PDFLib && window.PDFLib.PDFDocument) return;
+      const cdnUrls = [
+        'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js',
+        'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'
+      ];
+      for (const url of cdnUrls) {
+        try {
+          await new Promise(function (resolve, reject) {
+            const script = document.createElement('script');
+            script.src = url;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+          if (window.PDFLib && window.PDFLib.PDFDocument) return;
+        } catch (_) {}
+      }
+      throw new Error('Unable to load pdf-lib library.');
+    }
+
+    async function fetchTemplateBytes(pathCandidates) {
+      let lastError = 'Template not found.';
+      for (const candidate of pathCandidates) {
+        try {
+          const response = await fetch(candidate, { cache: 'no-store' });
+          if (!response.ok) {
+            lastError = 'HTTP ' + response.status + ' for ' + candidate;
+            continue;
+          }
+          return await response.arrayBuffer();
+        } catch (error) {
+          lastError = (error && error.message) ? error.message : String(error);
+        }
+      }
+      throw new Error(lastError);
+    }
+
+    async function fetchPwdRecordForPrint(id) {
+      const response = await fetch(appPath('/api/pwd-record/' + encodeURIComponent(String(id))), {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' }
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload || payload.success === false || !payload.data) {
+        throw new Error((payload && (payload.message || payload.error)) ? (payload.message || payload.error) : 'Unable to load PWD record for printing.');
+      }
+      return payload.data;
+    }
+
+    async function buildPwdApplicationPdf(pwd) {
+      function pick() {
+        for (let i = 0; i < arguments.length; i += 1) {
+          const value = arguments[i];
+          if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+        }
+        return '';
+      }
+
+      await ensurePdfLibLoaded();
+      const templateBytes = await fetchTemplateBytes([
+        appPath('/pdf-template/pwd'),
+        '/default/pdf/PWD-APPLICATION-FORMFIELD.pdf',
+        'default/pdf/PWD-APPLICATION-FORMFIELD.pdf',
+        '../default/pdf/PWD-APPLICATION-FORMFIELD.pdf',
+        '../../default/pdf/PWD-APPLICATION-FORMFIELD.pdf'
+      ]);
+      const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+      const form = pdfDoc.getForm();
+
+      setTextField(form, 'LAST NAME', pick(pwd.last_name, pwd.lastName));
+      setTextField(form, 'FIRST NAME', pick(pwd.first_name, pwd.firstName));
+      setTextField(form, 'MIDDLE NAME', pick(pwd.middle_name, pwd.middleName));
+      setTextField(form, 'Barangay', [pick(pwd.barangay), pick(pwd.purok)].filter(Boolean).join(' / '));
+      setTextFieldByNamePattern(form, ['municipality'], 'ENRIQUE B. MAGALONA');
+      setTextFieldByNamePattern(form, ['province'], 'NEGROS OCCIDENTAL');
+      setTextFieldByNamePattern(form, ['region'], 'NIR');
+      setLocationFieldsByGeometry(form);
+      setTextField(form, 'DATE OF BIRTH', asDateMmDdYyyy(pick(pwd.birthday, pwd.date_of_birth)));
+      setTextField(form, 'Employment Category', pick(pwd.employment_type, pwd.employmentType));
+      setTextField(form, 'SSS NO', pick(pwd.sss_id, pwd.sssId));
+      setTextField(form, 'GSIS NO', pick(pwd.gsis_sss_no, pwd.gsisSssNo));
+      setTextField(form, 'PSN NO', pick(pwd.psn_no, pwd.psnNo));
+      setTextField(form, 'PhilHealth NO', pick(pwd.philhealth_no, pwd.philhealthNo));
+
+      setTextField(form, 'LAST NAMEFATHERS NAME', pick(pwd.father_last_name, pwd.fatherLastName));
+      setTextField(form, 'FIRST NAMEFATHERS NAME', pick(pwd.father_first_name, pwd.fatherFirstName));
+      setTextField(form, 'MIDDLE NAMEFATHERS NAME', pick(pwd.father_middle_name, pwd.fatherMiddleName));
+      setTextField(form, 'LAST NAMEMOTHERS NAME', pick(pwd.mother_last_name, pwd.motherLastName));
+      setTextField(form, 'FIRST NAMEMOTHERS NAME', pick(pwd.mother_first_name, pwd.motherFirstName));
+      setTextField(form, 'MIDDLE NAMEMOTHERS NAME', pick(pwd.mother_middle_name, pwd.motherMiddleName));
+
+      const contacts = Array.isArray(pwd.contacts) ? pwd.contacts : [];
+      const primary = contacts.find(function (c) { return c && c.phone; }) || null;
+      const phone = primary && primary.phone ? primary.phone : '';
+      setTextField(form, 'Mobile No', phone);
+      setTextField(form, 'Landline No', phone);
+      setTextField(form, 'Email Address', primary && primary.email ? primary.email : '');
+
+      setCheckField(form, 'Male', pick(pwd.gender) === 'Male');
+      setCheckField(form, 'Female', pick(pwd.gender) === 'Female');
+      const civilStatus = pick(pwd.civil_status, pwd.marital_status);
+      const civilStatusMap = {
+        Single: 'Single',
+        'Single but Head of the Family': 'Single',
+        Separated: 'Separated',
+        'Cohabitation (live-in)': 'Cohabitation livein',
+        Married: 'Married',
+        'Widow/er': 'Widower',
+        Widowed: 'Widower'
+      };
+      setRadioField(form, '7 CIVIL STATUS', civilStatusMap[civilStatus] || '');
+      setCheckField(form, 'APPLICANT', true);
+
+      const educational = normalizeToken(pick(pwd.education_level));
+      const educationTarget = educational.includes('notattended') ? 'None'
+        : educational.includes('elementary') ? 'Elementary'
+        : educational.includes('college') || educational.includes('postgraduate') || educational.includes('vocational') || educational.includes('highschool')
+          ? 'Junior High School'
+          : 'Junior High School';
+      setRadioField(form, '12 EDUCATIONAL ATTAINMENT', educationTarget);
+      selectRadioOptionByPattern(form, ['12 EDUCATIONAL ATTAINMENT', 'Select Educational Level', 'Educational Attainment'], [educationTarget, educational]);
+      setCheckField(form, 'Senior High School', educational.includes('highschool'));
+      setCheckField(form, 'College', educational.includes('college') || educational.includes('postgraduate'));
+      setCheckField(form, 'Vocational', educational.includes('vocational'));
+      setCheckField(form, 'Post Graduate', educational.includes('postgraduate'));
+
+      const employmentStatusRaw = pick(pwd.employment_status);
+      const employmentStatus = normalizeToken(employmentStatusRaw);
+      const employmentStatusOption = employmentStatus.includes('self') ? 'Selfemployed'
+        : employmentStatus.includes('unemployed') ? 'Unemployed'
+        : 'Employed';
+      setRadioField(form, '13 STATUS OF EMPLOYMENT', employmentStatusOption);
+      selectRadioOptionByPattern(form, ['13 STATUS OF EMPLOYMENT', 'Status of Employment'], [employmentStatusOption, employmentStatusRaw]);
+
+      const employmentCategoryRaw = pick(pwd.employment_category);
+      setRadioField(form, '13 a CATEGORY OF EMPLOYMENT', employmentCategoryRaw);
+      selectRadioOptionByPattern(form, ['13 a CATEGORY OF EMPLOYMENT', 'Category of Employment'], [employmentCategoryRaw]);
+
+      const employmentTypeRaw = pick(pwd.employment_type, pwd.employmentType);
+      selectRadioOptionByPattern(form, ['Type of Employment', 'Employment Type'], [employmentTypeRaw]);
+      setCheckField(form, employmentTypeRaw, true);
+
+      try { form.flatten(); } catch (_) {}
+      return pdfDoc.save();
+    }
+
     function getBirthdayRowById(id) {
       return birthdaysCache.find(function (row) { return String(row.id || '') === String(id || ''); }) || null;
     }
@@ -375,7 +656,7 @@
         archiveBtn.setAttribute('aria-label', label);
         archiveBtn.innerHTML = '<span class="icon-only">' + (status === 'Archived'
           ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12C3 7 7 3 12 3C15 3 17.6 4.2 19.3 6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M21 3V7H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 12C21 17 17 21 12 21C9 21 6.4 19.8 4.7 17.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M3 21V17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
-          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M8 6V4H16V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19 6L18 20H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>') + '</span>';
+          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M5 7L6 20H18L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 11H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M9 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M4 4H20V7H4V4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>') + '</span>';
       }
       const pwd = getPwdFromRow(row);
       pwd.status = status;
@@ -534,9 +815,21 @@
 
     const printApplicationBtn = document.getElementById('printApplicationBtn');
     if (printApplicationBtn) {
-      printApplicationBtn.addEventListener('click', function () {
+      printApplicationBtn.addEventListener('click', async function () {
         if (!currentViewPwdId) return;
-        window.open(appPath('/pwd/' + encodeURIComponent(String(currentViewPwdId)) + '/application-pdf'), '_blank');
+        try {
+          const record = await fetchPwdRecordForPrint(currentViewPwdId);
+          const bytes = await buildPwdApplicationPdf(record);
+          const rawLastName = String(record.last_name || record.lastName || 'APPLICANT').trim();
+          const safeLastName = rawLastName.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'APPLICANT';
+          const fileName = safeLastName.toUpperCase() + '.pdf';
+          const file = new File([bytes], fileName, { type: 'application/pdf' });
+          const url = URL.createObjectURL(file);
+          window.open(url, '_blank');
+          setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+        } catch (error) {
+          alert('Failed to generate application PDF: ' + ((error && error.message) ? error.message : String(error)));
+        }
       });
     }
 
@@ -546,7 +839,7 @@
         const pwd = getPwdFromRow(row);
         const id = Number(pwd.id || 0);
         if (!id) return;
-        if (editPwdFrame) editPwdFrame.src = appPath('/add_pwd') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1';
+        if (editPwdFrame) editPwdFrame.src = appPath('/add_pwd') + '?edit=' + encodeURIComponent(String(id)) + '&modal=1&nocache=' + String(Date.now());
         openModal('editModal');
       });
     });

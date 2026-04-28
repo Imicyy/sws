@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title>Social Welfare System - Register</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -547,14 +547,62 @@
             const isDuplicateEmail = /email already exists/i.test(errorMessage);
 
             if (response.ok || result.success === true) {
-              Swal.fire({
+              const createdEmail = String(data.email || '').trim();
+              await Swal.fire({
                 icon: 'success',
-                title: 'Success!',
-                text: result.message || 'User created successfully',
+                title: 'Account Created',
+                text: result.message || 'Enter the verification code sent to your email.',
                 confirmButtonColor: '#2962ff'
-              }).then(() => {
-                window.location.href = '/';
               });
+
+              const verifyResult = await Swal.fire({
+                title: 'Email Verification Code',
+                input: 'text',
+                inputLabel: 'Enter the 6-digit code sent to your email',
+                inputPlaceholder: 'e.g. 123456',
+                inputAttributes: {
+                  maxlength: '6',
+                  autocapitalize: 'off',
+                  autocorrect: 'off'
+                },
+                confirmButtonText: 'Verify',
+                showCancelButton: false,
+                allowOutsideClick: false,
+                confirmButtonColor: '#2962ff',
+                preConfirm: async (code) => {
+                  const normalizedCode = String(code || '').trim();
+                  if (!/^\d{6}$/.test(normalizedCode)) {
+                    Swal.showValidationMessage('Please enter a valid 6-digit code.');
+                    return false;
+                  }
+                  const verifyResponse = await fetch('/verify-email-code', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      email: createdEmail,
+                      code: normalizedCode
+                    })
+                  });
+                  const verifyPayload = await verifyResponse.json().catch(() => ({}));
+                  if (!verifyResponse.ok || verifyPayload.success !== true) {
+                    Swal.showValidationMessage(String(verifyPayload.error || 'Verification failed. Please check your code.'));
+                    return false;
+                  }
+                  return true;
+                }
+              });
+
+              if (verifyResult.isConfirmed) {
+                await Swal.fire({
+                  icon: 'success',
+                  title: 'Verified',
+                  text: 'Email verified successfully. You can now sign in.',
+                  confirmButtonColor: '#2962ff'
+                });
+                window.location.href = '/';
+              }
               return;
             }
 

@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title>Super Admin - System Logs</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; background: #f3f6fb; color: #1f2937; display: flex; }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; background: linear-gradient(135deg, #fffde8 0%, #eef4ff 52%, #fff9d9 100%); color: #1f2937; display: flex; }
     
     /* Sidebar Styles */
     .sidebar { 
@@ -93,10 +93,10 @@
     }
     
     .main { padding: 0; }
-    .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+    .panel { background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border: 1px solid #dbe5f3; border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: 0 12px 26px rgba(37, 99, 235, 0.12); }
     .panel-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    table th { background: #f9fafb; padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
+    table th { background: linear-gradient(135deg, #eff6ff, #fef9c3); color: #1e3a8a; padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
     table td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
     table tr:hover { background: #f9fafb; }
     .main h1 { text-align: center; }
@@ -106,8 +106,35 @@
     input { padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; }
     button { padding: 8px 14px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
     button.btn-primary { background: #0f766e; color: #fff; border: none; }
-    .btn-outline-secondary { padding: 6px 10px; border: 1px solid #ccc; background: #fff; border-radius: 4px; cursor: pointer; }
-    .btn-outline-secondary.active { background: #0f766e; color: #fff; border-color: #0f766e; }
+    .btn-outline-secondary {
+      padding: 8px 14px;
+      border: 1px solid #3b82f6;
+      background: #3b82f6;
+      color: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      line-height: 1.1;
+      min-width: 34px;
+    }
+    .btn-outline-secondary:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+    .btn-outline-secondary.active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+    }
+    .btn-outline-secondary:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      background: #93c5fd;
+      border-color: #93c5fd;
+      color: #eff6ff;
+    }
     @media (max-width: 980px) {
       .filter-bar { flex-wrap: wrap; }
     }
@@ -255,7 +282,26 @@
         
         loginControls.innerHTML = '';
         if (totalPages <= 1) return;
-        for (let i = 1; i <= totalPages; i++) {
+        const maxVisiblePages = 10;
+        let startPage = Math.max(1, loginCurrentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = startPage + maxVisiblePages - 1;
+        if (endPage > totalPages) {
+          endPage = totalPages;
+          startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        const prevBtn = document.createElement('button');
+        prevBtn.type = 'button';
+        prevBtn.className = 'btn btn-outline-secondary';
+        prevBtn.textContent = 'Previous';
+        prevBtn.disabled = loginCurrentPage === 1;
+        prevBtn.addEventListener('click', function () {
+          if (loginCurrentPage <= 1) return;
+          loginCurrentPage -= 1;
+          renderLoginPagination();
+        });
+        loginControls.appendChild(prevBtn);
+
+        for (let i = startPage; i <= endPage; i++) {
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'btn btn-outline-secondary' + (i === loginCurrentPage ? ' active' : '');
@@ -266,6 +312,18 @@
           });
           loginControls.appendChild(btn);
         }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.className = 'btn btn-outline-secondary';
+        nextBtn.textContent = 'Next';
+        nextBtn.disabled = loginCurrentPage === totalPages;
+        nextBtn.addEventListener('click', function () {
+          if (loginCurrentPage >= totalPages) return;
+          loginCurrentPage += 1;
+          renderLoginPagination();
+        });
+        loginControls.appendChild(nextBtn);
       }
 
       window.filterLoginLogs = function () {
@@ -405,6 +463,14 @@
 
         return raw;
       }
+      function escapeHtml(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
       
       function displayEditLogs(logs) {
         const container = document.getElementById('edit-logs-content');
@@ -415,8 +481,8 @@
         
         const logsHtml = logs.map(log => 
           `<div style="margin-bottom: 8px; padding: 4px; border-left: 3px solid #0f766e;">
-            <strong>${log.field}</strong>: "${log.old_value || 'N/A'}" → "${log.new_value || 'N/A'}"<br>
-            <small style="color: #6b7280;">${formatLogDateTime(log.edited_at)} (${log.record_type})</small>
+            <strong>${escapeHtml(log.field || '')}</strong> (${escapeHtml(log.record_type || '')}${log.record_name ? ': ' + escapeHtml(log.record_name) : ''}): "${escapeHtml(log.old_value || 'N/A')}" → "${escapeHtml(log.new_value || 'N/A')}"<br>
+            <small style="color: #6b7280;">${formatLogDateTime(log.edited_at)} by ${escapeHtml(log.edited_by || 'Unknown')}</small>
           </div>`
         ).join('');
         
@@ -432,8 +498,8 @@
         
         const activitiesHtml = activities.map(activity => 
           `<div style="margin-bottom: 8px; padding: 4px; border-left: 3px solid #fbbf24;">
-            <strong>${simplifyActivityType(activity.activity_type)}</strong>: ${simplifyActivityDescription(activity.activity_description)}<br>
-            <small style="color: #6b7280;">${formatLogDateTime(activity.created_at)}</small>
+            <strong>${escapeHtml(simplifyActivityType(activity.activity_type))}</strong>: ${escapeHtml(simplifyActivityDescription(activity.activity_description))}<br>
+            <small style="color: #6b7280;">${formatLogDateTime(activity.created_at)}${activity.email ? ' • ' + escapeHtml(activity.email) : ''}</small>
           </div>`
         ).join('');
         

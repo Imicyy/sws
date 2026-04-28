@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+	<link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
 	<title>Social Welfare System - PWD List</title>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 	<link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
@@ -11,12 +11,14 @@
 		body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #fffef5 0%, #eef5ff 100%); color: #1f2937; position: relative; }
 		.layout { position: relative; z-index: 1; }
 		.layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-		.sidebar { background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%); border-right: 1px solid #dbe5f3; padding: 20px 14px; position: fixed; height: 100vh; width: 260px; overflow-y: auto; box-shadow: 10px 0 24px rgba(37,99,235,0.08); }
+		.sidebar { background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%); border-right: 1px solid #dbe5f3; padding: 20px 14px; position: fixed; height: 100vh; width: 260px; overflow-y: auto; box-shadow: 10px 0 24px rgba(37,99,235,0.08); display: flex; flex-direction: column; }
 		.brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
 		.nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; margin-top: 16px; }
-		.nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
+		.nav-link { display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
 		.nav-link.active { background: linear-gradient(135deg, #60a5fa, #2563eb); color: #fff; box-shadow: 0 8px 18px rgba(59,130,246,0.24); }
 		.nav-link:hover { background: #eaf2ff; }
+		.sidebar .logout-link { margin-top: auto; background: #fee2e2; color: #991b1b; font-weight: 700; }
+		.sidebar .logout-link:hover { background: #ef4444; color: #fff; }
 		.main { margin-left: 260px; padding: 20px; }
 		.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 		.top h1 { margin: 0; font-size: 28px; font-weight: 600; }
@@ -75,7 +77,7 @@
 			<a class="nav-link" href="/pdao-dashboard">Dashboard</a>
 			<a class="nav-link active" href="/Pwd-form">PWD List</a>
 			<a class="nav-link" href="/add_pwd">Add PWD</a>
-			<a class="nav-link" href="/logout">Logout</a>
+			<a class="nav-link logout-link" href="/logout">Logout</a>
 		</aside>
 
 		<main class="main">

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/logo-ebmag.png'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title>Social Welfare System - Staff Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
@@ -14,12 +14,14 @@
     }
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); }
+    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
-    .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
+    .nav-link { display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; }
     .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
     .nav-link:hover { background: #eaf3ff; }
+    .sidebar .logout-link { margin-top: auto; background: #fee2e2; color: #991b1b; font-weight: 700; }
+    .sidebar .logout-link:hover { background: #ef4444; color: #fff; }
     .main { padding: 20px; }
     .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.88); box-shadow: 0 10px 22px rgba(59, 130, 246, 0.08); }
     .top .welcome { color: #6b7280; font-size: 14px; }
@@ -69,7 +71,7 @@
       <a class="nav-link" href="/Senior-form">Senior Form</a>
       <a class="nav-link" href="/add_pwd">Add PWD</a>
       <a class="nav-link" href="/add_senior">Add Senior</a>
-      <a class="nav-link" href="/logout">Logout</a>
+      <a class="nav-link logout-link" href="/logout">Logout</a>
     </aside>
 
     <main class="main">

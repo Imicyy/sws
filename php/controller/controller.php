@@ -131,6 +131,59 @@ class Controller
         return in_array($text, $allowed, true) ? $text : null;
     }
 
+    private function idFromRequestPath(string $resource): int
+    {
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        if ($uri === '') {
+            return 0;
+        }
+
+        $path = parse_url($uri, PHP_URL_PATH);
+        if (!is_string($path) || $path === '') {
+            return 0;
+        }
+
+        $pattern = '#/' . preg_quote($resource, '#') . '/(\d+)/application-pdf$#';
+        if (preg_match($pattern, $path, $matches) === 1) {
+            return isset($matches[1]) ? (int) $matches[1] : 0;
+        }
+
+        return 0;
+    }
+
+    private function isLikelyDirtyText(?string $value): bool
+    {
+        $raw = trim((string) ($value ?? ''));
+        if ($raw === '') {
+            return false;
+        }
+
+        $lettersOnly = preg_replace('/[^A-Za-z]/', '', $raw) ?? '';
+        $letterLen = strlen($lettersOnly);
+        if ($letterLen < 12 || preg_match('/\s/', $raw) === 1) {
+            return false;
+        }
+
+        preg_match_all('/[AEIOUaeiou]/', $lettersOnly, $vowels);
+        $vowelCount = isset($vowels[0]) && is_array($vowels[0]) ? count($vowels[0]) : 0;
+        $vowelRatio = $letterLen > 0 ? ($vowelCount / $letterLen) : 0.0;
+        $hasLongConsonantRun = preg_match('/[BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz]{6,}/', $lettersOnly) === 1;
+        $hasRepeating = preg_match('/(.)\1{4,}/', $lettersOnly) === 1;
+
+        return $hasLongConsonantRun || $hasRepeating || $vowelRatio < 0.2;
+    }
+
+    private function firstDirtyFieldLabel(array $checks): ?string
+    {
+        foreach ($checks as $label => $value) {
+            if ($this->isLikelyDirtyText($value === null ? null : (string) $value)) {
+                return (string) $label;
+            }
+        }
+
+        return null;
+    }
+
     private function fetchBarangays(): array
     {
         $rows = $this->queryAll(
@@ -219,6 +272,7 @@ class Controller
                 ],
                 'date_of_birth' => $row['date_of_birth'] ?? null,
                 'age' => isset($row['age']) ? (int) $row['age'] : null,
+                'religion' => $row['religion'] ?? null,
                 'marital_status' => $row['marital_status'] ?? null,
                 'gender' => $row['gender'] ?? null,
                 'place_of_birth' => !empty($row['place_of_birth']) ? [(string) $row['place_of_birth']] : [],
@@ -432,7 +486,7 @@ class Controller
         }
     }
 
-    private function outputPdfFromTemplateWithText(string $templatePath, string $filename, callable $drawPage1): void
+    private function outputPdfFromTemplateWithText(string $templatePath, string $filename, callable $drawPage1, int $fontSize = 8): void
     {
         if (!class_exists('setasign\\Fpdi\\Fpdi')) {
             throw new RuntimeException('FPDI is not available and Node PDF engine failed.');
@@ -450,7 +504,7 @@ class Controller
                 $pdf->useTemplate($templateId);
 
                 if ($pageNo === 1) {
-                    $pdf->SetFont('Helvetica', '', 8);
+                    $pdf->SetFont('Helvetica', '', $fontSize);
                     $pdf->SetTextColor(0, 0, 0);
                     $drawPage1($pdf);
                 }
@@ -687,6 +741,81 @@ class Controller
         return mail($toEmail, $subject, $textBody, implode("\r\n", $headers));
     }
 
+    private function ensureUserVerificationColumns(): void
+    {
+        $columns = [
+            'is_verified' => "ALTER TABLE users ADD COLUMN is_verified TINYINT(1) NOT NULL DEFAULT 0",
+            'email_verification_token' => "ALTER TABLE users ADD COLUMN email_verification_token VARCHAR(128) NULL",
+            'email_verification_expires_at' => "ALTER TABLE users ADD COLUMN email_verification_expires_at DATETIME NULL",
+            'email_verified_at' => "ALTER TABLE users ADD COLUMN email_verified_at DATETIME NULL",
+        ];
+
+        foreach ($columns as $columnName => $alterSql) {
+            $exists = $this->queryOne(
+                'SELECT COLUMN_NAME
+                 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = ?
+                   AND COLUMN_NAME = ?
+                 LIMIT 1',
+                ['users', $columnName]
+            );
+            if ($exists === null) {
+                $this->execute($alterSql);
+            }
+        }
+    }
+
+    private function sendRegistrationVerificationEmail(string $toEmail, string $code): bool
+    {
+        $subject = 'Verify your Social Welfare System account';
+        $textBody = "Welcome to Social Welfare System.\n\nYour verification code is: {$code}\n\nThis code expires in 24 hours.";
+        $htmlBody = '<p>Welcome to Social Welfare System.</p>'
+            . '<p>Your verification code is:</p>'
+            . '<p style="font-size:18px;font-weight:700;letter-spacing:2px;">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</p>'
+            . '<p>This code expires in 24 hours.</p>';
+
+        $smtpUser = getenv('SMTP_USER') ?: '';
+        $smtpPass = getenv('SMTP_PASS') ?: '';
+        $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+        $smtpPort = (int) (getenv('SMTP_PORT') ?: 587);
+        $smtpSecure = strtolower((string) (getenv('SMTP_SECURE') ?: 'false')) === 'true';
+        $from = getenv('SMTP_FROM') ?: ($smtpUser !== '' ? $smtpUser : 'no-reply@example.com');
+
+        if (class_exists('PHPMailer\\PHPMailer\\PHPMailer') && $smtpUser !== '' && $smtpPass !== '') {
+            try {
+                $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host = $smtpHost;
+                $mail->SMTPAuth = true;
+                $mail->Username = $smtpUser;
+                $mail->Password = $smtpPass;
+                $mail->Port = $smtpPort;
+                if ($smtpSecure) {
+                    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+                } else {
+                    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                }
+                $mail->setFrom($from);
+                $mail->addAddress($toEmail);
+                $mail->isHTML(true);
+                $mail->Subject = $subject;
+                $mail->Body = $htmlBody;
+                $mail->AltBody = $textBody;
+                $mail->send();
+                return true;
+            } catch (Throwable $e) {
+                // Fall back to mail() below.
+            }
+        }
+
+        $headers = [];
+        $headers[] = 'From: ' . $from;
+        $headers[] = 'MIME-Version: 1.0';
+        $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+        return mail($toEmail, $subject, $textBody, implode("\r\n", $headers));
+    }
+
     private function computePolygonCentroid(array $feature): ?array
     {
         $geometry = $feature['geometry'] ?? null;
@@ -802,6 +931,7 @@ class Controller
     {
         try {
             $body = $this->input();
+            $this->ensureUserVerificationColumns();
 
             $name = trim((string) ($body['name'] ?? ''));
             $email = trim((string) ($body['email'] ?? ''));
@@ -854,27 +984,41 @@ class Controller
             }
 
             $hashed = password_hash($password, PASSWORD_BCRYPT);
+            $verificationToken = $this->generateVerificationCode();
+            $verificationExpiresAt = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
+
+            $this->db->beginTransaction();
 
             $stmt = $this->db->prepare(
-                "INSERT INTO users (name, email, password, role, status, barangay_id, staff_classification) VALUES (?, ?, ?, ?, 'Active', ?, ?)"
+                "INSERT INTO users (name, email, password, role, status, barangay_id, staff_classification, is_verified, email_verification_token, email_verification_expires_at, email_verified_at) VALUES (?, ?, ?, ?, 'Active', ?, ?, 0, ?, ?, NULL)"
             );
-            $stmt->execute([$name, $email, $hashed, $role, $barangayIdVal, $staffClassificationVal]);
+            $stmt->execute([$name, $email, $hashed, $role, $barangayIdVal, $staffClassificationVal, $verificationToken, $verificationExpiresAt]);
             $id = (int) $this->db->lastInsertId();
+
+            $emailSent = $this->sendRegistrationVerificationEmail($email, $verificationToken);
+            if (!$emailSent) {
+                throw new RuntimeException('Failed to send verification email. Please configure SMTP settings and try again.');
+            }
+            $this->db->commit();
 
             $this->jsonResponse([
                 'success' => true,
-                'message' => 'User created successfully',
+                'message' => 'User created successfully. Enter the verification code sent to your email.',
                 'user' => [
                     'id' => $id,
                     'name' => $name,
                     'email' => $email,
                     'role' => $role,
                     'status' => 'Active',
+                    'is_verified' => 0,
                     'barangay_id' => $barangayIdVal,
                     'staff_classification' => $staffClassificationVal,
                 ],
             ], 201);
         } catch (Throwable $e) {
+            if ($this->db instanceof PDO && $this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
             $this->jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
@@ -883,6 +1027,7 @@ class Controller
     {
         try {
             $body = $this->input();
+            $this->ensureUserVerificationColumns();
             $email = trim((string) ($body['email'] ?? ''));
             $password = (string) ($body['password'] ?? '');
 
@@ -912,8 +1057,15 @@ class Controller
                 $this->jsonResponse(['success' => false, 'error' => 'Invalid credentials'], 401);
             }
 
+            if ((int) ($user['is_verified'] ?? 0) !== 1) {
+                $this->execute('INSERT INTO login_logs (user_id, status) VALUES (?, ?)', [(int) $user['id'], 'failed']);
+                $this->jsonResponse([
+                    'success' => false,
+                    'error' => 'Please verify your email address before signing in.',
+                ], 403);
+            }
+
             $this->execute('INSERT INTO login_logs (user_id, status) VALUES (?, ?)', [(int) $user['id'], 'success']);
-            $this->execute('UPDATE users SET is_verified = 1 WHERE id = ?', [(int) $user['id']]);
 
             $_SESSION['user'] = [
                 '_id' => (int) $user['id'],
@@ -967,7 +1119,6 @@ class Controller
                 $this->jsonResponse(['success' => false, 'error' => 'Invalid verification code.'], 401);
             }
 
-            $this->execute('UPDATE users SET is_verified = 1 WHERE id = ?', [(int) $pending['userId']]);
             $this->execute('INSERT INTO login_logs (user_id, status) VALUES (?, ?)', [(int) $pending['userId'], 'success']);
 
             $_SESSION['user'] = [
@@ -984,6 +1135,96 @@ class Controller
                 'success' => true,
                 'redirectUrl' => $this->getRedirectPathByRole($_SESSION['user']),
             ]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function verifyEmail(): void
+    {
+        try {
+            $this->ensureUserVerificationColumns();
+            $token = trim((string) ($_GET['token'] ?? ''));
+            if ($token === '') {
+                $this->redirect('/?verify=invalid');
+            }
+
+            $user = $this->queryOne(
+                'SELECT id, email_verification_expires_at, is_verified FROM users WHERE email_verification_token = ? LIMIT 1',
+                [$token]
+            );
+
+            if ($user === null) {
+                $this->redirect('/?verify=invalid');
+            }
+
+            if ((int) ($user['is_verified'] ?? 0) === 1) {
+                $this->redirect('/?verify=already');
+            }
+
+            $expiresAt = (string) ($user['email_verification_expires_at'] ?? '');
+            if ($expiresAt === '' || strtotime($expiresAt) < time()) {
+                $this->redirect('/?verify=expired');
+            }
+
+            $this->execute(
+                'UPDATE users SET is_verified = 1, email_verified_at = NOW(), email_verification_token = NULL, email_verification_expires_at = NULL WHERE id = ?',
+                [(int) $user['id']]
+            );
+            $this->redirect('/?verify=success');
+        } catch (Throwable $e) {
+            $this->redirect('/?verify=error');
+        }
+    }
+
+    public function verifyEmailCode(): void
+    {
+        try {
+            $this->ensureUserVerificationColumns();
+            $body = $this->input();
+            $email = trim((string) ($body['email'] ?? ''));
+            $code = trim((string) ($body['code'] ?? ''));
+
+            if ($email === '' || $code === '') {
+                $this->jsonResponse(['success' => false, 'error' => 'Email and verification code are required.'], 400);
+            }
+
+            $user = $this->queryOne(
+                'SELECT id, is_verified, email_verification_token, email_verification_expires_at
+                 FROM users
+                 WHERE email = ?
+                 LIMIT 1',
+                [$email]
+            );
+
+            if ($user === null) {
+                $this->jsonResponse(['success' => false, 'error' => 'Account not found.'], 404);
+            }
+            if ((int) ($user['is_verified'] ?? 0) === 1) {
+                $this->jsonResponse(['success' => true, 'message' => 'Email already verified.']);
+            }
+
+            $expiresAt = (string) ($user['email_verification_expires_at'] ?? '');
+            if ($expiresAt === '' || strtotime($expiresAt) < time()) {
+                $this->jsonResponse(['success' => false, 'error' => 'Verification code has expired.'], 400);
+            }
+
+            $expectedCode = trim((string) ($user['email_verification_token'] ?? ''));
+            if (!hash_equals($expectedCode, $code)) {
+                $this->jsonResponse(['success' => false, 'error' => 'Invalid verification code.'], 400);
+            }
+
+            $this->execute(
+                'UPDATE users
+                 SET is_verified = 1,
+                     email_verified_at = NOW(),
+                     email_verification_token = NULL,
+                     email_verification_expires_at = NULL
+                 WHERE id = ?',
+                [(int) $user['id']]
+            );
+
+            $this->jsonResponse(['success' => true, 'message' => 'Email verified successfully. You can now sign in.']);
         } catch (Throwable $e) {
             $this->jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
         }
@@ -1109,6 +1350,33 @@ class Controller
     {
         try {
             $body = $this->input();
+            $sessionUser = $_SESSION['user'] ?? null;
+            if (is_array($sessionUser) && (($sessionUser['role'] ?? '') === 'Barangay')) {
+                $scope = $this->fetchBarangayScopeForSessionUser($sessionUser);
+                if ($scope === null) {
+                    $this->jsonResponse(['success' => false, 'message' => 'This account is not linked to a barangay.'], 403);
+                }
+
+                $assignedBarangay = (string) ($scope['barangay'] ?? '');
+                $requestedBarangay = trim((string) ($body['barangay'] ?? ''));
+                if ($requestedBarangay !== '' && strcasecmp($requestedBarangay, $assignedBarangay) !== 0) {
+                    $this->jsonResponse(['success' => false, 'message' => 'You can only add records within your assigned barangay.'], 403);
+                }
+
+                $allBarangays = $this->fetchBarangays();
+                $allowedPuroks = is_array($allBarangays[$assignedBarangay] ?? null) ? $allBarangays[$assignedBarangay] : [];
+                $requestedPurok = trim((string) ($body['purok'] ?? ''));
+                if ($requestedPurok === '') {
+                    $this->jsonResponse(['success' => false, 'message' => 'Purok is required.'], 400);
+                }
+                if ($allowedPuroks && !in_array($requestedPurok, $allowedPuroks, true)) {
+                    $this->jsonResponse(['success' => false, 'message' => 'Invalid purok for your assigned barangay.'], 403);
+                }
+
+                $body['barangay'] = $assignedBarangay;
+                $body['purok'] = $requestedPurok;
+            }
+
             $birthday = $this->parseDate((string) ($body['birthday'] ?? ''));
             if ($birthday === null) {
                 $this->jsonResponse(['success' => false, 'message' => 'Birthday is invalid'], 400);
@@ -1118,6 +1386,34 @@ class Controller
             $lastName = trim((string) ($body['last_name'] ?? ''));
             if ($firstName === '' || $lastName === '') {
                 $this->jsonResponse(['success' => false, 'message' => 'First name and last name are required'], 400);
+            }
+
+            $dirtyPwdField = $this->firstDirtyFieldLabel([
+                'First Name' => $body['first_name'] ?? null,
+                'Middle Name' => $body['middle_name'] ?? null,
+                'Last Name' => $body['last_name'] ?? null,
+                'Place of Birth' => $body['place_of_birth'] ?? null,
+                'Spouse Name' => $body['spouse_name'] ?? null,
+                "Father's Last Name" => $body['fatherLastName'] ?? null,
+                "Father's First Name" => $body['fatherFirstName'] ?? null,
+                "Father's Middle Name" => $body['fatherMiddleName'] ?? null,
+                "Mother's Last Name" => $body['motherLastName'] ?? null,
+                "Mother's First Name" => $body['motherFirstName'] ?? null,
+                "Mother's Middle Name" => $body['motherMiddleName'] ?? null,
+            ]);
+            if ($dirtyPwdField !== null) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid text detected in "' . $dirtyPwdField . '". Please avoid random/dirty data.'], 400);
+            }
+
+            if (isset($body['contacts']) && is_array($body['contacts'])) {
+                foreach ($body['contacts'] as $idx => $contact) {
+                    if (!is_array($contact)) {
+                        continue;
+                    }
+                    if ($this->isLikelyDirtyText(isset($contact['name']) ? (string) $contact['name'] : null)) {
+                        $this->jsonResponse(['success' => false, 'message' => 'Invalid text detected in "Contact Name #' . ((int) $idx + 1) . '". Please avoid random/dirty data.'], 400);
+                    }
+                }
             }
 
             $exists = $this->queryOne(
@@ -1155,7 +1451,6 @@ class Controller
                 $employmentType = null;
             }
 
-            $sessionUser = $_SESSION['user'] ?? null;
             $creatorEmailOrName = is_array($sessionUser)
                 ? (string) ($sessionUser['email'] ?? $sessionUser['name'] ?? 'Unknown')
                 : 'Unknown';
@@ -1274,6 +1569,34 @@ class Controller
             $before = $this->getPwdByIdWithRelations($id);
             if ($before === null) {
                 $this->jsonResponse(['success' => false, 'message' => 'PWD record not found'], 404);
+            }
+
+            $dirtyPwdField = $this->firstDirtyFieldLabel([
+                'First Name' => $body['first_name'] ?? null,
+                'Middle Name' => $body['middle_name'] ?? null,
+                'Last Name' => $body['last_name'] ?? null,
+                'Place of Birth' => $body['place_of_birth'] ?? null,
+                'Spouse Name' => $body['spouse_name'] ?? null,
+                "Father's Last Name" => $body['fatherLastName'] ?? null,
+                "Father's First Name" => $body['fatherFirstName'] ?? null,
+                "Father's Middle Name" => $body['fatherMiddleName'] ?? null,
+                "Mother's Last Name" => $body['motherLastName'] ?? null,
+                "Mother's First Name" => $body['motherFirstName'] ?? null,
+                "Mother's Middle Name" => $body['motherMiddleName'] ?? null,
+            ]);
+            if ($dirtyPwdField !== null) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid text detected in "' . $dirtyPwdField . '". Please avoid random/dirty data.'], 400);
+            }
+
+            if (isset($body['contacts']) && is_array($body['contacts'])) {
+                foreach ($body['contacts'] as $idx => $contact) {
+                    if (!is_array($contact)) {
+                        continue;
+                    }
+                    if ($this->isLikelyDirtyText(isset($contact['name']) ? (string) $contact['name'] : null)) {
+                        $this->jsonResponse(['success' => false, 'message' => 'Invalid text detected in "Contact Name #' . ((int) $idx + 1) . '". Please avoid random/dirty data.'], 400);
+                    }
+                }
             }
 
             $mapping = [
@@ -1456,6 +1779,41 @@ class Controller
     {
         try {
             $body = $this->input();
+            $sessionUser = $_SESSION['user'] ?? null;
+            if (is_array($sessionUser) && (($sessionUser['role'] ?? '') === 'Barangay')) {
+                $scope = $this->fetchBarangayScopeForSessionUser($sessionUser);
+                if ($scope === null) {
+                    $this->jsonResponse(['success' => false, 'message' => 'This account is not linked to a barangay.'], 403);
+                }
+
+                $assignedBarangay = (string) ($scope['barangay'] ?? '');
+                $requestedBarangay = trim((string) ($body['barangay'] ?? $body['identifying_information']['address']['barangay'] ?? ''));
+                if ($requestedBarangay !== '' && strcasecmp($requestedBarangay, $assignedBarangay) !== 0) {
+                    $this->jsonResponse(['success' => false, 'message' => 'You can only add records within your assigned barangay.'], 403);
+                }
+
+                $allBarangays = $this->fetchBarangays();
+                $allowedPuroks = is_array($allBarangays[$assignedBarangay] ?? null) ? $allBarangays[$assignedBarangay] : [];
+                $requestedPurok = trim((string) ($body['purok'] ?? $body['identifying_information']['address']['purok'] ?? ''));
+                if ($requestedPurok === '') {
+                    $this->jsonResponse(['success' => false, 'message' => 'Purok is required.'], 400);
+                }
+                if ($allowedPuroks && !in_array($requestedPurok, $allowedPuroks, true)) {
+                    $this->jsonResponse(['success' => false, 'message' => 'Invalid purok for your assigned barangay.'], 403);
+                }
+
+                $body['barangay'] = $assignedBarangay;
+                $body['purok'] = $requestedPurok;
+                if (!isset($body['identifying_information']) || !is_array($body['identifying_information'])) {
+                    $body['identifying_information'] = [];
+                }
+                if (!isset($body['identifying_information']['address']) || !is_array($body['identifying_information']['address'])) {
+                    $body['identifying_information']['address'] = [];
+                }
+                $body['identifying_information']['address']['barangay'] = $assignedBarangay;
+                $body['identifying_information']['address']['purok'] = $requestedPurok;
+            }
+
             $firstName = trim((string) ($body['first_name'] ?? $body['identifying_information']['name']['first_name'] ?? ''));
             $lastName = trim((string) ($body['last_name'] ?? $body['identifying_information']['name']['last_name'] ?? ''));
             $dobRaw = (string) ($body['birthday'] ?? $body['date_of_birth'] ?? $body['identifying_information']['date_of_birth'] ?? '');
@@ -1463,6 +1821,37 @@ class Controller
 
             if ($firstName === '' || $lastName === '' || $dob === null) {
                 $this->jsonResponse(['success' => false, 'message' => 'Name and date of birth are required'], 400);
+            }
+
+            $dirtySeniorField = $this->firstDirtyFieldLabel([
+                'First Name' => $body['first_name'] ?? ($body['identifying_information']['name']['first_name'] ?? null),
+                'Middle Name' => $body['middle_name'] ?? ($body['identifying_information']['name']['middle_name'] ?? null),
+                'Last Name' => $body['last_name'] ?? ($body['identifying_information']['name']['last_name'] ?? null),
+                'Place of Birth' => $body['place_of_birth'] ?? ($body['identifying_information']['place_of_birth'] ?? null),
+                'Religion' => $body['religion'] ?? ($body['identifying_information']['religion'] ?? null),
+                'Spouse Name' => $body['spouse_name'] ?? ($body['family_composition']['spouse']['name'] ?? null),
+                "Father's Last Name" => $body['father_last_name'] ?? ($body['family_composition']['father']['last_name'] ?? null),
+                "Father's First Name" => $body['father_first_name'] ?? ($body['family_composition']['father']['first_name'] ?? null),
+                "Father's Middle Name" => $body['father_middle_name'] ?? ($body['family_composition']['father']['middle_name'] ?? null),
+                "Mother's Last Name" => $body['mother_last_name'] ?? ($body['family_composition']['mother']['last_name'] ?? null),
+                "Mother's First Name" => $body['mother_first_name'] ?? ($body['family_composition']['mother']['first_name'] ?? null),
+                "Mother's Middle Name" => $body['mother_middle_name'] ?? ($body['family_composition']['mother']['middle_name'] ?? null),
+                'Service / Business / Employment' => $body['service_business_employment'] ?? ($body['identifying_information']['service_business_employment'] ?? null),
+            ]);
+            if ($dirtySeniorField !== null) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid text detected in "' . $dirtySeniorField . '". Please avoid random/dirty data.'], 400);
+            }
+
+            $incomingSeniorContacts = $body['contacts'] ?? ($body['identifying_information']['contacts'] ?? []);
+            if (is_array($incomingSeniorContacts)) {
+                foreach ($incomingSeniorContacts as $idx => $contact) {
+                    if (!is_array($contact)) {
+                        continue;
+                    }
+                    if ($this->isLikelyDirtyText(isset($contact['name']) ? (string) $contact['name'] : null)) {
+                        $this->jsonResponse(['success' => false, 'message' => 'Invalid text detected in "Contact Name #' . ((int) $idx + 1) . '". Please avoid random/dirty data.'], 400);
+                    }
+                }
             }
 
             $exists = $this->queryOne(
@@ -1473,7 +1862,6 @@ class Controller
                 $this->jsonResponse(['success' => false, 'isDuplicate' => true, 'message' => 'Duplicate senior citizen record found'], 400);
             }
 
-            $sessionUser = $_SESSION['user'] ?? null;
             $creatorEmailOrName = is_array($sessionUser)
                 ? (string) ($sessionUser['email'] ?? $sessionUser['name'] ?? 'Unknown')
                 : 'Unknown';
@@ -1565,6 +1953,13 @@ class Controller
                 $this->jsonResponse(['success' => false, 'error' => 'Resident ID is required'], 400);
             }
 
+            // Keep schema backward-compatible: older DBs may not have religion yet.
+            try {
+                $this->execute('ALTER TABLE senior_citizens ADD COLUMN religion VARCHAR(190) NULL');
+            } catch (Throwable $e) {
+                // Ignore when column already exists or ALTER is not permitted.
+            }
+
             $existing = $this->queryOne('SELECT * FROM senior_citizens WHERE id = ? LIMIT 1', [$id]);
             if (!is_array($existing)) {
                 $this->jsonResponse(['success' => false, 'error' => 'Senior citizen not found'], 404);
@@ -1576,6 +1971,32 @@ class Controller
             $beforeSkillRows = $this->queryAll('SELECT skill FROM senior_skills WHERE senior_id = ?', [$id]);
             $beforeCommunityRows = $this->queryAll('SELECT service FROM senior_community_services WHERE senior_id = ?', [$id]);
 
+            if (!array_key_exists('religion', $body)) {
+                $nestedReligion = $body['identifying_information']['religion'] ?? null;
+                if ($nestedReligion !== null) {
+                    $body['religion'] = $nestedReligion;
+                }
+            }
+
+            $dirtySeniorField = $this->firstDirtyFieldLabel([
+                'First Name' => $body['first_name'] ?? null,
+                'Middle Name' => $body['middle_name'] ?? null,
+                'Last Name' => $body['last_name'] ?? null,
+                'Place of Birth' => $body['place_of_birth'] ?? null,
+                'Religion' => $body['religion'] ?? null,
+                'Spouse Name' => $body['spouse_name'] ?? null,
+                "Father's Last Name" => $body['father_last_name'] ?? null,
+                "Father's First Name" => $body['father_first_name'] ?? null,
+                "Father's Middle Name" => $body['father_middle_name'] ?? null,
+                "Mother's Last Name" => $body['mother_last_name'] ?? null,
+                "Mother's First Name" => $body['mother_first_name'] ?? null,
+                "Mother's Middle Name" => $body['mother_middle_name'] ?? null,
+                'Service / Business / Employment' => $body['service_business_employment'] ?? null,
+            ]);
+            if ($dirtySeniorField !== null) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid text detected in "' . $dirtySeniorField . '". Please avoid random/dirty data.'], 400);
+            }
+
             $map = [
                 'first_name',
                 'middle_name',
@@ -1585,6 +2006,7 @@ class Controller
                 'purok',
                 'age',
                 'place_of_birth',
+                'religion',
                 'marital_status',
                 'gender',
                 'osca_id_number',
@@ -1644,6 +2066,9 @@ class Controller
                 foreach ($contacts as $contact) {
                     if (!is_array($contact) || empty($contact['name'])) {
                         continue;
+                    }
+                    if ($this->isLikelyDirtyText((string) $contact['name'])) {
+                        $this->jsonResponse(['success' => false, 'message' => 'Invalid text detected in contact name. Please avoid random/dirty data.'], 400);
                     }
                     $this->execute(
                         'INSERT INTO senior_contacts (senior_id, type, name, relationship, phone, email) VALUES (?, ?, ?, ?, ?, ?)',
@@ -1723,6 +2148,7 @@ class Controller
                 'purok',
                 'age',
                 'place_of_birth',
+                'religion',
                 'marital_status',
                 'gender',
                 'osca_id_number',
@@ -2548,12 +2974,28 @@ class Controller
             $barangays = [];
         }
 
+        $restrictSeniorBarangay = false;
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (is_array($sessionUser) && (($sessionUser['role'] ?? '') === 'Barangay')) {
+            $scope = $this->fetchBarangayScopeForSessionUser($sessionUser);
+            if ($scope !== null && trim((string) ($scope['barangay'] ?? '')) !== '') {
+                $bname = (string) $scope['barangay'];
+                if (isset($barangays[$bname])) {
+                    $barangays = [$bname => $barangays[$bname]];
+                } else {
+                    $barangays = [$bname => []];
+                }
+                $restrictSeniorBarangay = true;
+            }
+        }
+
         $this->render('staff/add_senior', [
             'title' => $isEditMode ? 'Edit Senior' : 'Add Senior',
             'user' => $_SESSION['user'] ?? null,
             'barangays' => $barangays,
             'isEditMode' => $isEditMode,
             'editSenior' => $editSenior,
+            'restrictSeniorBarangay' => $restrictSeniorBarangay,
         ]);
     }
 
@@ -2579,12 +3021,28 @@ class Controller
             $barangays = [];
         }
 
+        $restrictPwdBarangay = false;
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (is_array($sessionUser) && (($sessionUser['role'] ?? '') === 'Barangay')) {
+            $scope = $this->fetchBarangayScopeForSessionUser($sessionUser);
+            if ($scope !== null && trim((string) ($scope['barangay'] ?? '')) !== '') {
+                $bname = (string) $scope['barangay'];
+                if (isset($barangays[$bname])) {
+                    $barangays = [$bname => $barangays[$bname]];
+                } else {
+                    $barangays = [$bname => []];
+                }
+                $restrictPwdBarangay = true;
+            }
+        }
+
         $this->render('staff/add_pwd', [
             'title' => $isEditMode ? 'Edit PWD' : 'Add PWD',
             'user' => $_SESSION['user'] ?? null,
             'barangays' => $barangays,
             'isEditMode' => $isEditMode,
             'editPwd' => $editPwd,
+            'restrictPwdBarangay' => $restrictPwdBarangay,
         ]);
     }
 
@@ -2695,6 +3153,9 @@ class Controller
         try {
             $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
             if ($id <= 0) {
+                $id = $this->idFromRequestPath('pwd');
+            }
+            if ($id <= 0) {
                 $this->jsonResponse(['success' => false, 'message' => 'Invalid PWD ID'], 400);
             }
 
@@ -2777,7 +3238,8 @@ class Controller
                     $pdf->Cell(60, 4, (string) ($pwd['gsis_sss_no'] ?? ''));
                     $pdf->SetXY(150, 95);
                     $pdf->Cell(40, 4, (string) ($pwd['philhealth_no'] ?? ''));
-                }
+                },
+                12
             );
         } catch (Throwable $e) {
             $this->jsonResponse(['success' => false, 'message' => 'Failed to generate PWD PDF', 'error' => $e->getMessage()], 500);
@@ -2817,6 +3279,9 @@ class Controller
     {
         try {
             $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+            if ($id <= 0) {
+                $id = $this->idFromRequestPath('senior');
+            }
             if ($id <= 0) {
                 $this->jsonResponse(['success' => false, 'message' => 'Invalid Senior Citizen ID'], 400);
             }
@@ -2979,6 +3444,10 @@ class Controller
 
     public function renderOscaDashboard(): void
     {
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
         $sessionUser = $_SESSION['user'] ?? null;
         if (!is_array($sessionUser)) {
             $this->redirect('/');
@@ -3851,6 +4320,44 @@ class Controller
         }
     }
 
+    public function getPwdRecordById(): void
+    {
+        try {
+            $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+            if ($id <= 0) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid PWD ID'], 400);
+            }
+
+            $record = $this->getPwdByIdWithRelations($id);
+            if ($record === null) {
+                $this->jsonResponse(['success' => false, 'message' => 'PWD record not found'], 404);
+            }
+
+            $this->jsonResponse(['success' => true, 'data' => $record]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to load PWD record', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getSeniorRecordById(): void
+    {
+        try {
+            $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+            if ($id <= 0) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid Senior ID'], 400);
+            }
+
+            $record = $this->getSeniorByIdWithRelations($id);
+            if ($record === null) {
+                $this->jsonResponse(['success' => false, 'message' => 'Senior record not found'], 404);
+            }
+
+            $this->jsonResponse(['success' => true, 'data' => $record]);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to load Senior record', 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function getPwdMapData(): void
     {
         if (!$this->db) {
@@ -3982,7 +4489,7 @@ class Controller
     public function getUserEditLogs(): void
     {
         try {
-            $user = $_GET['user'] ?? '';
+            $user = trim((string) ($_GET['user'] ?? ''));
             $hours = isset($_GET['hours']) ? (int) $_GET['hours'] : 24;
             
             if (empty($user)) {
@@ -3991,6 +4498,26 @@ class Controller
 
             // Calculate the timestamp for the last X hours
             $since = date('Y-m-d H:i:s', strtotime("-{$hours} hours"));
+            $userRow = null;
+            if (is_numeric($user)) {
+                $userRow = $this->queryOne('SELECT id, email, name FROM users WHERE id = ? LIMIT 1', [(int) $user]);
+            }
+            if (!is_array($userRow)) {
+                $userRow = $this->queryOne('SELECT id, email, name FROM users WHERE email = ? LIMIT 1', [$user]);
+            }
+            if (!is_array($userRow)) {
+                $userRow = $this->queryOne('SELECT id, email, name FROM users WHERE name = ? LIMIT 1', [$user]);
+            }
+            $identifiers = array_values(array_unique(array_filter([
+                $user,
+                is_array($userRow) ? (string) ($userRow['email'] ?? '') : '',
+                is_array($userRow) ? (string) ($userRow['name'] ?? '') : '',
+            ], static fn($v) => trim((string) $v) !== '')));
+            if (!$identifiers) {
+                $identifiers = [$user];
+            }
+            $placeholders = implode(',', array_fill(0, count($identifiers), '?'));
+            $logParams = array_merge($identifiers, [$since]);
 
             // Get PWD edit logs
             $pwdLogs = $this->queryAll(
@@ -3998,9 +4525,9 @@ class Controller
                         TRIM(CONCAT(IFNULL(p.first_name, ""), " ", IFNULL(p.middle_name, ""), " ", IFNULL(p.last_name, ""))) AS record_name
                  FROM pwd_edit_logs l
                  LEFT JOIN pwd p ON p.id = l.pwd_id
-                 WHERE l.edited_by = ? AND l.edited_at >= ?
+                 WHERE l.edited_by IN (' . $placeholders . ') AND l.edited_at >= ?
                  ORDER BY l.edited_at DESC',
-                [$user, $since]
+                $logParams
             );
 
             // Get Senior edit logs
@@ -4009,9 +4536,9 @@ class Controller
                         TRIM(CONCAT(IFNULL(s.first_name, ""), " ", IFNULL(s.middle_name, ""), " ", IFNULL(s.last_name, ""))) AS record_name
                  FROM senior_edit_logs l
                  LEFT JOIN senior_citizens s ON s.id = l.senior_id
-                 WHERE l.edited_by = ? AND l.edited_at >= ?
+                 WHERE l.edited_by IN (' . $placeholders . ') AND l.edited_at >= ?
                  ORDER BY l.edited_at DESC',
-                [$user, $since]
+                $logParams
             );
 
             // Combine and sort by edited_at
@@ -4029,7 +4556,7 @@ class Controller
     public function getUserActivities(): void
     {
         try {
-            $user = $_GET['user'] ?? '';
+            $user = trim((string) ($_GET['user'] ?? ''));
             $hours = isset($_GET['hours']) ? (int) $_GET['hours'] : 24;
             
             if (empty($user)) {
@@ -4038,32 +4565,81 @@ class Controller
 
             // Calculate the timestamp for the last X hours
             $since = date('Y-m-d H:i:s', strtotime("-{$hours} hours"));
+            $userRow = null;
+            if (is_numeric($user)) {
+                $userRow = $this->queryOne('SELECT id, email, name FROM users WHERE id = ? LIMIT 1', [(int) $user]);
+            }
+            if (!is_array($userRow)) {
+                $userRow = $this->queryOne('SELECT id, email, name FROM users WHERE email = ? LIMIT 1', [$user]);
+            }
+            if (!is_array($userRow)) {
+                $userRow = $this->queryOne('SELECT id, email, name FROM users WHERE name = ? LIMIT 1', [$user]);
+            }
+            $resolvedUserId = is_array($userRow) ? (int) ($userRow['id'] ?? 0) : 0;
+            $resolvedEmail = is_array($userRow) ? trim((string) ($userRow['email'] ?? '')) : '';
+            $resolvedName = is_array($userRow) ? trim((string) ($userRow['name'] ?? '')) : '';
+            $lookupEmail = $resolvedEmail !== '' ? $resolvedEmail : (filter_var($user, FILTER_VALIDATE_EMAIL) ? $user : '');
+            $lookupName = $resolvedName !== '' ? $resolvedName : (!is_numeric($user) ? $user : '');
 
             try {
-                // Try to get activities by user email first
+                $conditions = ['ua.created_at >= ?'];
+                $params = [$since];
+                if ($resolvedUserId > 0) {
+                    $conditions[] = 'ua.user_id = ?';
+                    $params[] = $resolvedUserId;
+                } elseif ($lookupEmail !== '') {
+                    $conditions[] = 'u.email = ?';
+                    $params[] = $lookupEmail;
+                } elseif ($lookupName !== '') {
+                    $conditions[] = 'u.name = ?';
+                    $params[] = $lookupName;
+                }
                 $activities = $this->queryAll(
                     'SELECT ua.id, ua.user_id, ua.activity_type, ua.activity_description, ua.created_at, u.email, u.name
                      FROM user_activities ua
                      LEFT JOIN users u ON u.id = ua.user_id
-                     WHERE u.email = ? AND ua.created_at >= ?
+                     WHERE ' . implode(' AND ', $conditions) . '
                      ORDER BY ua.created_at DESC',
-                    [$user, $since]
+                    $params
                 );
-
-                // If no activities found by email, try by user_id (for login logs)
-                if (empty($activities) && is_numeric($user)) {
-                    $activities = $this->queryAll(
-                        'SELECT ua.id, ua.user_id, ua.activity_type, ua.activity_description, ua.created_at, u.email, u.name
-                         FROM user_activities ua
-                         LEFT JOIN users u ON u.id = ua.user_id
-                         WHERE ua.user_id = ? AND ua.created_at >= ?
-                         ORDER BY ua.created_at DESC',
-                        [(int)$user, $since]
-                    );
-                }
             } catch (Throwable $e) {
                 // If table doesn't exist yet, return empty array
                 $activities = [];
+            }
+
+            // Fallback timeline using login logs so superadmin still sees dashboard activity.
+            if (empty($activities)) {
+                $loginConditions = ['l.created_at >= ?'];
+                $loginParams = [$since];
+                if ($resolvedUserId > 0) {
+                    $loginConditions[] = 'l.user_id = ?';
+                    $loginParams[] = $resolvedUserId;
+                } elseif ($lookupEmail !== '') {
+                    $loginConditions[] = 'u.email = ?';
+                    $loginParams[] = $lookupEmail;
+                } elseif ($lookupName !== '') {
+                    $loginConditions[] = 'u.name = ?';
+                    $loginParams[] = $lookupName;
+                }
+                $loginRows = $this->queryAll(
+                    'SELECT l.id, l.user_id, l.status, l.created_at, u.email, u.name
+                     FROM login_logs l
+                     LEFT JOIN users u ON u.id = l.user_id
+                     WHERE ' . implode(' AND ', $loginConditions) . '
+                     ORDER BY l.created_at DESC',
+                    $loginParams
+                );
+                $activities = array_map(static function (array $row): array {
+                    return [
+                        'id' => $row['id'] ?? null,
+                        'user_id' => $row['user_id'] ?? null,
+                        'activity_type' => 'login',
+                        'activity_description' => 'Login attempt: ' . (string) ($row['status'] ?? 'unknown'),
+                        'created_at' => $row['created_at'] ?? null,
+                        'email' => $row['email'] ?? null,
+                        'name' => $row['name'] ?? null,
+                    ];
+                }, $loginRows);
             }
 
             $this->jsonResponse(['success' => true, 'activities' => $activities]);
