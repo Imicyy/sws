@@ -22,6 +22,8 @@
     }
 
     body .main-container {
+      position: relative !important;
+      z-index: 2 !important;
       min-height: 100vh !important;
       display: flex !important;
       align-items: center !important;
@@ -177,6 +179,99 @@
       display: none !important;
     }
 
+    /* Page outline and dense margin watermarks */
+    .page-outline {
+      position: fixed;
+      inset: 8px;
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .watermark-side {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+      color: rgba(80,80,80,0.28);
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      -webkit-text-stroke: 0.3px rgba(80,80,80,0.28);
+      overflow: hidden;
+      padding: 2px;
+      mix-blend-mode: normal;
+    }
+
+    .watermark-left {
+      left: 6px;
+      top: 6px;
+      bottom: 6px;
+      width: 30px;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .watermark-right {
+      right: 6px;
+      top: 6px;
+      bottom: 6px;
+      width: 30px;
+      flex-direction: column-reverse;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .watermark-top {
+      top: 8px;
+      /* leave more space for vertical side marks to avoid overlap */
+      left: 64px;
+      right: 64px;
+      height: 38px;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: 2px;
+      padding-left: 6px;
+    }
+
+    .watermark-bottom {
+      bottom: 8px;
+      /* leave more space for vertical side marks to avoid overlap */
+      left: 64px;
+      right: 64px;
+      height: 30px;
+      flex-direction: row-reverse;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .watermark-vertical span {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: 11px;
+      line-height: 1;
+      white-space: nowrap;
+      display: block;
+      color: rgba(80,80,80,0.36);
+      opacity: 0.36;
+    }
+
+    .watermark-horizontal span {
+      font-size: 11px;
+      white-space: nowrap;
+      display: inline-block;
+      padding: 0 2px;
+      color: rgba(80,80,80,0.36);
+      opacity: 0.36;
+    }
+
     @media (max-width: 991.98px) {
       body .main-container .login-container {
         max-width: 640px !important;
@@ -192,6 +287,39 @@
   </style>
 </head>
 <body>
+  <div class="page-outline" aria-hidden="true"></div>
+
+  <div class="watermark-side watermark-left watermark-vertical" aria-hidden="true">
+    <!-- repeated to densely fill left margin -->
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+  </div>
+
+  <div class="watermark-side watermark-right watermark-vertical" aria-hidden="true">
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+  </div>
+
+  <div class="watermark-side watermark-top watermark-horizontal" aria-hidden="true">
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+  </div>
+
+  <div class="watermark-side watermark-bottom watermark-horizontal" aria-hidden="true">
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+    <span>CCS - TALISAY</span><span>CCS - TALISAY</span><span>CCS - TALISAY</span>
+  </div>
+
   <div class="main-container">
     <div class="login-container">
       <div class="login-image">
