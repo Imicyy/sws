@@ -10,45 +10,47 @@
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%) !important; color: #1f2937; }
+    :root {
+      --bg-page: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%);
+      --panel-border: #dbe5f3;
+      --blue-main: #3b82f6;
+      --blue-soft: #bfdbfe;
+      --yellow-soft: #fef3c7;
+      --yellow-main: #facc15;
+    }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; }
     .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fffef7 !important; border-right: 1px solid #dbe5f3 !important; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
+    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
     .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
     .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
     .nav-center { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; align-items: center; justify-content: center; }
     .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; width: 100%; max-width: 220px; text-align: center; }
     .logout-btn { margin-top: auto; display: block; width: 100%; max-width: 220px; text-align: center; padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 6px 14px rgba(220,38,38,0.18); text-decoration: none; }
     .logout-btn:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }
-    .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6) !important; color: #fff !important; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
-    .nav-link:hover { background: #eaf3ff !important; }
+    .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
+    .nav-link:hover { background: #eaf3ff; }
     .main { padding: 20px; }
-    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.88); box-shadow: 0 10px 22px rgba(59, 130, 246, 0.08); }
     .top .welcome { color: #6b7280; font-size: 14px; }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(220px, 1fr));
-      gap: 14px;
-      max-width: 980px;
-      margin: 0 auto;
-    }
-    .card-metric { border-radius: 12px; padding: 16px; color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.12); }
-    .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; text-align: center; }
-    .card-metric .value { font-size: 26px; font-weight: 700; margin-top: 6px; text-align: center; }
-    .bg-yellow { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-    .bg-blue { background: linear-gradient(135deg, #2563eb, #60a5fa); }
-    .bg-green { background: linear-gradient(135deg, #059669, #34d399); }
-    .bg-red { background: linear-gradient(135deg, #dc2626, #f87171); }
-    .panel { margin-top: 16px; background: linear-gradient(180deg, #ffffff 0%, #fffcf3 100%) !important; border: 1px solid #dbe5f3 !important; border-radius: 12px; padding: 18px; box-shadow: 0 12px 24px rgba(59, 130, 246, 0.08); }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 14px; max-width: 980px; margin: 0 auto; }
+    .card-metric { border-radius: 14px; padding: 16px; color: #1e3a8a; border: 1px solid #dbe5f3; box-shadow: 0 14px 26px rgba(59, 130, 246, 0.10); text-align: center; }
+    .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; }
+    .card-metric .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
+    .bg-yellow { background: linear-gradient(135deg, #fffbeb, #fde68a); color: #713f12; }
+    .bg-blue { background: linear-gradient(135deg, #eff6ff, #93c5fd); }
+    .bg-green { background: linear-gradient(135deg, #f0f9ff, #bfdbfe); }
+    .bg-red { background: linear-gradient(135deg, #fff7ed, #fed7aa); color: #9a3412; }
+    .panel { margin: 16px auto 0; max-width: 1160px; background: linear-gradient(180deg, #ffffff 0%, #fffcf3 100%); border: 1px solid var(--panel-border); border-radius: 14px; padding: 18px; box-shadow: 0 14px 26px rgba(59, 130, 246, 0.08); }
     .table-responsive { margin-top: 24px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; }
+    th, td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; text-align: center; }
     th { background: #eff6ff; color: #1e3a8a; font-weight: 700; }
     tr:last-child td { border-bottom: none; }
-    .action-group { display: flex; gap: 6px; }
+    .action-group { display: flex; gap: 6px; justify-content: center; }
     .chip-btn { border: 0; background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 6px 14px; cursor: pointer; }
     .chip-btn:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
     .chart-shell { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 14px; align-items: stretch; }
-    .chart-card { border: 1px solid #dbe5f3; border-radius: 12px; padding: 12px; background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%); }
+    .chart-card { border: 1px solid var(--panel-border); border-radius: 12px; padding: 12px; background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%); }
     .chart-toolbar { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; }
     .chart-type-btn { border: 1px solid #cbd5e1; background: #f8fbff; color: #1e3a8a; border-radius: 999px; font-weight: 700; font-size: 12px; padding: 6px 12px; cursor: pointer; }
     .chart-type-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
@@ -153,8 +155,8 @@
                           <td><?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?></td>
                           <td><?= (int)$count ?></td>
                           <td>
-                            <div style="display: flex; gap: 8px;">
-                              <button class="btn btn-primary btn-sm" type="button" onclick="viewChart('<?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?>')">View Chart</button>
+                            <div class="action-group">
+                              <button class="chip-btn" type="button" onclick="viewChart('<?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?>')">View Chart</button>
                               <button class="btn btn-secondary btn-sm" type="button" onclick="window.print()">Print</button>
                               <button class="btn btn-info btn-sm" type="button" onclick="monthlyReport('<?= htmlspecialchars($barangay, ENT_QUOTES, 'UTF-8') ?>')">Monthly Report</button>
                             </div>
