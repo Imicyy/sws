@@ -30,15 +30,16 @@
     }
 
     body .main-container .register-container {
-      max-width: 930px !important;
+      max-width: 980px !important;
       width: 100% !important;
-      min-height: 460px !important;
+      min-height: 520px !important;
       display: flex !important;
       gap: 0 !important;
-      border-radius: 16px !important;
+      border-radius: 18px !important;
       overflow: hidden !important;
-      border: 1px solid rgba(255, 255, 255, 0.5) !important;
-      box-shadow: 0 20px 48px rgba(7, 18, 51, 0.45) !important;
+      border: 0 !important;
+      backdrop-filter: blur(6px) saturate(1.05);
+      box-shadow: 0 12px 36px rgba(9, 30, 66, 0.28) !important;
       margin: 0 auto !important;
     }
 
@@ -51,22 +52,25 @@
 
     body .main-container .register-image {
       background:
-        linear-gradient(170deg, rgba(248, 211, 76, 0.2) 0%, rgba(255, 255, 255, 0.07) 45%, rgba(13, 29, 110, 0.27) 100%),
-        linear-gradient(180deg, rgba(244, 240, 223, 0.78) 0%, rgba(229, 233, 246, 0.7) 100%) !important;
-      border-right: 1px solid rgba(255, 255, 255, 0.35) !important;
-      flex: 0.95 !important;
+        linear-gradient(170deg, rgba(248, 211, 76, 0.12) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(13, 29, 110, 0.14) 100%),
+        linear-gradient(180deg, rgba(244, 240, 223, 0.6) 0%, rgba(229, 233, 246, 0.5) 100%) !important;
+      border-right: none !important;
+      flex: 1 !important;
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
       justify-content: center !important;
       text-align: center !important;
-      padding: 2rem 1.5rem !important;
+      padding: 2.5rem 1.8rem !important;
     }
 
     body .main-container .register-form {
-      background: #fff !important;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.98));
       flex: 1.05 !important;
-      padding: 2rem 2.2rem 1.75rem !important;
+      padding: 2.4rem 2.6rem 2rem !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     body .main-container .register-image .logo-circle {
@@ -133,19 +137,19 @@
     }
 
     .role-option {
-      flex: 1 1 0;
-      min-width: 78px;
-      padding: 0.25rem 0.2rem;
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      color: #444;
-      font-weight: 600;
-      font-size: 1rem;
+      flex: 0 0 auto;
+      min-width: 110px;
+      padding: 0.45rem 0.9rem;
+      border: 1px solid rgba(27,47,138,0.08);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.6);
+      color: #273150;
+      font-weight: 700;
+      font-size: 0.95rem;
       text-align: center;
       cursor: pointer;
-      box-shadow: none;
-      transition: color 0.2s ease, text-shadow 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+      box-shadow: 0 6px 14px rgba(12,34,82,0.06);
+      transition: transform 160ms ease, background-color 180ms ease, box-shadow 180ms ease;
     }
 
     .role-option:hover {
@@ -153,18 +157,10 @@
     }
 
     .role-option.active {
-      color: #1b2f8a;
-      text-decoration: underline;
-      text-underline-offset: 4px;
-      text-decoration-thickness: 2px;
-      background: linear-gradient(90deg, rgba(255, 214, 51, 0.2) 0%, rgba(31, 58, 173, 0.18) 100%);
-      border-radius: 8px;
-      box-shadow:
-        0 0 10px rgba(255, 214, 51, 0.55),
-        0 0 14px rgba(37, 99, 235, 0.45);
-      text-shadow:
-        0 0 6px rgba(255, 214, 51, 0.65),
-        0 0 8px rgba(37, 99, 235, 0.55);
+      color: #fff;
+      background: linear-gradient(90deg,#2b60ff 0%, #1b2f8a 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(27,47,138,0.18), 0 2px 6px rgba(11,25,44,0.06);
     }
 
     .register-copy {
@@ -216,30 +212,101 @@
     }
 
     body .main-container .form-group {
-      margin-bottom: 0.82rem !important;
+      margin-bottom: 0.9rem !important;
       position: relative !important;
     }
 
+    /* Modern input boxes */
     body .main-container .form-control,
     body .main-container .select-wrapper select {
-      border: none !important;
-      border-bottom: 1px solid #d4d4d4 !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      background: transparent !important;
-      font-size: 0.9rem !important;
-      height: 36px !important;
-      padding: 0.5rem 1.6rem 0.5rem 0.05rem !important;
+      border: 1px solid rgba(39,57,88,0.08) !important;
+      background: #ffffff !important;
+      border-radius: 12px !important;
+      box-shadow: 0 6px 18px rgba(15,35,75,0.04) inset !important;
+      font-size: 0.96rem !important;
+      height: 48px !important;
+      padding: 0.6rem 1.2rem 0.6rem 3.2rem !important; /* space for left icon */
+      transition: border-color 200ms cubic-bezier(.2,.9,.2,1), box-shadow 200ms cubic-bezier(.2,.9,.2,1), transform 120ms ease;
     }
 
-    body .main-container .form-group i,
-    body .main-container .select-wrapper i {
-      right: 0.2rem !important;
-      left: auto !important;
+    body .main-container .form-control:focus {
+      outline: none !important;
+      border-color: rgba(43,96,255,0.9) !important;
+      box-shadow: 0 10px 28px rgba(43,96,255,0.06) !important;
+      background: #ffffff !important;
+      transform: translateY(-1px);
+    }
+
+    /* unified input wrapper: keeps icons contained inside the input field */
+    .input-wrapper { position: relative; }
+    .input-wrapper .input-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      color: #9aa6c7;
+      pointer-events: none;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .input-wrapper .input-icon.right {
+      left: auto;
+      right: 12px;
+    }
+
+    /* select wrapper should also be positioned so right icons stay inside */
+    body .main-container .select-wrapper { position: relative; }
+    body .main-container .select-wrapper .input-icon.right {
+      position: absolute !important;
+      right: 10px !important;
       top: 50% !important;
       transform: translateY(-50%) !important;
-      font-size: 0.78rem !important;
+      font-size: 0.95rem !important;
       color: #9f9f9f !important;
+      pointer-events: none !important;
+    }
+
+    /* Password toggle placed inside the wrapper on the right */
+    .input-wrapper .password-toggle {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #6b7280;
+      padding: 6px;
+      cursor: pointer;
+      z-index: 5;
+    }
+    .input-wrapper .password-toggle:focus { outline: none; }
+
+    /* ensure inputs have space for left and right icons */
+    .input-wrapper .form-control {
+      padding-left: 3.2rem !important;
+      padding-right: 3.2rem !important;
+      box-sizing: border-box;
+    }
+
+    /* password-strength bar sits below the input and uses a pseudo element for the fill */
+    .password-strength {
+      height: 6px;
+      width: 100%;
+      border-radius: 6px;
+      background: linear-gradient(90deg, rgba(14,50,110,0.06), rgba(14,50,110,0.02));
+      margin-top: 0.5rem;
+      overflow: hidden;
+    }
+    .password-strength::before {
+      content: '';
+      display: block;
+      height: 100%;
+      width: var(--strength-width, 0%);
+      background: var(--strength-color, #ef4444);
+      transition: width 160ms linear;
     }
 
     body .main-container .requirements {
@@ -268,17 +335,18 @@
     }
 
     body .main-container .btn-register {
-      margin-top: 0.65rem !important;
+      margin-top: 0.95rem !important;
       border: 0 !important;
-      border-radius: 8px !important;
-      padding: 0.62rem 1rem !important;
-      font-weight: 700 !important;
-      font-size: 0.82rem !important;
-      background: linear-gradient(90deg, #c29d1d 0%, #b99013 100%) !important;
+      border-radius: 12px !important;
+      padding: 0.72rem 1rem !important;
+      font-weight: 800 !important;
+      font-size: 0.95rem !important;
+      background: linear-gradient(90deg,#2b60ff 0%, #1b2f8a 100%) !important;
       color: #fff !important;
-      box-shadow: 0 7px 16px rgba(185, 144, 19, 0.32) !important;
+      box-shadow: 0 10px 30px rgba(27,47,138,0.18) !important;
       text-transform: none !important;
     }
+    body .main-container .btn-register:hover { transform: translateY(-2px); }
 
     body .main-container .login-link {
       margin-top: 0.8rem !important;
@@ -340,14 +408,16 @@
           <input type="hidden" name="role" id="selected-role" value="user">
 
           <div class="form-group">
-            <input type="text" class="form-control" name="name" id="name" placeholder="Name" required>
-            <i class="fas fa-user"></i>
+            <div class="input-wrapper">
+              <span class="input-icon"><i class="fas fa-user" aria-hidden="true"></i></span>
+              <input type="text" class="form-control" name="name" id="name" placeholder="Name" required>
+            </div>
           </div>
 
           <div class="form-group" id="barangay-id-row" style="display: none;">
             <label for="barangay_id" class="sr-only">Barangay</label>
-            <div class="select-wrapper">
-              <select name="barangay_id" id="barangay_id">
+            <div class="select-wrapper input-wrapper">
+              <select class="form-control" name="barangay_id" id="barangay_id">
                 <option value="">Select your barangay</option>
                 <?php if (!empty($barangayList) && is_array($barangayList)): ?>
                   <?php foreach ($barangayList as $barangay): ?>
@@ -355,31 +425,38 @@
                   <?php endforeach; ?>
                 <?php endif; ?>
               </select>
-              <i class="fas fa-map-marker-alt"></i>
+              <span class="input-icon right"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></span>
             </div>
           </div>
 
           <div class="form-group" id="staff-type-row" style="display: none;">
             <label for="staff_classification" class="sr-only">Staff Type</label>
-            <div class="select-wrapper">
-              <select name="staff_classification" id="staff_classification">
+            <div class="select-wrapper input-wrapper">
+              <select class="form-control" name="staff_classification" id="staff_classification">
                 <option value="">Select your department</option>
                 <option value="PDAO">PDAO</option>
                 <option value="OSCA">OSCA</option>
               </select>
-              <i class="fas fa-user-tie"></i>
+              <span class="input-icon right"><i class="fas fa-user-tie" aria-hidden="true"></i></span>
             </div>
           </div>
 
           <div class="form-group">
-            <input type="email" class="form-control" name="email" placeholder="Email Address" required>
-            <i class="fas fa-envelope"></i>
+            <div class="input-wrapper">
+              <span class="input-icon"><i class="fas fa-envelope" aria-hidden="true"></i></span>
+              <input type="email" class="form-control" name="email" placeholder="Email Address" required>
+            </div>
           </div>
 
-          <div class="form-group">
-            <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
-            <i class="fas fa-lock"></i>
-            <div class="password-strength"></div>
+          <div class="form-group password-group">
+            <div class="input-wrapper">
+              <span class="input-icon"><i class="fas fa-lock" aria-hidden="true"></i></span>
+              <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
+              <button type="button" class="password-toggle" id="toggleRegisterPassword" aria-label="Show password">
+                <i class="fas fa-eye" id="toggleRegisterPasswordIcon"></i>
+              </button>
+              <div class="password-strength"></div>
+            </div>
             <div class="requirements">
               <div class="requirement"><i class="fas fa-circle"></i> At least 8 characters</div>
               <div class="requirement"><i class="fas fa-circle"></i> Contains uppercase & lowercase</div>
@@ -387,9 +464,14 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password" required>
-            <i class="fas fa-lock"></i>
+          <div class="form-group password-group">
+            <div class="input-wrapper">
+              <span class="input-icon"><i class="fas fa-lock" aria-hidden="true"></i></span>
+              <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Confirm Password" required>
+              <button type="button" class="password-toggle" id="toggleConfirmPassword" aria-label="Show confirm password">
+                <i class="fas fa-eye" id="toggleConfirmPasswordIcon"></i>
+              </button>
+            </div>
           </div>
 
           <button type="submit" class="btn btn-register btn-block">Create Account</button>
@@ -624,5 +706,38 @@
       }
     });
   </script>
+  <script>
+    (function () {
+      const pwd = document.getElementById('password');
+      const toggle = document.getElementById('toggleRegisterPassword');
+      const toggleIcon = document.getElementById('toggleRegisterPasswordIcon');
+      const confirm = document.getElementById('confirm_password');
+      const toggleConfirm = document.getElementById('toggleConfirmPassword');
+      const toggleConfirmIcon = document.getElementById('toggleConfirmPasswordIcon');
+
+      if (toggle && pwd) {
+        toggle.addEventListener('click', function () {
+          const hidden = pwd.type === 'password';
+          pwd.type = hidden ? 'text' : 'password';
+          toggleIcon.classList.toggle('fa-eye-slash', hidden);
+          toggleIcon.classList.toggle('fa-eye', !hidden);
+        });
+      }
+
+      if (toggleConfirm && confirm) {
+        toggleConfirm.addEventListener('click', function () {
+          const hidden = confirm.type === 'password';
+          confirm.type = hidden ? 'text' : 'password';
+          toggleConfirmIcon.classList.toggle('fa-eye-slash', hidden);
+          toggleConfirmIcon.classList.toggle('fa-eye', !hidden);
+        });
+      }
+    })();
+  </script>
+  <footer class="site-footer text-center" style="position:fixed;left:0;right:0;bottom:18px;z-index:1;pointer-events:none;">
+    <div style="background:rgba(0,0,0,0.28);color:#fff;padding:6px 12px;border-radius:6px;display:inline-block;">
+      © 2026 Social Welfare System. All Rights Reserved.
+    </div>
+  </footer>
 </body>
 </html>

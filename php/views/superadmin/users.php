@@ -140,6 +140,21 @@
       border-color: #93c5fd;
       color: #eff6ff;
     }
+    /* Add User button styling: square and colored */
+    .btn-add-user {
+      border-radius: 0 !important;
+      background: linear-gradient(90deg, #06b6d4 0%, #0ea5e9 100%) !important;
+      border-color: #06b6d4 !important;
+      color: #fff !important;
+      padding: 6px 12px !important;
+      box-shadow: 0 8px 18px rgba(14,165,233,0.16) !important;
+      font-weight: 700 !important;
+    }
+    .btn-add-user:hover {
+      background: linear-gradient(90deg, #0b94a6 0%, #0b93d1 100%) !important;
+      border-color: #0b94a6 !important;
+      color: #fff !important;
+    }
   </style>
 </head>
 <body>
@@ -163,9 +178,8 @@
     <div class="card-shell">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="mb-0">User Management</h3>
-        <div>
-          <a href="/index-superadmin" class="btn btn-sm btn-outline-secondary">Dashboard</a>
-          <a href="/register" class="btn btn-sm btn-primary" target="_blank">Add User</a>
+        <div class="btn-group" role="group" aria-label="Page actions">
+          <a href="/register" class="btn btn-sm btn-add-user" target="_blank">Add User</a>
         </div>
       </div>
 
@@ -446,6 +460,40 @@
       });
 
       applyTable();
+    })();
+  </script>
+  <script>
+    (function () {
+      const navLinks = document.querySelectorAll('.sidebar-nav a, .nav-center a');
+      if (!navLinks || navLinks.length === 0) return;
+
+      function normalizePath(p) {
+        try { return new URL(p, window.location.origin).pathname.replace(/\/$/, ''); } catch (e) { return String(p || '').replace(/\/$/, ''); }
+      }
+
+      function setActiveByLocation() {
+        const current = window.location.pathname.replace(/\/$/, '');
+        navLinks.forEach(a => {
+          const href = a.getAttribute('href') || '';
+          const hrefPath = normalizePath(href);
+          if (hrefPath !== '' && hrefPath !== '/' && current.includes(hrefPath)) {
+            a.classList.add('active');
+          } else if (hrefPath === current) {
+            a.classList.add('active');
+          } else {
+            a.classList.remove('active');
+          }
+        });
+      }
+
+      navLinks.forEach(a => {
+        a.addEventListener('click', function () {
+          navLinks.forEach(x => x.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+
+      setActiveByLocation();
     })();
   </script>
   </div>

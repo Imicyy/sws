@@ -137,7 +137,8 @@
       border-bottom: 1px solid #d4d4d4 !important;
       border-radius: 0 !important;
       box-shadow: none !important;
-      padding: 0.65rem 2rem 0.65rem 1.75rem !important;
+      /* left padding for the left icon, right padding for the toggle button */
+      padding: 0.65rem 2.6rem 0.65rem 2.2rem !important;
       font-size: 0.95rem !important;
       color: #3a3a3a !important;
       background: transparent !important;
@@ -146,20 +147,26 @@
     body .main-container .form-group .fa-envelope,
     body .main-container .form-group .fa-lock {
       position: absolute !important;
-      left: 0.25rem !important;
+      left: 0.9rem !important;
       top: 50% !important;
       transform: translateY(-50%) !important;
       color: #9f9f9f !important;
-      font-size: 0.82rem !important;
+      font-size: 0.95rem !important;
+      pointer-events: none !important;
     }
 
+    body .main-container .password-group { position: relative !important; }
+
     body .main-container .password-toggle {
+      position: absolute !important;
       top: 50% !important;
-      right: 0.25rem !important;
+      right: 0.6rem !important;
       transform: translateY(-50%) !important;
       color: #9f9f9f !important;
       background: none !important;
       border: 0 !important;
+      padding: 0.15rem !important;
+      z-index: 3 !important;
     }
 
     body .main-container .btn-login {
@@ -418,6 +425,51 @@
         });
       }
     })();
+    
+    // Intercept login form submit and show modal on error response (with fallback)
+    (function () {
+      const form = document.getElementById('loginForm');
+      if (!form) return;
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const email = (form.querySelector('input[name="email"]') || {}).value || '';
+        const password = (form.querySelector('input[name="password"]') || {}).value || '';
+
+        try {
+          const res = await fetch(form.action, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: String(email).trim(), password: String(password) })
+          });
+
+          const payload = await res.json().catch(() => ({}));
+
+          if (res.ok && payload && payload.success === true) {
+            window.location.href = payload.redirect || '/';
+            return;
+          }
+
+          const msg = (payload && (payload.error || payload.message)) || 'Invalid credentials';
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'error', title: 'Login Failed', text: String(msg), confirmButtonColor: '#2962ff' });
+          } else {
+            alert('Login Failed: ' + String(msg));
+          }
+        } catch (err) {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not connect to the server', confirmButtonColor: '#2962ff' });
+          } else {
+            alert('Network Error: Could not connect to the server');
+          }
+        }
+      });
+    })();
   </script>
+  <footer class="site-footer text-center" style="position:fixed;left:0;right:0;bottom:18px;z-index:1;pointer-events:none;">
+    <div style="background:rgba(0,0,0,0.28);color:#fff;padding:6px 12px;border-radius:6px;display:inline-block;">
+      © 2026 Social Welfare System. All Rights Reserved.
+    </div>
+  </footer>
 </body>
 </html>
