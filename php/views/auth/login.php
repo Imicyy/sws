@@ -432,6 +432,9 @@
       if (!form) return;
 
       form.addEventListener('submit', async function (e) {
+        // If we've flagged to bypass AJAX, allow normal submit to proceed
+        if (form.dataset.bypassAjax === '1') return;
+
         e.preventDefault();
         const email = (form.querySelector('input[name="email"]') || {}).value || '';
         const password = (form.querySelector('input[name="password"]') || {}).value || '';
@@ -446,7 +449,7 @@
           const payload = await res.json().catch(() => ({}));
 
           if (res.ok && payload && payload.success === true) {
-            window.location.href = payload.redirect || '/';
+            window.location.href = payload.redirect || payload.redirectUrl || '/';
             return;
           }
 
@@ -456,12 +459,20 @@
           } else {
             alert('Login Failed: ' + String(msg));
           }
+
+          // If server returned a non-JSON redirect or unexpected response, fall back to normal submit
+          form.dataset.bypassAjax = '1';
+          form.submit();
         } catch (err) {
           if (typeof Swal !== 'undefined') {
             Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not connect to the server', confirmButtonColor: '#2962ff' });
           } else {
             alert('Network Error: Could not connect to the server');
           }
+
+          // Try a normal form submit as fallback (will follow server redirects)
+          form.dataset.bypassAjax = '1';
+          form.submit();
         }
       });
     })();
