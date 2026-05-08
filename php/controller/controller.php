@@ -4068,9 +4068,10 @@ class Controller
         $status = strtolower(trim((string) ($_GET['status'] ?? '')));
         if ($status === 'archived') {
             $filters[] = 'status = "Archived"';
-        } elseif ($status !== 'all') {
+        } elseif ($status === 'active') {
             $filters[] = 'status <> "Archived"';
         }
+        // If status is 'all' or not specified, we fetch everything for client-side filtering
 
         $purok = trim((string) ($_GET['purok'] ?? ''));
         if ($purok !== '') {
@@ -4124,9 +4125,10 @@ class Controller
         $status = strtolower(trim((string) ($_GET['status'] ?? '')));
         if ($status === 'archived') {
             $filters[] = 'status = "Archived"';
-        } elseif ($status !== 'all') {
+        } elseif ($status === 'active') {
             $filters[] = 'status <> "Archived"';
         }
+        // If status is 'all' or not specified, we fetch everything for client-side filtering
 
         $purok = trim((string) ($_GET['purok'] ?? ''));
         if ($purok !== '') {

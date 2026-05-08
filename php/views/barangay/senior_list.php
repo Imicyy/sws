@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Barangay — Senior Citizens List</title>
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
   <link rel="stylesheet" href="/files/bower_components/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
@@ -32,19 +33,38 @@
       pointer-events: none;
     }
     .layout { display: block; min-height: 100vh; position: relative; z-index: 1; }
-    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; height: 100vh; width: 260px; box-sizing: border-box; overflow-y: auto; position: fixed; top: 0; left: 0; box-shadow: 10px 0 30px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; z-index: 100; }
-    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.7px; margin-bottom: 18px; color: #0f172a !important; opacity: 1 !important; visibility: visible !important; }
-    .nav-title { font-size: 12px; color: #6b7280 !important; text-transform: uppercase; margin: 8px 10px; opacity: 1 !important; visibility: visible !important; }
-    .sidebar .nav-link { display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; min-height: 42px !important; padding: 12px 14px; margin-bottom: 8px; border-radius: 12px; color: #334155 !important; text-decoration: none !important; font-weight: 600; font-size: 14px !important; line-height: 1.4 !important; letter-spacing: .2px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
-    .sidebar .nav-link.active { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #fff !important; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); border-color: transparent; }
-    .sidebar .nav-link:hover:not(.active) { background: #f1f5f9; color: #0f172a !important; transform: translateX(4px); border-color: #e2e8f0; }
-    .sidebar .logout-link { background: #fee2e2 !important; color: #991b1b !important; font-weight: 700 !important; }
-    .sidebar .logout-link:hover { background: #ef4444 !important; color: #fff !important; transform: none !important; }
+    .sidebar { background: linear-gradient(180deg, rgba(20, 32, 74, 0.95) 0%, rgba(35, 66, 140, 0.85) 100%), url('<?= htmlspecialchars(asset_url("images/ebmagtownhall.png"), ENT_QUOTES) ?>') center bottom/cover no-repeat; background-blend-mode: normal; border-right: none; padding: 20px 14px; height: 100vh; width: 260px; box-sizing: border-box; overflow-y: auto; position: fixed; top: 0; left: 0; box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; z-index: 100; color: #fff; }
+    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.7px; margin-bottom: 18px; color: #ffffff !important; opacity: 1 !important; visibility: visible !important; }
+    .nav-title { font-size: 10px; color: #94a3b8 !important; text-transform: uppercase; margin: 8px 10px; opacity: 1 !important; visibility: visible !important; font-weight: 600; letter-spacing: 0.5px; }
+    .sidebar .nav-link { display: flex !important; align-items: center !important; justify-content: flex-start !important; text-align: left !important; min-height: 42px !important; padding: 12px 16px; margin-bottom: 8px; border-radius: 12px; background: transparent !important; color: #e2e8f0 !important; text-decoration: none !important; font-weight: 500; font-size: 13px !important; line-height: 1.4 !important; letter-spacing: .2px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); border: none; gap: 12px; }
+    .sidebar .nav-link.active { background: #3b82f6 !important; color: #ffffff !important; font-weight: 600; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; border: none !important; }
+    .sidebar .nav-link:hover:not(.active) { background: rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; transform: translateX(2px); border: none !important; }
+    .sidebar .logout-link { background: #fee2e2 !important; color: #991b1b !important; font-weight: 700 !important; border: none !important; border-radius: 12px; }
+    .sidebar .logout-link:hover { background: #ef4444 !important; color: #fff !important; transform: translateY(-2px) !important; box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; border: none !important; }
     .nav-fallback-item { padding: 8px 10px; margin-bottom: 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1f2937; cursor: pointer; }
     .nav-fallback-item.active { background: #3b82f6; color: #fff; }
     .main { padding: 24px; margin-left: 260px; }
-    .card { background: #fff; border: 1px solid var(--panel-border); border-radius: 20px; padding: 24px; box-shadow: 0 12px 32px rgba(59, 130, 246, 0.06); transition: box-shadow 0.3s ease; }
     .card:hover { box-shadow: 0 16px 40px rgba(59, 130, 246, 0.1); }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border: 1px solid var(--panel-border); border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.06); transition: all 0.3s ease; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(59, 130, 246, 0.1); border-color: #bfdbfe; }
+    .stat-icon { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 24px; }
+    .stat-icon.blue { background: #2563eb; }
+    .stat-icon.yellow { background: #f59e0b; }
+    .stat-icon.slate { background: #64748b; }
+    .stat-content { display: flex; flex-direction: column; text-align: left !important; }
+    .stat-top-label { font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-number { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.2; }
+    .stat-bottom-label { font-size: 12px; font-weight: 500; color: #94a3b8; margin-top: 2px; }
+    /* Pagination Styles */
+    .pagination-container { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding: 16px; border-top: 1px solid #f1f5f9; background: #f8fafc; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+    .pagination-controls { display: flex; align-items: center; gap: 8px; }
+    .page-btn { padding: 8px 14px; border: 1px solid #e2e8f0; background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s ease; }
+    .page-btn:hover:not(:disabled) { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
+    .page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25); }
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pagination-info { font-size: 13px; color: #64748b; font-weight: 500; }
+    .items-per-page { padding: 6px 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; font-weight: 600; color: #475569; background: #fff; }
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13.5px; }
     th, td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; text-align: left; vertical-align: middle; transition: background-color 0.2s ease; }
     th { background: linear-gradient(135deg, #f8fafc, #f1f5f9); color: #475569; font-weight: 700; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; font-size: 12px; position: sticky; top: 0; z-index: 1; border-top: none; }
@@ -136,18 +156,89 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="brand" style="display: flex; align-items: center; gap: 10px;">
-        <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>" alt="Logo" style="height: 32px; width: 32px; object-fit: contain;">
+        <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Logo" style="height: 32px; width: 32px; object-fit: contain;">
         <span>ENRIQUE B. MAGALONA</span>
       </div>
       <div class="nav-title">Navigation</div>
-      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability Analytics</a>
-      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior-dashboard'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizen Analytics</a>
-      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-pwd'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability List</a>
-      <a class="nav-link active" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#ffffff !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizens List</a>
-      <a class="nav-link logout-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;margin-top:auto !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
+      <a class="nav-link" href="<?= htmlspecialchars(app_url('/barangay'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        PWD Analytics
+      </a>
+      <a class="nav-link" href="<?= htmlspecialchars(app_url('/barangay-senior-dashboard'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Senior Citizen Analytics
+      </a>
+      <a class="nav-link" href="<?= htmlspecialchars(app_url('/barangay-pwd'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        PWD List
+      </a>
+      <a class="nav-link active" href="<?= htmlspecialchars(app_url('/barangay-senior'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Senior Citizens List
+      </a>
+      <a class="nav-link logout-link" style="margin-top:auto !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </a>
     </aside>
 
     <main class="main">
+      <div class="top-header" style="display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:24px;">
+        <div style="text-align:center;">
+          <h1 class="h4" style="margin:0;font-weight:700;color:#1e293b;">Barangay — Senior Citizens List</h1>
+          <?php if (!empty($assignedBarangayName)): ?>
+          <p class="text-muted mb-0" style="font-size: 13px;"><strong>Barangay:</strong> <?= htmlspecialchars((string) $assignedBarangayName, ENT_QUOTES, 'UTF-8') ?></p>
+          <?php endif; ?>
+        </div>
+        <div style="position:absolute;right:0;top:0;display:flex;align-items:center;gap:20px;">
+          <div id="liveClock" style="font-size:14px;font-weight:700;color:#1e293b;text-align:left;line-height:1.1;border-left:3px solid #3b82f6;padding-left:20px;margin-left:5px;">
+            <div id="clockDate" style="font-size:15px;color:#64748b;font-weight:600;margin-bottom:4px;"></div>
+            <div id="clockTime" style="color:#2563eb;font-size:28px;font-weight:800;font-variant-numeric: tabular-nums;"></div>
+          </div>
+        </div>
+      </div>
+      <?php
+        $totalCount = count($seniors ?? []);
+        $activeCount = 0;
+        $archivedCount = 0;
+        foreach (($seniors ?? []) as $s) {
+          if (($s['status'] ?? 'Active') === 'Archived') $archivedCount++;
+          else $activeCount++;
+        }
+      ?>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-top-label">Active Seniors</div>
+            <div class="stat-number"><?= $activeCount ?></div>
+            <div class="stat-bottom-label" style="color: #16a34a; font-weight: 700;">↑ 1.8% Increase</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon slate">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-top-label">Archived</div>
+            <div class="stat-number"><?= $archivedCount ?></div>
+            <div class="stat-bottom-label">Inactive Records</div>
+          </div>
+        </div>
+        <div class="stat-card" style="border-color: #3b82f6; background: rgba(59, 130, 246, 0.02);">
+          <div class="stat-icon blue" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-top-label" style="color: #1e40af;">Total Records</div>
+            <div class="stat-number" style="color: #1e3a8a;"><?= $totalCount ?></div>
+            <div class="stat-bottom-label">Global Registry</div>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div style="display:flex;justify-content:center;align-items:center;position:relative;">
           <h2 style="margin:0;text-align:center;">Senior — <?= htmlspecialchars((string)($assignedBarangayName ?? ''), ENT_QUOTES, 'UTF-8') ?></h2>
@@ -203,7 +294,15 @@
             </thead>
             <tbody>
               <?php foreach (($seniors ?? []) as $s): ?>
-                <?php $full = trim(((string)($s['last_name'] ?? '')) . ' ' . ((string)($s['first_name'] ?? '')) . ' ' . ((string)($s['middle_name'] ?? '')) . ' ' . ((string)($s['extension'] ?? ''))); ?>
+                <?php 
+                  $parts = [
+                    (string)($s['first_name'] ?? ''),
+                    (string)($s['middle_name'] ?? ''),
+                    (string)($s['last_name'] ?? ''),
+                    (string)($s['extension'] ?? '')
+                  ];
+                  $full = implode(' ', array_filter(array_map('trim', $parts)));
+                ?>
                 <?php
                   $status = (string)($s['status'] ?? 'Active');
                   $statusClass = $status === 'Archived' ? 'status-archived' : 'status-active';
@@ -227,6 +326,25 @@
             </tbody>
           </table>
         </div>
+        <div class="pagination-container">
+          <div class="pagination-info" id="paginationInfo">Showing 0 to 0 of 0 entries</div>
+          <div class="pagination-controls">
+            <div style="display:flex; align-items:center; gap:12px; margin-right:16px;">
+              <span style="font-size:12px; color:#64748b; font-weight:600;">Show:</span>
+              <select id="itemsPerPage" class="items-per-page">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <button class="page-btn" id="prevPage" disabled>&laquo; Prev</button>
+            <div id="pageNumbers" style="display:flex; gap:5px;"></div>
+            <button class="page-btn" id="nextPage" disabled>Next &raquo;</button>
+          </div>
+        </div>
+      </div>
       </div>
     </main>
   </div>
@@ -353,6 +471,16 @@
       </div>
     </div>
   </div>
+  <script>
+    (function updateClock() {
+      const now = new Date();
+      const dateEl = document.getElementById('clockDate');
+      const timeEl = document.getElementById('clockTime');
+      if (dateEl) dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+      if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setTimeout(updateClock, 1000);
+    })();
+  </script>
 </body>
 </html>
 <script>
@@ -509,22 +637,99 @@
 
     function applyFilters(){
       const purok = purokFilter ? purokFilter.value.trim().toLowerCase() : '';
-      const status = statusFilter ? statusFilter.value : '';
+      const filterVal = statusFilter ? statusFilter.value : '';
       const search = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      filteredRows = [];
+
       document.querySelectorAll('#seniorTable tbody tr').forEach(function(row){
         const rowPurok = (row.dataset.purok || '').toLowerCase();
+        const rowStatus = (row.dataset.status || 'Active');
         const cols = row.querySelectorAll('td');
         const name = (cols[0] ? cols[0].textContent : '').toLowerCase();
-        const rowStatus = (cols[5] ? cols[5].textContent : '').trim();
 
         let show = true;
         if (purok && rowPurok !== purok) show = false;
-        if (status && status !== 'all' && rowStatus !== status) show = false;
+        
+        // Filter logic: 
+        // "" (Active Only) -> hide Archived
+        // "all" -> show everything
+        // "Active" or "Archived" -> match exact status
+        if (filterVal === '') {
+          if (rowStatus === 'Archived') show = false;
+        } else if (filterVal !== 'all') {
+          if (rowStatus !== filterVal) show = false;
+        }
+
         if (search && name.indexOf(search) === -1 && rowPurok.indexOf(search) === -1) show = false;
 
         row.style.display = show ? '' : 'none';
+        if (show) filteredRows.push(row);
       });
+
+      currentPage = 1;
+      updatePagination();
     }
+
+    let currentPage = 1;
+    let itemsPerPage = 5;
+    let filteredRows = [];
+
+    function updatePagination() {
+      const totalItems = filteredRows.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      
+      if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = Math.min(start + itemsPerPage, totalItems);
+
+      // Hide all filtered rows first
+      filteredRows.forEach(row => row.style.display = 'none');
+      
+      // Show only rows for current page
+      for (let i = start; i < end; i++) {
+        if (filteredRows[i]) filteredRows[i].style.display = '';
+      }
+
+      // Update info
+      const info = document.getElementById('paginationInfo');
+      if (info) info.textContent = `Showing ${totalItems > 0 ? start + 1 : 0} to ${end} of ${totalItems} entries`;
+
+      // Update buttons
+      const prevBtn = document.getElementById('prevPage');
+      const nextBtn = document.getElementById('nextPage');
+      if (prevBtn) prevBtn.disabled = currentPage <= 1;
+      if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+      renderPageNumbers(totalPages);
+    }
+
+    function renderPageNumbers(totalPages) {
+      const container = document.getElementById('pageNumbers');
+      if (!container) return;
+      container.innerHTML = '';
+      
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        btn.textContent = i;
+        btn.onclick = () => { currentPage = i; updatePagination(); };
+        container.appendChild(btn);
+      }
+    }
+
+    const prevBtn = document.getElementById('prevPage');
+    const nextBtn = document.getElementById('nextPage');
+    const itemsSelect = document.getElementById('itemsPerPage');
+
+    if (prevBtn) prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; updatePagination(); } };
+    if (nextBtn) nextBtn.onclick = () => { if (currentPage < Math.ceil(filteredRows.length / itemsPerPage)) { currentPage++; updatePagination(); } };
+    if (itemsSelect) itemsSelect.onchange = (e) => { itemsPerPage = parseInt(e.target.value); currentPage = 1; updatePagination(); };
 
     if (purokFilter) purokFilter.addEventListener('change', applyFilters);
     if (statusFilter) statusFilter.addEventListener('change', applyFilters);
@@ -829,6 +1034,7 @@
             throw new Error((data && data.message) ? data.message : 'Failed to update status.');
           }
           updateRowStatus(row, isArchived ? 'Active' : 'Archived');
+          applyFilters(); // Re-apply filters to hide the row if we are in "Active Only" view
         } catch (error) {
           alert(error.message || 'Failed to update status.');
         }
@@ -845,6 +1051,7 @@
       });
     }
     updateBirthdaysBadge();
+    applyFilters(); // Initial filter on load
   })();
 
   (function monitorSessionReplacement() {

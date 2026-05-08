@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Barangay — Person With Disability Analytics</title>
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
   <link rel="stylesheet" href="/files/bower_components/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -21,7 +22,7 @@
       content: "";
       position: fixed;
       top: 0; left: 260px; width: calc(100% - 260px); height: 100%;
-      background-image: url('<?= htmlspecialchars(asset_url("images/SilayLogo.jpg"), ENT_QUOTES) ?>');
+      background-image: url('<?= htmlspecialchars(asset_url("images/SilayLogo.png"), ENT_QUOTES) ?>');
       background-repeat: no-repeat;
       background-position: center;
       background-size: 600px;
@@ -30,29 +31,43 @@
       pointer-events: none;
     }
     .layout { display: block; min-height: 100vh; position: relative; z-index: 1; }
-    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; height: 100vh; width: 260px; box-sizing: border-box; overflow-y: auto; position: fixed; top: 0; left: 0; box-shadow: 10px 0 30px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; z-index: 100; }
-    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.7px; margin-bottom: 18px; color: #0f172a !important; opacity: 1 !important; visibility: visible !important; }
-    .nav-title { font-size: 12px; color: #6b7280 !important; text-transform: uppercase; margin: 8px 10px; opacity: 1 !important; visibility: visible !important; }
-    .sidebar .nav-link { display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; min-height: 42px !important; padding: 12px 14px; margin-bottom: 8px; border-radius: 12px; color: #334155 !important; text-decoration: none !important; font-weight: 600; font-size: 14px !important; line-height: 1.4 !important; letter-spacing: .2px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
-    .sidebar .nav-link.active { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #fff !important; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); border-color: transparent; }
-    .sidebar .nav-link:hover:not(.active) { background: #f1f5f9; color: #0f172a !important; transform: translateX(4px); border-color: #e2e8f0; }
-    .sidebar .logout-link { background: #fee2e2 !important; color: #991b1b !important; font-weight: 700 !important; }
-    .sidebar .logout-link:hover { background: #ef4444 !important; color: #fff !important; transform: none !important; }
+    .sidebar { background: linear-gradient(180deg, rgba(20, 32, 74, 0.95) 0%, rgba(35, 66, 140, 0.85) 100%), url('<?= htmlspecialchars(asset_url("images/ebmagtownhall.png"), ENT_QUOTES) ?>') center bottom/cover no-repeat; background-blend-mode: normal; border-right: none; padding: 20px 14px; height: 100vh; width: 260px; box-sizing: border-box; overflow-y: auto; position: fixed; top: 0; left: 0; box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; z-index: 100; color: #fff; }
+    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.7px; margin-bottom: 18px; color: #ffffff !important; opacity: 1 !important; visibility: visible !important; }
+    .nav-title { font-size: 10px; color: #94a3b8 !important; text-transform: uppercase; margin: 8px 10px; opacity: 1 !important; visibility: visible !important; font-weight: 600; letter-spacing: 0.5px; }
+    .sidebar .nav-link { display: flex !important; align-items: center !important; justify-content: flex-start !important; text-align: left !important; min-height: 42px !important; padding: 12px 16px; margin-bottom: 8px; border-radius: 12px; background: transparent !important; color: #e2e8f0 !important; text-decoration: none !important; font-weight: 500; font-size: 13px !important; line-height: 1.4 !important; letter-spacing: .2px !important; text-indent: 0 !important; opacity: 1 !important; visibility: visible !important; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); border: none; gap: 12px; }
+    .sidebar .nav-link.active { background: #3b82f6 !important; color: #ffffff !important; font-weight: 600; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; border: none !important; }
+    .sidebar .nav-link:hover:not(.active) { background: rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; transform: translateX(2px); border: none !important; }
+    .sidebar .logout-link { background: #fee2e2 !important; color: #991b1b !important; font-weight: 700 !important; border: none !important; border-radius: 12px; }
+    .sidebar .logout-link:hover { background: #ef4444 !important; color: #fff !important; transform: translateY(-2px) !important; box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; border: none !important; }
     .nav-fallback-item { padding: 8px 10px; margin-bottom: 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1f2937; cursor: pointer; }
     .nav-fallback-item.active { background: #3b82f6; color: #fff; }
     .main { padding: 24px; margin-left: 260px; }
     .top-header { margin-bottom: 20px; }
-    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
-    .stat-card { background: #fff; border: 1px solid var(--panel-border); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.05); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease; }
-    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 30px rgba(59, 130, 246, 0.12); border-color: #bfdbfe; }
-    .stat-number { font-size: 30px; font-weight: 800; color: var(--blue-dark); letter-spacing: -0.5px; }
-    .stat-label { font-size: 13px; font-weight: 600; color: #64748b; margin-top: 8px; }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border: 1px solid var(--panel-border); border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.06); transition: all 0.3s ease; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(59, 130, 246, 0.1); border-color: #bfdbfe; }
+    .stat-icon { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; font-size: 24px; }
+    .stat-icon.blue { background: #2563eb; }
+    .stat-icon.yellow { background: #f59e0b; }
+    .stat-content { display: flex; flex-direction: column; }
+    .stat-top-label { font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 2px; }
+    .stat-number { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.2; }
+    .stat-bottom-label { font-size: 12px; font-weight: 500; color: #94a3b8; margin-top: 2px; }
     .panel { background: #fff; border: 1px solid var(--panel-border); border-radius: 18px; padding: 24px; margin-bottom: 24px; box-shadow: 0 12px 24px rgba(59, 130, 246, 0.06); transition: box-shadow 0.3s ease; }
     .panel:hover { box-shadow: 0 16px 36px rgba(59, 130, 246, 0.1); }
     .panel-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; color: #1e293b; }
     .search-box { margin-bottom: 12px; padding: 10px 16px; border-radius: 10px; border: 1px solid #cbd5e1; transition: all 0.3s ease; background-color: #f8fafc; font-size: 14px; }
     .search-box:focus { background-color: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); border-color: var(--blue-main); outline: none; }
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13.5px; }
+    /* Pagination Styles */
+    .pagination-container { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding: 16px; border-top: 1px solid #f1f5f9; background: #f8fafc; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+    .pagination-controls { display: flex; align-items: center; gap: 8px; }
+    .page-btn { padding: 8px 14px; border: 1px solid #e2e8f0; background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s ease; }
+    .page-btn:hover:not(:disabled) { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
+    .page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25); }
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pagination-info { font-size: 13px; color: #64748b; font-weight: 500; }
+    .items-per-page { padding: 6px 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; font-weight: 600; color: #475569; background: #fff; }
     table th { background: linear-gradient(135deg, #60a5fa, var(--blue-main)); color: #ffffff; padding: 14px 12px; text-align: left; font-weight: 600; letter-spacing: 0.3px; border: none; }
     table th:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
     table th:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
@@ -85,15 +100,30 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="brand" style="display: flex; align-items: center; gap: 10px;">
-        <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>" alt="Logo" style="height: 32px; width: 32px; object-fit: contain;">
+        <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Logo" style="height: 32px; width: 32px; object-fit: contain;">
         <span>ENRIQUE B. MAGALONA</span>
       </div>
       <div class="nav-title">Navigation</div>
-      <a class="nav-link active" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#ffffff !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability Analytics</a>
-      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior-dashboard'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizen Analytics</a>
-      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-pwd'), ENT_QUOTES, 'UTF-8') ?>">Person With Disability List</a>
-      <a class="nav-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;" href="<?= htmlspecialchars(app_url('/barangay-senior'), ENT_QUOTES, 'UTF-8') ?>">Senior Citizens List</a>
-      <a class="nav-link logout-link" style="display:block !important;visibility:visible !important;opacity:1 !important;color:#1f2937 !important;font-size:14px !important;line-height:1.35 !important;margin-top:auto !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
+      <a class="nav-link active" href="<?= htmlspecialchars(app_url('/barangay'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        PWD Analytics
+      </a>
+      <a class="nav-link" href="<?= htmlspecialchars(app_url('/barangay-senior-dashboard'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Senior Citizen Analytics
+      </a>
+      <a class="nav-link" href="<?= htmlspecialchars(app_url('/barangay-pwd'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        PWD List
+      </a>
+      <a class="nav-link" href="<?= htmlspecialchars(app_url('/barangay-senior'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Senior Citizens List
+      </a>
+      <a class="nav-link logout-link" style="margin-top:auto !important;" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </a>
     </aside>
 
     <main class="main">
@@ -104,27 +134,61 @@
           <p class="text-muted mb-0" style="font-size: 13px;"><strong>Barangay:</strong> <?= htmlspecialchars((string) $assignedBarangayName, ENT_QUOTES, 'UTF-8') ?></p>
           <?php endif; ?>
         </div>
-        <div style="position:absolute;right:0;top:0;">
-          <button id="notifBellBrgy" style="background:transparent;border:0;cursor:pointer;padding:8px;border-radius:8px;font-size:18px;">🔔 <span id="notifBadgeBrgy" style="background:#dc2626;color:#fff;border-radius:10px;padding:2px 6px;font-size:12px;display:none;margin-left:6px;">0</span></button>
-          <div id="notifDropdownBrgy" style="display:none;position:absolute;right:0;top:48px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);width:360px;max-height:320px;overflow:auto;padding:8px;z-index:2000;">
-            <div style="font-weight:700;padding:8px;border-bottom:1px solid #f3f4f6;">Notifications</div>
-            <div id="notifListBrgy" style="padding:8px;font-size:13px;color:#374151;"></div>
+        <div style="position:absolute;right:0;top:0;display:flex;align-items:center;gap:20px;">
+          <div style="position:relative;">
+            <button id="notifBellBrgy" style="background:transparent;border:0;cursor:pointer;padding:8px;border-radius:8px;font-size:20px;">🔔 <span id="notifBadgeBrgy" style="background:#dc2626;color:#fff;border-radius:10px;padding:2px 6px;font-size:12px;display:none;margin-left:6px;">0</span></button>
+            <div id="notifDropdownBrgy" style="display:none;position:absolute;right:0;top:48px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);width:360px;max-height:320px;overflow:auto;padding:8px;z-index:2000;">
+              <div style="font-weight:700;padding:8px;border-bottom:1px solid #f3f4f6;">Notifications</div>
+              <div id="notifListBrgy" style="padding:8px;font-size:13px;color:#374151;"></div>
+            </div>
+          </div>
+          <div id="liveClock" style="font-size:14px;font-weight:700;color:#1e293b;text-align:left;line-height:1.1;border-left:3px solid #3b82f6;padding-left:20px;margin-left:5px;">
+            <div id="clockDate" style="font-size:15px;color:#64748b;font-weight:600;margin-bottom:4px;"></div>
+            <div id="clockTime" style="color:#2563eb;font-size:28px;font-weight:800;font-variant-numeric: tabular-nums;"></div>
           </div>
         </div>
       </div>
 
-      <div class="stats">
+      <div class="stats" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
         <div class="stat-card">
-          <div class="stat-number" id="totalBarangays">1</div>
-          <div class="stat-label">Your Jurisdiction</div>
+          <div class="stat-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-top-label">Your Jurisdiction</div>
+            <div class="stat-number" id="totalBarangays">1</div>
+            <div class="stat-bottom-label"><?= htmlspecialchars((string)($assignedBarangayName ?? 'Barangay'), ENT_QUOTES, 'UTF-8') ?></div>
+          </div>
         </div>
         <div class="stat-card">
-          <div class="stat-number" id="totalPDAO">0</div>
-          <div class="stat-label">Total Person With Disability Count</div>
+          <div class="stat-icon yellow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-top-label">Total PWD Count</div>
+            <div class="stat-number" id="totalPDAO">0</div>
+            <div class="stat-bottom-label">Total Persons</div>
+          </div>
         </div>
         <div class="stat-card">
-          <div class="stat-number" id="averagePDAO">0</div>
-          <div class="stat-label">Average per purok</div>
+          <div class="stat-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-top-label">Average per purok</div>
+            <div class="stat-number" id="averagePDAO">0</div>
+            <div class="stat-bottom-label">Persons</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-top-label">Total Puroks</div>
+            <div class="stat-number" id="totalPuroks">0</div>
+            <div class="stat-bottom-label">Active Puroks</div>
+          </div>
         </div>
       </div>
 
@@ -157,9 +221,22 @@
           <p>Try adjusting your search terms</p>
         </div>
 
-        <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #6b7280;">
-          <span id="paginationInfo">Showing 0-0 of 0 entries</span>
-          <div id="paginationControls"></div>
+        <div class="pagination-container" style="margin-top: 14px; border-bottom-left-radius: 18px; border-bottom-right-radius: 18px;">
+          <div class="pagination-info" id="paginationInfo">Showing 0 to 0 of 0 entries</div>
+          <div class="pagination-controls">
+            <div style="display:flex; align-items:center; gap:12px; margin-right:16px;">
+              <span style="font-size:12px; color:#64748b; font-weight:600;">Show:</span>
+              <select id="itemsPerPage" class="items-per-page">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+            <button class="page-btn" id="prevPage" disabled>&laquo; Prev</button>
+            <div id="pageNumbers" style="display:flex; gap:5px;"></div>
+            <button class="page-btn" id="nextPage" disabled>Next &raquo;</button>
+          </div>
         </div>
       </div>
     </main>
@@ -642,15 +719,19 @@
       const searchInput = document.getElementById('searchInput');
       const noResults = document.getElementById('noResults');
       const paginationInfo = document.getElementById('paginationInfo');
-      const paginationControls = document.getElementById('paginationControls');
+      const prevPageBtn = document.getElementById('prevPage');
+      const nextPageBtn = document.getElementById('nextPage');
+      const pageNumbersContainer = document.getElementById('pageNumbers');
+      const itemsPerPageSelect = document.getElementById('itemsPerPage');
       const totalPdaoEl = document.getElementById('totalPDAO');
       const averagePdaoEl = document.getElementById('averagePDAO');
+      const totalPuroksEl = document.getElementById('totalPuroks');
       const chartCanvas = document.getElementById('pieChart');
       let chartInstance = null;
       let allRows = [];
       let filteredRows = [];
       let currentPage = 1;
-      const pageSize = 10;
+      let pageSize = 5;
       const breakdownByPurok = {};
 
       function getDisabilityLabel(item) {
@@ -669,16 +750,24 @@
       function renderTablePage() {
         if (!tableBody) return;
         const total = filteredRows.length;
-        const start = total === 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
-        const end = Math.min(currentPage * pageSize, total);
-        if (paginationInfo) paginationInfo.textContent = `Showing ${start}-${end} of ${total} entries`;
+        const totalPages = Math.ceil(total / pageSize);
+        
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIdx = (currentPage - 1) * pageSize;
+        const endIdx = Math.min(startIdx + pageSize, total);
+        
+        if (paginationInfo) {
+          paginationInfo.textContent = `Showing ${total > 0 ? startIdx + 1 : 0} to ${endIdx} of ${total} entries`;
+        }
 
         if (total === 0) {
-          tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;">No records found.</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;padding:40px;">No records found.</td></tr>';
           if (noResults) noResults.style.display = '';
         } else {
           if (noResults) noResults.style.display = 'none';
-          const pageRows = filteredRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+          const pageRows = filteredRows.slice(startIdx, endIdx);
           tableBody.innerHTML = pageRows.map(function (row) {
             const safePurok = String(row.purok || 'Unknown').replace(/'/g, "\\'");
             return '<tr>'
@@ -688,7 +777,7 @@
               + '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">'
               + '<button class="btn btn-primary btn-sm" type="button" onclick="showChartModal(\'' + safePurok + '\')">View Chart</button>'
               + '<button class="btn btn-secondary btn-sm" type="button" onclick="openPurokPrint(\'' + safePurok + '\')" style="background-color:#6c757d;border-color:#6c757d;color:#fff;">Print</button>'
-              + '<button class="btn btn-info btn-sm" type="button" onclick="monthlyReport(\'' + safePurok + '\')" style="background-color:#17a2b8;border-color:#17a2b8;color:#fff;">Monthly Report</button>'
+              + '<button class="btn btn-info btn-sm" type="button" onclick="monthlyReport(\'' + safePurok + '\')" style="background-color:var(--yellow-main);border-color:var(--yellow-main);color:#713f12;">Monthly Report</button>'
               + '</div>'
               + '</td>'
               + '</tr>';
@@ -699,27 +788,35 @@
       }
 
       function renderPaginationControls() {
-        if (!paginationControls) return;
-        paginationControls.innerHTML = '';
         const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
-        if (totalPages <= 1) return;
+        
+        if (prevPageBtn) prevPageBtn.disabled = currentPage <= 1;
+        if (nextPageBtn) nextPageBtn.disabled = currentPage >= totalPages;
 
-        const prev = document.createElement('button');
-        prev.textContent = 'Prev';
-        prev.disabled = currentPage <= 1;
-        prev.onclick = function () { if (currentPage > 1) { currentPage--; renderTablePage(); } };
-        paginationControls.appendChild(prev);
+        if (pageNumbersContainer) {
+          pageNumbersContainer.innerHTML = '';
+          let startPage = Math.max(1, currentPage - 2);
+          let endPage = Math.min(totalPages, startPage + 4);
+          if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
-        const pageLabel = document.createElement('span');
-        pageLabel.textContent = ` Page ${currentPage} of ${totalPages} `;
-        pageLabel.style.margin = '0 8px';
-        paginationControls.appendChild(pageLabel);
+          for (let i = startPage; i <= endPage; i++) {
+            const btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.onclick = () => { currentPage = i; renderTablePage(); };
+            pageNumbersContainer.appendChild(btn);
+          }
+        }
+      }
 
-        const next = document.createElement('button');
-        next.textContent = 'Next';
-        next.disabled = currentPage >= totalPages;
-        next.onclick = function () { if (currentPage < totalPages) { currentPage++; renderTablePage(); } };
-        paginationControls.appendChild(next);
+      if (prevPageBtn) prevPageBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTablePage(); } };
+      if (nextPageBtn) nextPageBtn.onclick = () => { if (currentPage < Math.ceil(filteredRows.length / pageSize)) { currentPage++; renderTablePage(); } };
+      if (itemsPerPageSelect) {
+        itemsPerPageSelect.onchange = (e) => {
+          pageSize = parseInt(e.target.value);
+          currentPage = 1;
+          renderTablePage();
+        };
       }
 
       function applySearch() {
@@ -761,6 +858,9 @@
           if (averagePdaoEl) {
             const avg = allRows.length ? (total / allRows.length) : 0;
             averagePdaoEl.textContent = avg.toFixed(1);
+          }
+          if (totalPuroksEl) {
+            totalPuroksEl.textContent = String(allRows.length);
           }
         } catch (error) {
           if (tableBody) {
@@ -924,12 +1024,18 @@
           item.style.cursor = 'pointer';
           item.style.background = notif.is_read ? '#fff' : '#f8fafc';
           item.innerHTML =
-            '<div style="display:flex;justify-content:space-between;gap:8px;">' +
-              '<div style="font-weight:700;">' + escapeHtml(notif.subject || notif.from || 'Alert') + '</div>' +
-              (notif.is_read ? '' : '<span style="font-size:11px;color:#0f766e;font-weight:700;">NEW</span>') +
-            '</div>' +
-            '<div style="font-size:13px;margin-top:4px;">' + escapeHtml(notif.message || '') + '</div>' +
-            '<div style="font-size:12px;color:#6b7280;margin-top:6px;">' + escapeHtml(formatDate(notif.created_at)) + '</div>';
+            '<div style="display:flex;gap:12px;align-items:flex-start;">' +
+              '<div style="flex-shrink:0;width:75px;font-size:10px;color:#64748b;line-height:1.3;text-align:right;padding-top:2px;font-weight:600;">' + 
+                escapeHtml(formatDate(notif.created_at)).replace(", ", "<br>") + 
+              '</div>' +
+              '<div style="flex-grow:1;">' +
+                '<div style="display:flex;justify-content:space-between;gap:8px;">' +
+                  '<div style="font-weight:700;font-size:13px;">' + escapeHtml(notif.subject || notif.from || 'Alert') + '</div>' +
+                  (notif.is_read ? '' : '<span style="font-size:10px;color:#0f766e;font-weight:800;background:#ccfbf1;padding:1px 5px;border-radius:4px;">NEW</span>') +
+                '</div>' +
+                '<div style="font-size:13px;margin-top:2px;color:#374151;">' + escapeHtml(notif.message || '') + '</div>' +
+              '</div>' +
+            '</div>';
           item.addEventListener('click', async function () {
             if (!notif.is_read) {
               await markNotificationRead(notif.id);
@@ -1043,6 +1149,16 @@
           checkSession();
         }
       });
+    })();
+  </script>
+  <script>
+    (function updateClock() {
+      const now = new Date();
+      const dateEl = document.getElementById('clockDate');
+      const timeEl = document.getElementById('clockTime');
+      if (dateEl) dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+      if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setTimeout(updateClock, 1000);
     })();
   </script>
 </body>
