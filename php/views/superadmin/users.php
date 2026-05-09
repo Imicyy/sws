@@ -117,7 +117,7 @@
       flex: 1; 
       padding: 30px; 
       min-height: 100vh;
-      background-color: #f8fafc;
+      background: transparent;
       position: relative;
     }
     .main-content::before {
@@ -170,8 +170,11 @@
       position: absolute;
       top: 0; left: 0; width: 6px; height: 100%;
     }
+    .stat-active { background: #fff; border-color: #e2e8f0; }
+    .stat-inactive { background: #fff; border-color: #e2e8f0; }
+    
     .stat-active::after { background: #3b82f6; }
-    .stat-inactive::after { background: #ef4444; }
+    .stat-inactive::after { background: #fbbf24; }
     
     .stat-icon { 
       width: 54px; height: 54px; border-radius: 14px; 
@@ -180,7 +183,7 @@
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .icon-active { background: #eff6ff; color: #3b82f6; }
-    .icon-inactive { background: #fef2f2; color: #ef4444; }
+    .icon-inactive { background: #fffbeb; color: #d97706; }
     
     .stat-info h3 { font-size: 32px; font-weight: 800; color: #1e293b; margin: 0; line-height: 1; }
     .stat-info p { font-size: 14px; color: #64748b; font-weight: 600; margin: 4px 0 0; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -233,7 +236,9 @@
     .user-table th { padding: 16px 24px; text-align: left; font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
     .user-table td { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
     .user-table tr:last-child td { border-bottom: none; }
-    .user-table tr:hover { background: #fcfdfe; }
+    .row-blue { background: #eff6ff !important; }
+    .row-yellow { background: #fffbeb !important; }
+    .user-table tr:hover { background: #f8fafc !important; transform: scale(1.002); transition: all 0.2s ease; }
 
     /* Table Components */
     .user-info { display: flex; align-items: center; gap: 14px; }
