@@ -69,7 +69,18 @@
     /* Live Clock */
     .clock-container { text-align: right; border-left: 3px solid var(--blue-primary); padding-left: 20px; }
     #clockDate { font-size: 14px; font-weight: 600; color: #64748b; margin-bottom: 2px; }
-    #clockTime { font-size: 26px; font-weight: 800; color: var(--blue-dark); font-variant-numeric: tabular-nums; }
+    .clock-container #clockTime { font-size: 20px; font-weight: 800; color: var(--blue-primary); }
+
+    /* Legend */
+    .status-legend { display: flex; gap: 24px; margin-top: 12px; }
+    .legend-item { 
+      display: flex; align-items: center; gap: 8px; 
+      font-size: 12px; font-weight: 700; color: #64748b; 
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .legend-dot.success { background: var(--green-success); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+    .legend-dot.failure { background: var(--red-failure); box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
 
     /* Filter Bar */
     .filter-section { 
@@ -108,7 +119,10 @@
       width: 48px; height: 48px; border-radius: 14px; 
       background: #f1f5f9; display: flex; align-items: center; justify-content: center; 
       font-size: 20px; color: var(--blue-dark); border: 2px solid #fff; box-shadow: var(--shadow-sm);
+      font-weight: 800;
     }
+    .status-success .user-avatar { background: #dcfce7; color: #15803d; }
+    .status-failed .user-avatar { background: #fee2e2; color: #b91c1c; }
     .user-meta h4 { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0; }
     .user-meta p { font-size: 13px; color: #64748b; margin: 2px 0 0; }
 
@@ -119,8 +133,11 @@
     .status-success { color: #15803d; --status-color: #10b981; }
     .status-failed { color: #b91c1c; --status-color: #ef4444; }
     
-    .status-badge.status-success { background: #dcfce7; }
-    .status-badge.status-failed { background: #fee2e2; }
+    .status-badge.status-success { background: #dcfce7; color: #15803d; }
+    .status-badge.status-failed { background: #fee2e2; color: #b91c1c; }
+    
+    .status-success .time-relative { color: var(--blue-primary); font-weight: 700; }
+    .status-failed .time-relative { color: var(--blue-primary); font-weight: 700; }
     
     .role-badge { 
       font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; 
@@ -236,6 +253,16 @@
       <div class="page-title">
         <h1>System Logs</h1>
         <p>Monitor system activity and login attempts</p>
+        <div class="status-legend">
+          <div class="legend-item">
+            <span class="legend-dot success"></span>
+            <span>Success Login</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot failure"></span>
+            <span>Failed Attempt</span>
+          </div>
+        </div>
       </div>
       <div class="clock-container">
         <div id="clockDate"></div>

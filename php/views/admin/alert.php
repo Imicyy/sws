@@ -6,118 +6,320 @@
   <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
   <title>Admin Alert Management</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%); color: #1f2937; }
-    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fffef7; border-right: 1px solid #dbe5f3; padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
-    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
-    .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
-    .nav-center { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; align-items: center; justify-content: center; }
-    .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; width: 100%; max-width: 220px; text-align: center; }
-    .logout-btn { margin-top: auto; display: block; width: 100%; max-width: 220px; text-align: center; padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 6px 14px rgba(220,38,38,0.18); text-decoration: none; }
-    .logout-btn:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }
-    .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
-    .nav-link:hover { background: #eaf3ff; }
-    .main { padding: 24px; max-width: 1280px; margin: 0 auto; width: 100%; }
-    .main > h1 { text-align: center; }
-    .panel { background: linear-gradient(180deg, #ffffff 0%, #fffcf3 100%); border: 1px solid #dbe5f3; border-radius: 12px; padding: 16px; width: 100%; max-width: 1080px; margin: 0 auto; box-shadow: 0 12px 24px rgba(59, 130, 246, 0.08); }
-    .form-group { margin-bottom: 16px; }
-    label { font-weight: 600; margin-bottom: 6px; display: block; }
-    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #dbe5f3; border-radius: 6px; font-family: inherit; background: #fff; }
-    textarea { resize: vertical; }
-    button { padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
-    button.btn-primary { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
-    button.btn-primary:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    pre { background: #f8fbff; border: 1px solid #dbe5f3; border-radius: 6px; padding: 12px; font-size: 12px; }
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #fffdf0 0%, #f5f9ff 55%, #eef5ff 100%); color: #1f2937; display: flex; position: relative; }
+    
+    /* Sidebar Styles */
+    .sidebar { 
+      background: linear-gradient(180deg, rgba(20, 32, 74, 0.95) 0%, rgba(35, 66, 140, 0.85) 100%), url('<?= htmlspecialchars(asset_url("images/ebmagtownhall.png"), ENT_QUOTES) ?>') center bottom/cover no-repeat; 
+      background-blend-mode: normal; 
+      padding: 20px 14px; 
+      height: 100vh; 
+      width: 260px; 
+      box-sizing: border-box; 
+      overflow-y: auto; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15); 
+      display: flex; 
+      flex-direction: column; 
+      z-index: 100; 
+      color: #fff; 
+    }
+    .brand { 
+      font-weight: 900; 
+      font-size: 14px; 
+      letter-spacing: 0.5px; 
+      margin-bottom: 22px; 
+      color: #ffffff !important; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .nav-title { 
+      font-size: 10px; 
+      color: #94a3b8 !important; 
+      text-transform: uppercase; 
+      margin: 8px 10px; 
+      font-weight: 600; 
+      letter-spacing: 0.5px; 
+    }
+    .sidebar .nav-link { 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: flex-start !important; 
+      text-align: left !important; 
+      min-height: 42px !important; 
+      padding: 12px 16px; 
+      margin-bottom: 8px; 
+      border-radius: 12px; 
+      background: transparent !important; 
+      color: #e2e8f0 !important; 
+      text-decoration: none !important; 
+      font-weight: 500; 
+      font-size: 15px !important; 
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
+      border: none; 
+      gap: 12px; 
+    }
+    .sidebar .nav-link.active { 
+      background: #3b82f6 !important; 
+      color: #ffffff !important; 
+      font-weight: 600; 
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; 
+    }
+    .sidebar .nav-link:hover:not(.active) { 
+      background: rgba(255, 255, 255, 0.1) !important; 
+      color: #ffffff !important; 
+      transform: translateX(2px); 
+    }
+    .logout-btn { 
+      margin-top: auto !important; 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: center !important;
+      gap: 12px;
+      padding: 12px 16px; 
+      border-radius: 12px; 
+      background: #fee2e2 !important; 
+      color: #991b1b !important; 
+      font-weight: 700 !important; 
+      text-decoration: none !important; 
+      font-size: 15px;
+      transition: all .3s ease;
+    }
+    .logout-btn:hover { 
+      background: #ef4444 !important; 
+      color: #fff !important; 
+      transform: translateY(-2px) !important; 
+      box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; 
+    }
+    
+    .main { flex: 1; padding: 30px; margin-left: 260px; position: relative; width: calc(100% - 260px); display: flex; flex-direction: column; align-items: center; z-index: 1; }
+    .main::before {
+      content: ""; position: fixed; top: 0; left: 260px; right: 0; bottom: 0;
+      background: url('<?= htmlspecialchars(asset_url("images/SilayLogo.png"), ENT_QUOTES) ?>') no-repeat center;
+      background-size: 35%; opacity: 0.04; pointer-events: none; z-index: -1;
+    }
+    .top { 
+      display: flex; justify-content: space-between; align-items: center; 
+      margin-bottom: 32px; padding: 24px 32px; border-radius: 20px; 
+      border: 1px solid #dbe5f3; background: rgba(255,255,255,0.9); 
+      backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+      width: 100%;
+    }
+    .header-info h1 { font-size: 24px; font-weight: 800; color: #1e293b; margin: 0; text-align: left; }
+    .header-info p { font-size: 15px; color: #64748b; margin: 6px 0 0 0; font-weight: 500; text-align: left; }
+    
+    /* Live Clock - Super Admin Style */
+    .header-top { display: flex; justify-content: flex-end; margin-bottom: 20px; width: 100%; max-width: 1600px; }
+    #liveClock { 
+      min-width: 250px;
+      text-align: left;
+      line-height: 1.1;
+      border-left: 3px solid #3b82f6;
+      padding-left: 20px;
+    }
+    #clockDate { font-size: 15px; color: #64748b; font-weight: 600; margin-bottom: 4px; white-space: nowrap; }
+    #clockTime { color: #2563eb; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px; width: 100%; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05); }
+    .panel-title { font-size: 20px; font-weight: 800; color: #1e3a8a; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; }
+    .panel-title i { color: #3b82f6; font-size: 24px; }
+    
+    .alert-grid { 
+      display: grid; grid-template-columns: 600px 1fr; gap: 40px; align-items: start; 
+      width: 100%;
+    }
+    
+    .form-group { margin-bottom: 24px; }
+    label { font-size: 14px; font-weight: 700; color: #64748b; margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 0.8px; }
+    input, select, textarea { 
+      width: 100%; padding: 16px 18px; border: 1px solid #e2e8f0; border-radius: 14px; 
+      font-family: inherit; background: #f8fafc; font-size: 16px; transition: all 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #3b82f6; background: #fff; outline: none; box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.15); }
+    textarea { resize: vertical; min-height: 180px; }
+    
+    button.btn-primary { 
+      background: #3b82f6; color: #fff; padding: 18px 32px; border-radius: 14px; 
+      border: none; cursor: pointer; font-weight: 800; font-size: 16px; width: 100%;
+      transition: all 0.3s; box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    button.btn-primary:hover { background: #2563eb; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); }
+    
+    /* History Table Styles */
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 20px; }
+    .history-search { max-width: 400px; position: relative; width: 100%; }
+    .history-search i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; }
+    .history-search input { padding-left: 48px; }
+    
+    .alert-table th { background: #f8fafc; padding: 22px 24px; text-align: left; font-size: 14px; font-weight: 800; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+    .alert-table td { padding: 24px; border-bottom: 1px solid #f1f5f9; font-size: 16px; color: #1e293b; }
+    
+    .channel-badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; }
+    .badge-staff { background: #eff6ff; color: #3b82f6; }
+    .badge-barangay { background: #f0fdf4; color: #10b981; }
+    .badge-all { background: #fef2f2; color: #ef4444; }
   </style>
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <div class="brand">ENRIQUE B. MAGALONA</div>
-      <div class="nav-title">Navigation</div>
-      <div class="nav-center">
-        <a class="nav-link" href="<?= (($_GET['from'] ?? '') === 'pdao') ? '/pdao-admin-dashboard' : '/Analytics' ?>">
-          <?= (($_GET['from'] ?? '') === 'pdao') ? 'Person With Disability Table' : 'Senior Citizen Table' ?>
-        </a>
-        <a class="nav-link active" href="/admin-alert">Alerts</a>
+      <div class="brand">
+        <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Logo" style="width: 30px; height: 30px;">
+        <span>Enrique B. Magalona</span>
       </div>
-      <a class="logout-btn" href="/logout">Logout</a>
+
+      <div class="nav-title">Navigation</div>
+      
+      <a class="nav-link" href="<?= (($_GET['from'] ?? '') === 'pdao') ? '/pdao-admin-dashboard' : '/Analytics' ?>">
+        <i class="fas <?= (($_GET['from'] ?? '') === 'pdao') ? 'fa-wheelchair' : 'fa-users' ?>"></i>
+        <span><?= (($_GET['from'] ?? '') === 'pdao') ? 'Person With Disability' : 'Senior Citizens' ?></span>
+      </a>
+      
+      <a class="nav-link active" href="/admin-alert">
+        <i class="fas fa-bell"></i>
+        <span>System Alerts</span>
+      </a>
+
+      <a class="logout-btn" href="/logout">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
     </aside>
 
     <main class="main">
-      <h1 class="h4 mb-4">Send Alert</h1>
-
-      <div class="panel">
-        <form id="alertForm">
-          <div class="form-group">
-            <label for="room">Alert Channel</label>
-            <select id="room" name="room" required>
-              <option value="">-- Select Channel --</option>
-              <option value="staff">Staff</option>
-              <option value="barangay">Barangay</option>
-              <option value="all">All Users</option>
-            </select>
-          </div>
-
-          <div id="staffPicker" class="form-group" style="display:none;">
-            <label>Select Staff</label>
-            <div id="staffCheckboxes" style="max-height:220px; overflow:auto; border:1px solid #e5e7eb; padding:8px; border-radius:6px;"></div>
-          </div>
-
-          <div id="barangayPicker" class="form-group" style="display:none;">
-            <label>Select Barangay</label>
-            <div id="barangayCheckboxes" style="max-height:220px; overflow:auto; border:1px solid #e5e7eb; padding:8px; border-radius:6px;">
-              <div style="margin-bottom:6px;">
-                <input type="checkbox" id="g_all_barangay" value="__all_barangay__" data-group="true">
-                <label for="g_all_barangay" style="margin-left:8px;">All Barangays</label>
-              </div>
-              <hr>
-              <div id="barangayItems"></div>
-            </div>
-          </div>
-
-
-
-          <div class="form-group">
-            <label for="subject">Subject (Optional)</label>
-            <input type="text" id="subject" name="subject" placeholder="Alert subject line">
-          </div>
-
-          <div class="form-group">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" rows="6" placeholder="Enter alert message..." required></textarea>
-          </div>
-
-          <div class="form-group">
-            <button type="submit" class="btn btn-primary">Send Alert</button>
-          </div>
-        </form>
-
-        <div id="response" style="margin-top: 16px; display: none;">
-          <h3>Response:</h3>
-          <pre id="responseOutput"></pre>
+      <div class="header-top">
+        <div id="liveClock">
+          <div id="clockDate"></div>
+          <div id="clockTime"></div>
+        </div>
+      </div>
+      <div class="top">
+        <div class="header-info">
+          <h1>System Alert Management</h1>
+          <p>Send secure notifications to staff and barangay users</p>
         </div>
       </div>
 
-      <div class="panel" style="margin-top: 20px;">
-        <h2 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Alert History</h2>
-        <table style="width: 100%; font-size: 13px;">
-          <thead>
-            <tr style="border-bottom: 2px solid #e5e7eb;">
-              <th style="padding: 10px; text-align: left;">Channel</th>
-              <th style="padding: 10px; text-align: left;">Type</th>
-              <th style="padding: 10px; text-align: left;">Subject</th>
-              <th style="padding: 10px; text-align: left;">Sent At</th>
-            </tr>
-          </thead>
-          <tbody id="historyBody">
-            <tr>
-              <td colspan="4" style="padding: 20px; text-align: center; color: #999;">No alert history yet</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="alert-grid">
+        <div class="alert-column-left">
+          <div class="panel">
+            <h2 class="panel-title">
+              <i class="fas fa-paper-plane"></i>
+              <span>Create New Alert</span>
+            </h2>
+            <form id="alertForm">
+              <div class="form-group">
+                <label for="room">Alert Channel</label>
+                <select id="room" name="room" required>
+                  <option value="">-- Select Channel --</option>
+                  <option value="staff">Staff Users</option>
+                  <option value="barangay">Barangay Users</option>
+                  <option value="all">Broadcast to All</option>
+                </select>
+              </div>
+
+              <div id="staffPicker" class="form-group" style="display:none;">
+                <label>Select Specific Staff</label>
+                <div id="staffCheckboxes" style="max-height:180px; overflow:auto; border:1px solid #e2e8f0; padding:12px; border-radius:12px; background: #f8fafc;"></div>
+              </div>
+
+              <div id="barangayPicker" class="form-group" style="display:none;">
+                <label>Select Specific Barangays</label>
+                <div id="barangayCheckboxes" style="max-height:180px; overflow:auto; border:1px solid #e2e8f0; padding:12px; border-radius:12px; background: #f8fafc;">
+                  <div style="margin-bottom:8px; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="g_all_barangay" value="__all_barangay__" data-group="true" style="width: auto;">
+                    <label for="g_all_barangay" style="margin: 0;">Select All Barangays</label>
+                  </div>
+                  <hr style="margin: 8px 0; border-color: #e2e8f0;">
+                  <div id="barangayItems"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="subject">Subject (Optional)</label>
+                <input type="text" id="subject" name="subject" placeholder="Enter alert subject...">
+              </div>
+
+              <div class="form-group">
+                <label for="message">Alert Message</label>
+                <textarea id="message" name="message" placeholder="Type your notification message here..." required></textarea>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-bullhorn mr-2"></i>
+                  Send Alert
+                </button>
+              </div>
+            </form>
+
+            <div id="response" style="margin-top: 16px; display: none;">
+              <pre id="responseOutput" style="border-radius: 12px; font-size: 13px; font-weight: 600;"></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert-column-right">
+          <div class="panel">
+            <div class="history-header">
+              <h2 class="panel-title" style="margin-bottom: 0; border-bottom: 0; padding-bottom: 0;">
+                <i class="fas fa-history"></i>
+                <span>Alert History</span>
+              </h2>
+              <div class="history-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="historySearch" placeholder="Filter alerts...">
+              </div>
+            </div>
+            
+            <div class="table-responsive" style="margin-top: 0; border-radius: 12px; border: 1px solid #f1f5f9;">
+              <table class="alert-table">
+                <thead>
+                  <tr>
+                    <th>Channel</th>
+                    <th>Type</th>
+                    <th>Subject</th>
+                    <th>Sent At</th>
+                  </tr>
+                </thead>
+                <tbody id="historyBody">
+                  <?php if (!empty($history)): ?>
+                    <?php foreach ($history as $row): ?>
+                      <?php 
+                        $room = $row['target_role'] ?? 'staff';
+                        $badgeClass = 'badge-all';
+                        if($room === 'staff') $badgeClass = 'badge-staff';
+                        if($room === 'barangay') $badgeClass = 'badge-barangay';
+                      ?>
+                      <tr>
+                        <td><span class="channel-badge <?= $badgeClass ?>"><?= htmlspecialchars($room) ?></span></td>
+                        <td>Manual</td>
+                        <td style="font-weight: 600;"><?= htmlspecialchars($row['subject'] ?? '—') ?></td>
+                        <td style="color: #64748b;"><?= htmlspecialchars(date('m/d/Y, h:i:s A', strtotime($row['created_at']))) ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php else: ?>
+                    <tr>
+                      <td colspan="4" style="padding: 40px; text-align: center; color: #94a3b8; font-weight: 600;">
+                        <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
+                        No alert history recorded yet
+                      </td>
+                    </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </div>
@@ -378,22 +580,54 @@
     function addAlertLog(message, room) {
       const tbody = document.getElementById('historyBody');
       if (!tbody) return;
-      // remove placeholder row if present
       if (tbody.querySelector('td') && tbody.querySelector('td').textContent.includes('No alert history yet')) {
         tbody.innerHTML = '';
       }
       const tr = document.createElement('tr');
       const now = new Date().toLocaleString();
       const type = 'Manual';
-      const subject = document.getElementById('subject').value || '';
+      const subject = document.getElementById('subject').value || '—';
+      
+      let badgeClass = 'badge-all';
+      if(room === 'staff') badgeClass = 'badge-staff';
+      if(room === 'barangay') badgeClass = 'badge-barangay';
+
       tr.innerHTML = `
-        <td style="padding: 10px;">${escapeHtml(room)}</td>
-        <td style="padding: 10px;">${escapeHtml(type)}</td>
-        <td style="padding: 10px;">${escapeHtml(subject)}</td>
-        <td style="padding: 10px;">${escapeHtml(now)}</td>
+        <td><span class="channel-badge ${badgeClass}">${room}</span></td>
+        <td>${escapeHtml(type)}</td>
+        <td style="font-weight: 600;">${escapeHtml(subject)}</td>
+        <td style="color: #64748b;">${escapeHtml(now)}</td>
       `;
       tbody.insertBefore(tr, tbody.firstChild);
     }
+
+    // Live filtering for history
+    document.getElementById('historySearch').addEventListener('input', function(e) {
+      const filter = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#historyBody tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      function updateClock() {
+        const now = new Date();
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        
+        const dateStr = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+        const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        const dEl = document.getElementById('clockDate');
+        const tEl = document.getElementById('clockTime');
+        if(dEl) dEl.textContent = dateStr;
+        if(tEl) tEl.textContent = timeStr;
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+    });
 
     function escapeHtml(s) {
       if (s == null) return '';

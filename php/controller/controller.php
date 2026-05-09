@@ -30,6 +30,20 @@ class Controller
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
+        $this->ensureLoginLogsColumns();
+    }
+
+    private function ensureLoginLogsColumns(): void
+    {
+        try {
+            $this->execute("ALTER TABLE login_logs ADD COLUMN ip_address VARCHAR(45) NULL");
+        } catch (Throwable $e) {}
+        try {
+            $this->execute("ALTER TABLE login_logs ADD COLUMN device_info TEXT NULL");
+        } catch (Throwable $e) {}
+        try {
+            $this->execute("ALTER TABLE login_logs ADD COLUMN location VARCHAR(255) NULL");
+        } catch (Throwable $e) {}
     }
 
     private function jsonResponse(array $payload, int $status = 200): void
@@ -1044,8 +1058,12 @@ class Controller
                 $this->jsonResponse(['success' => false, 'error' => 'Invalid credentials'], 401);
             }
 
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+            $device = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown Device';
+            $location = ($ip === '127.0.0.1' || $ip === '::1') ? 'Localhost (Dev)' : 'Silay City, PH';
+
             if (($user['status'] ?? '') !== 'Active') {
-                $this->execute('INSERT INTO login_logs (user_id, status) VALUES (?, ?)', [(int) $user['id'], 'failed']);
+                $this->execute('INSERT INTO login_logs (user_id, status, ip_address, device_info, location) VALUES (?, ?, ?, ?, ?)', [(int) $user['id'], 'failed', $ip, $device, $location]);
                 $this->jsonResponse([
                     'success' => false,
                     'error' => 'Account is not active. Please contact the administrator.',
@@ -1053,19 +1071,19 @@ class Controller
             }
 
             if (!password_verify($password, (string) $user['password'])) {
-                $this->execute('INSERT INTO login_logs (user_id, status) VALUES (?, ?)', [(int) $user['id'], 'failed']);
+                $this->execute('INSERT INTO login_logs (user_id, status, ip_address, device_info, location) VALUES (?, ?, ?, ?, ?)', [(int) $user['id'], 'failed', $ip, $device, $location]);
                 $this->jsonResponse(['success' => false, 'error' => 'Invalid credentials'], 401);
             }
 
             if ((int) ($user['is_verified'] ?? 0) !== 1) {
-                $this->execute('INSERT INTO login_logs (user_id, status) VALUES (?, ?)', [(int) $user['id'], 'failed']);
+                $this->execute('INSERT INTO login_logs (user_id, status, ip_address, device_info, location) VALUES (?, ?, ?, ?, ?)', [(int) $user['id'], 'failed', $ip, $device, $location]);
                 $this->jsonResponse([
                     'success' => false,
                     'error' => 'Please verify your email address before signing in.',
                 ], 403);
             }
 
-            $this->execute('INSERT INTO login_logs (user_id, status) VALUES (?, ?)', [(int) $user['id'], 'success']);
+            $this->execute('INSERT INTO login_logs (user_id, status, ip_address, device_info, location) VALUES (?, ?, ?, ?, ?)', [(int) $user['id'], 'success', $ip, $device, $location]);
 
             $_SESSION['user'] = [
                 '_id' => (int) $user['id'],
@@ -2933,7 +2951,7 @@ class Controller
 
         try {
             $loginLogs = $this->queryAll(
-                'SELECT l.id, l.user_id, l.status AS login_result, l.created_at,
+                'SELECT l.id, l.user_id, l.status AS login_result, l.created_at, l.ip_address, l.device_info, l.location,
                         u.name AS user_name, u.email AS user_email, u.role AS user_role, u.status AS user_status
                  FROM login_logs l
                  LEFT JOIN users u ON u.id = l.user_id
@@ -3564,7 +3582,18 @@ class Controller
 
     public function renderAdminAlert(): void
     {
-        $this->render('admin/alert', ['title' => 'Admin Alert', 'user' => $_SESSION['user'] ?? null]);
+        $this->ensureNotificationsTables();
+        $history = $this->queryAll(
+            'SELECT target_role, subject, created_at, created_by_name 
+             FROM notifications 
+             ORDER BY created_at DESC 
+             LIMIT 50'
+        );
+        $this->render('admin/alert', [
+            'title' => 'Admin Alert', 
+            'user' => $_SESSION['user'] ?? null,
+            'history' => $history
+        ]);
     }
 
     private function ensureNotificationsTables(): void
