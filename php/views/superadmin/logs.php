@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
   <title>Super Admin - System Logs</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
@@ -12,82 +12,101 @@
     body { font-family: Open Sans, Segoe UI, Arial, sans-serif; background: linear-gradient(135deg, #fffde8 0%, #eef4ff 52%, #fff9d9 100%); color: #1f2937; display: flex; }
     
     /* Sidebar Styles */
+    /* Sidebar Styles */
     .sidebar { 
+      background: linear-gradient(180deg, rgba(20, 32, 74, 0.95) 0%, rgba(35, 66, 140, 0.85) 100%), url('<?= htmlspecialchars(asset_url("images/ebmagtownhall.png"), ENT_QUOTES) ?>') center bottom/cover no-repeat; 
+      background-blend-mode: normal; 
+      padding: 20px 14px; 
+      height: 100vh; 
       width: 260px; 
-      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
-      color: #1e3a8a; 
-      min-height: 100vh; 
-      padding: 20px 0; 
+      box-sizing: border-box; 
+      overflow-y: auto; 
       position: fixed; 
-      left: 0; 
       top: 0; 
-      overflow-y: auto;
-      border-right: 1px solid #dbe5f3;
-      box-shadow: 10px 0 24px rgba(37, 99, 235, 0.08);
-      display: flex; flex-direction: column;
-    }
-    .sidebar-header { 
-      padding: 0 20px 24px; 
-      border-bottom: 1px solid rgba(59,130,246,0.18); 
-      margin-bottom: 20px; 
-    }
-    .sidebar-header h2 { 
-      font-size: 18px; 
-      font-weight: 600; 
-      white-space: nowrap; 
-    }
-    .sidebar-nav { 
-      list-style: none; 
-    }
-    .sidebar-nav li { 
-      margin: 0; 
-    }
-    .nav-center { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; align-items: center; justify-content: center; }
-    .sidebar-nav a, .nav-center a { 
-      display: block; 
-      padding: 12px 20px; 
-      color: #1e3a8a; 
-      text-decoration: none; 
-      transition: all 0.3s ease; 
-      border-left: 3px solid transparent;
-      border-radius: 10px;
-      margin: 0 10px 6px;
-      font-weight: 600;
-      width: 100%; max-width: 220px; text-align: center;
-    }
-    .logout-btn { margin-top: auto; display: block; width: 100%; max-width: 220px; text-align: center; padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 6px 14px rgba(220,38,38,0.18); text-decoration: none; }
-    .logout-btn:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }
-    .sidebar-nav a:hover { 
-      background: #dbeafe; 
-      color: #1e3a8a; 
-      border-left-color: #3b82f6; 
-    }
-    .sidebar-nav a.active { 
-      background: linear-gradient(135deg, #60a5fa, #3b82f6); 
+      left: 0; 
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15); 
+      display: flex; 
+      flex-direction: column; 
+      z-index: 100; 
       color: #fff; 
-      border-left-color: #facc15; 
-      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
     }
-    .sidebar-nav-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #64748b;
-      text-transform: uppercase;
-      padding: 16px 20px 8px;
-      letter-spacing: 0.5px;
+    .brand { 
+      font-weight: 800; 
+      font-size: 13px; 
+      letter-spacing: 0.7px; 
+      margin-bottom: 18px; 
+      color: #ffffff !important; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+    }
+    .nav-title { 
+      font-size: 10px; 
+      color: #94a3b8 !important; 
+      text-transform: uppercase; 
+      margin: 8px 10px; 
+      font-weight: 600; 
+      letter-spacing: 0.5px; 
+    }
+    .sidebar .nav-link { 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: flex-start !important; 
+      text-align: left !important; 
+      min-height: 42px !important; 
+      padding: 12px 16px; 
+      margin-bottom: 8px; 
+      border-radius: 12px; 
+      background: transparent !important; 
+      color: #e2e8f0 !important; 
+      text-decoration: none !important; 
+      font-weight: 500; 
+      font-size: 15px !important; 
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
+      border: none; 
+      gap: 12px; 
+    }
+    .sidebar .nav-link.active { 
+      background: #3b82f6 !important; 
+      color: #ffffff !important; 
+      font-weight: 600; 
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; 
+    }
+    .sidebar .nav-link:hover:not(.active) { 
+      background: rgba(255, 255, 255, 0.1) !important; 
+      color: #ffffff !important; 
+      transform: translateX(2px); 
+    }
+    .logout-btn { 
+      margin-top: auto !important; 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: center !important;
+      gap: 12px;
+      padding: 12px 16px; 
+      border-radius: 12px; 
+      background: #fee2e2 !important; 
+      color: #991b1b !important; 
+      font-weight: 700 !important; 
+      text-decoration: none !important; 
+      font-size: 15px;
+      transition: all .3s ease;
+    }
+    .logout-btn:hover { 
+      background: #ef4444 !important; 
+      color: #fff !important; 
+      transform: translateY(-2px) !important; 
+      box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; 
     }
     .user-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1e3a8a;
-      padding: 0 20px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      padding: 0 10px;
       margin-bottom: 8px;
       word-break: break-word;
-    }
-    .sidebar-nav .nav-logout {
-      margin-top: 24px;
-      border-top: 1px solid rgba(59,130,246,0.18);
-      padding-top: 16px;
+      opacity: 1;
+      text-align: center;
     }
     
     /* Main Content */
@@ -155,18 +174,36 @@
 </head>
 <body>
   <!-- Sidebar Navigation -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <div class="user-name"><?= htmlspecialchars((string)($user['name'] ?? 'Super Admin'), ENT_QUOTES, 'UTF-8') ?></div>
-      <div class="sidebar-nav-label">Navigation</div>
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Logo" style="height: 32px; width: 32px; object-fit: contain;">
+      <span>ENRIQUE B. MAGALONA</span>
     </div>
-    <div class="nav-center">
-      <a href="/index-superadmin" class="<?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">Dashboard</a>
-      <a href="/superadmin-users" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-users') !== false ? 'active' : '' ?>">User Management</a>
-      <a href="/superadmin-logs" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-logs') !== false ? 'active' : '' ?>">System Logs</a>
-    </div>
-    <a class="logout-btn" href="/logout">Logout</a>
-  </div>
+    
+    <div class="user-name" style="color: #fff; opacity: 1; font-weight: 700; margin-top: 10px;"><?= htmlspecialchars((string)($user['name'] ?? 'Super Admin'), ENT_QUOTES, 'UTF-8') ?></div>
+    
+    <div class="nav-title">Navigation</div>
+    
+    <a href="/index-superadmin" class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      Dashboard
+    </a>
+    
+    <a href="/superadmin-users" class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'superadmin-users') !== false ? 'active' : '' ?>">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      User Management
+    </a>
+    
+    <a href="/superadmin-logs" class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'superadmin-logs') !== false ? 'active' : '' ?>">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      System Logs
+    </a>
+
+    <a class="logout-btn" href="/logout">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </a>
+  </aside>
 
   <!-- Main Content -->
   <div class="main-content">

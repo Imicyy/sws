@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
   <title><?= htmlspecialchars((string)($title ?? 'Superadmin Users'), ENT_QUOTES, 'UTF-8') ?></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -15,131 +15,309 @@
     
     /* Sidebar Styles */
     .sidebar { 
+      background: linear-gradient(180deg, rgba(20, 32, 74, 0.95) 0%, rgba(35, 66, 140, 0.85) 100%), url('<?= htmlspecialchars(asset_url("images/ebmagtownhall.png"), ENT_QUOTES) ?>') center bottom/cover no-repeat; 
+      background-blend-mode: normal; 
+      padding: 20px 14px; 
+      height: 100vh; 
       width: 260px; 
-      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
-      color: #1e3a8a; 
-      min-height: 100vh; 
-      padding: 20px 0; 
+      box-sizing: border-box; 
+      overflow-y: auto; 
       position: fixed; 
-      left: 0; 
       top: 0; 
-      overflow-y: auto;
-      border-right: 1px solid #dbe5f3;
-      box-shadow: 10px 0 24px rgba(37, 99, 235, 0.08);
-      display: flex; flex-direction: column;
-    }
-    .sidebar-header { 
-      padding: 0 20px 24px; 
-      border-bottom: 1px solid rgba(59,130,246,0.18); 
-      margin-bottom: 20px; 
-    }
-    .sidebar-header h2 { 
-      font-size: 18px; 
-      font-weight: 600; 
-      white-space: nowrap; 
-    }
-    .sidebar-nav { 
-      list-style: none; 
-    }
-    .sidebar-nav li { 
-      margin: 0; 
-    }
-    .nav-center { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; align-items: center; justify-content: center; }
-    .sidebar-nav a, .nav-center a { 
-      display: block; 
-      padding: 12px 20px; 
-      color: #1e3a8a; 
-      text-decoration: none; 
-      transition: all 0.3s ease; 
-      border-left: 3px solid transparent;
-      border-radius: 10px;
-      margin: 0 10px 6px;
-      font-weight: 600;
-      width: 100%; max-width: 220px; text-align: center;
-    }
-    .logout-btn { margin-top: auto; display: block; width: 100%; max-width: 220px; text-align: center; padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 6px 14px rgba(220,38,38,0.18); text-decoration: none; }
-    .logout-btn:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }
-    .sidebar-nav a:hover { 
-      background: #dbeafe;
-      color: #1e3a8a; 
-      border-left-color: #3b82f6; 
-    }
-    .sidebar-nav a.active { 
-      background: linear-gradient(135deg, #60a5fa, #3b82f6); 
+      left: 0; 
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15); 
+      display: flex; 
+      flex-direction: column; 
+      z-index: 100; 
       color: #fff; 
-      border-left-color: #facc15;
-      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
     }
-    .sidebar-nav-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #64748b;
-      text-transform: uppercase;
-      padding: 16px 20px 8px;
-      letter-spacing: 0.5px;
+    .brand { 
+      font-weight: 800; 
+      font-size: 13px; 
+      letter-spacing: 0.7px; 
+      margin-bottom: 18px; 
+      color: #ffffff !important; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+    }
+    .nav-title { 
+      font-size: 10px; 
+      color: #94a3b8 !important; 
+      text-transform: uppercase; 
+      margin: 8px 10px; 
+      font-weight: 600; 
+      letter-spacing: 0.5px; 
+    }
+    .sidebar .nav-link { 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: flex-start !important; 
+      text-align: left !important; 
+      min-height: 42px !important; 
+      padding: 12px 16px; 
+      margin-bottom: 8px; 
+      border-radius: 12px; 
+      background: transparent !important; 
+      color: #e2e8f0 !important; 
+      text-decoration: none !important; 
+      font-weight: 500; 
+      font-size: 15px !important; 
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
+      border: none; 
+      gap: 12px; 
+    }
+    .sidebar .nav-link.active { 
+      background: #3b82f6 !important; 
+      color: #ffffff !important; 
+      font-weight: 600; 
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; 
+    }
+    .sidebar .nav-link:hover:not(.active) { 
+      background: rgba(255, 255, 255, 0.1) !important; 
+      color: #ffffff !important; 
+      transform: translateX(2px); 
+    }
+    .logout-btn { 
+      margin-top: auto !important; 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: center !important;
+      gap: 12px;
+      padding: 12px 16px; 
+      border-radius: 12px; 
+      background: #fee2e2 !important; 
+      color: #991b1b !important; 
+      font-weight: 700 !important; 
+      text-decoration: none !important; 
+      font-size: 15px;
+      transition: all .3s ease;
+    }
+    .logout-btn:hover { 
+      background: #ef4444 !important; 
+      color: #fff !important; 
+      transform: translateY(-2px) !important; 
+      box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; 
     }
     .user-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1e3a8a;
-      padding: 0 20px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      padding: 0 10px;
       margin-bottom: 8px;
       word-break: break-word;
-    }
-    .sidebar-nav .nav-logout {
-      margin-top: 24px;
-      border-top: 1px solid rgba(59,130,246,0.18);
-      padding-top: 16px;
+      opacity: 1;
+      text-align: center;
     }
     
     /* Main Content */
+    /* Main Content Layout */
     .main-content { 
       margin-left: 260px; 
       flex: 1; 
-      padding: 24px; 
+      padding: 30px; 
+      min-height: 100vh;
+      background-color: #f8fafc;
+      position: relative;
     }
+    .main-content::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 260px;
+      right: 0;
+      bottom: 0;
+      background: url('<?= htmlspecialchars(asset_url("images/SilayLogo.png"), ENT_QUOTES) ?>') no-repeat center;
+      background-size: 35%;
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-header { margin-bottom: 30px; }
+    .page-title { font-size: 26px; font-weight: 800; color: #1e293b; margin: 0; }
     
-    .page-wrap { max-width: 100%; }
-    .card-shell { background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border: 1px solid #dbe5f3; border-radius: 12px; box-shadow: 0 12px 26px rgba(37, 99, 235, 0.12); padding: 20px; }
-    .table thead th { border-top: 0; background: linear-gradient(135deg, #eff6ff, #fef9c3); color: #1e3a8a; }
-    #user-table thead th,
-    #user-table tbody td { text-align: center; vertical-align: middle; }
-    #user-table tbody td:last-child { white-space: nowrap; }
-    .card-shell h3 { text-align: center; width: 100%; }
-    .modal { display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.45); }
-    .modal-content { background: #fff; margin: 6% auto; padding: 20px; border-radius: 12px; width: 94%; max-width: 620px; border: 1px solid #dbe5f3; box-shadow: 0 12px 24px rgba(37,99,235,0.14); }
-    .close-btn { float: right; cursor: pointer; font-size: 22px; }
-    .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
-    #paginationControls { display: flex; gap: 6px; align-items: center; }
-    #paginationControls .btn-outline-secondary {
-      padding: 8px 14px;
-      border: 1px solid #3b82f6;
-      background: #3b82f6;
-      color: #fff;
-      border-radius: 10px;
+    /* Summary Cards */
+    .user-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 30px; }
+    .user-stat-card { 
+      background: #fff; 
+      padding: 24px; 
+      border-radius: 20px; 
+      display: flex; 
+      align-items: center; 
+      gap: 20px; 
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      border: 1px solid #e2e8f0;
+      position: relative;
+      overflow: hidden;
       cursor: pointer;
-      font-weight: 600;
-      line-height: 1.1;
-      min-width: 34px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    #paginationControls .btn-outline-secondary:hover {
-      background: #2563eb;
-      border-color: #2563eb;
-      color: #fff;
+    .user-stat-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
+      border-color: #3b82f6;
     }
-    #paginationControls .btn-outline-secondary.active {
-      background: #2563eb;
-      border-color: #2563eb;
-      color: #fff;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+    .user-stat-card:active {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1);
     }
-    #paginationControls .btn-outline-secondary:disabled {
-      opacity: .55;
-      cursor: not-allowed;
-      background: #93c5fd;
-      border-color: #93c5fd;
-      color: #eff6ff;
+    .user-stat-card:hover .stat-icon {
+      transform: scale(1.1) rotate(5deg);
     }
+    .user-stat-card::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; width: 6px; height: 100%;
+    }
+    .stat-active::after { background: #3b82f6; }
+    .stat-inactive::after { background: #ef4444; }
+    
+    .stat-icon { 
+      width: 54px; height: 54px; border-radius: 14px; 
+      display: flex; align-items: center; justify-content: center; 
+      font-size: 24px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .icon-active { background: #eff6ff; color: #3b82f6; }
+    .icon-inactive { background: #fef2f2; color: #ef4444; }
+    
+    .stat-info h3 { font-size: 32px; font-weight: 800; color: #1e293b; margin: 0; line-height: 1; }
+    .stat-info p { font-size: 14px; color: #64748b; font-weight: 600; margin: 4px 0 0; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Action Bar */
+    .action-bar { 
+      background: #fff; 
+      padding: 20px; 
+      border-radius: 16px; 
+      border: 1px solid #e2e8f0; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      gap: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .search-box { position: relative; flex: 1; max-width: 400px; }
+    .search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .search-box input { 
+      width: 100%; padding: 12px 12px 12px 42px; 
+      border-radius: 12px; border: 1px solid #e2e8f0; 
+      background: #f8fafc; font-size: 14px; transition: all 0.2s;
+    }
+    .search-box input:focus { border-color: #3b82f6; outline: none; background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+    
+    .filter-group { display: flex; gap: 12px; }
+    .filter-select { 
+      padding: 10px 16px; border-radius: 12px; border: 1px solid #e2e8f0; 
+      background: #fff; font-size: 14px; font-weight: 600; color: #475569;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .filter-select:hover { border-color: #cbd5e1; }
+
+    .btn-add { 
+      background: #3b82f6; color: #fff; padding: 12px 24px; 
+      border-radius: 12px; font-weight: 700; display: flex; 
+      align-items: center; gap: 10px; border: none; transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+    }
+    .btn-add:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3); color: #fff; text-decoration: none; }
+
+    /* Table Design */
+    .table-container { 
+      background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; 
+      overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+    }
+    .user-table { width: 100%; border-collapse: collapse; }
+    .user-table thead { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .user-table th { padding: 16px 24px; text-align: left; font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .user-table td { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .user-table tr:last-child td { border-bottom: none; }
+    .user-table tr:hover { background: #fcfdfe; }
+
+    /* Table Components */
+    .user-info { display: flex; align-items: center; gap: 14px; }
+    .avatar { 
+      width: 44px; height: 44px; border-radius: 50%; 
+      background: var(--avatar-bg, linear-gradient(135deg, #3b82f6, #60a5fa)); 
+      color: var(--avatar-text, #fff); display: flex; align-items: center; justify-content: center; 
+      font-weight: 700; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .avatar-blue { --avatar-bg: linear-gradient(135deg, #eff6ff, #dbeafe); --avatar-text: #1e3a8a; }
+    .avatar-yellow { --avatar-bg: linear-gradient(135deg, #fffbeb, #fef3c7); --avatar-text: #854d0e; }
+    
+    .user-details h4 { font-size: 15px; font-weight: 700; color: #1e293b; margin: 0; }
+    .user-details p { font-size: 13px; color: #64748b; margin: 2px 0 0; }
+    
+    .role-badge { 
+      padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; 
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .role-admin { background: #eff6ff; color: #1e40af; }
+    .role-super { background: #fef2f2; color: #991b1b; }
+    .role-staff { background: #f0fdf4; color: #166534; }
+    .role-barangay { background: #fff7ed; color: #9a3412; }
+
+    .status-pill { 
+      padding: 6px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; 
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .status-active { background: #dcfce7; color: #15803d; }
+    .status-active::before { content: ""; width: 6px; height: 6px; background: #15803d; border-radius: 50%; }
+    .status-inactive { background: #fee2e2; color: #b91c1c; }
+    .status-inactive::before { content: ""; width: 6px; height: 6px; background: #b91c1c; border-radius: 50%; }
+
+    .action-btns { display: flex; gap: 8px; }
+    .btn-icon { 
+      width: 36px; height: 36px; border-radius: 10px; 
+      display: flex; align-items: center; justify-content: center; 
+      border: 1px solid #e2e8f0; background: #fff; color: #64748b; 
+      transition: all 0.2s; cursor: pointer;
+    }
+    .btn-icon.btn-edit { color: #2563eb; background: #eff6ff; border-color: #dbeafe; }
+    .btn-icon.btn-edit:hover { background: #3b82f6; color: #fff; border-color: #3b82f6; transform: translateY(-1px); }
+    
+    .btn-icon.btn-status-toggle { color: #d97706; background: #fffbeb; border-color: #fef3c7; }
+    .btn-icon.btn-status-toggle:hover { background: #f59e0b; color: #fff; border-color: #f59e0b; transform: translateY(-1px); }
+    
+    .user-table tr.row-blue { background-color: #eff6ff !important; }
+    .user-table tr.row-yellow { background-color: #fffbeb !important; }
+    
+    .user-table tr.row-blue:hover { background-color: #dbeafe !important; }
+    .user-table tr.row-yellow:hover { background-color: #fef3c7 !important; }
+    
+    .btn-icon.btn-delete:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+
+    .pagination-wrap { 
+      display: flex; justify-content: space-between; align-items: center; 
+      margin-top: 30px; padding: 20px 24px; 
+      background: #f8fafc; border-top: 1px solid #e2e8f0; 
+      border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+    }
+    .pagination-info { font-size: 14px; color: #64748b; font-weight: 600; }
+    .pagination-btns { display: flex; gap: 8px; }
+    .pagination-btns .btn { 
+      font-weight: 700; border-radius: 8px; 
+      display: flex; align-items: center; justify-content: center; 
+      transition: all 0.2s;
+    }
+    .pagination-btns .btn-sm { padding: 8px 16px; font-size: 13px; }
+    
+    .btn-pagination-blue { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe !important; }
+    .btn-pagination-blue:hover { background: #3b82f6 !important; color: #fff !important; border-color: #3b82f6 !important; }
+    .btn-pagination-blue.active { background: #2563eb !important; color: #fff !important; border-color: #2563eb !important; }
+
+    .btn-pagination-yellow { background: #fffbeb; color: #854d0e; border: 1px solid #fef3c7 !important; }
+    .btn-pagination-yellow:hover { background: #f59e0b !important; color: #fff !important; border-color: #f59e0b !important; }
+    .btn-pagination-yellow:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+    .modal-content { background: #fff; padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; border: 1px solid #e2e8f0; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .modal-header h4 { font-size: 20px; font-weight: 800; color: #1e293b; margin: 0; }
+    .close-btn { color: #94a3b8; font-size: 24px; cursor: pointer; transition: color 0.2s; }
+    .close-btn:hover { color: #64748b; }
     /* Add User button styling: square and colored */
     .btn-add-user {
       border-radius: 0 !important;
@@ -159,112 +337,205 @@
 </head>
 <body>
   <!-- Sidebar Navigation -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <div class="user-name"><?= htmlspecialchars((string)($user['name'] ?? 'Super Admin'), ENT_QUOTES, 'UTF-8') ?></div>
-      <div class="sidebar-nav-label">Navigation</div>
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Logo" style="height: 32px; width: 32px; object-fit: contain;">
+      <span>ENRIQUE B. MAGALONA</span>
     </div>
-    <div class="nav-center">
-      <a href="/index-superadmin" class="<?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">Dashboard</a>
-      <a href="/superadmin-users" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-users') !== false ? 'active' : '' ?>">User Management</a>
-      <a href="/superadmin-logs" class="<?= strpos($_SERVER['REQUEST_URI'], 'superadmin-logs') !== false ? 'active' : '' ?>">System Logs</a>
-    </div>
-    <a class="logout-btn" href="/logout">Logout</a>
-  </div>
+    
+    <div class="user-name" style="color: #fff; opacity: 1; font-weight: 700; margin-top: 10px;"><?= htmlspecialchars((string)($user['name'] ?? 'Super Admin'), ENT_QUOTES, 'UTF-8') ?></div>
+    
+    <div class="nav-title">Navigation</div>
+    
+    <a href="/index-superadmin" class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      Dashboard
+    </a>
+    
+    <a href="/superadmin-users" class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'superadmin-users') !== false ? 'active' : '' ?>">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      User Management
+    </a>
+    
+    <a href="/superadmin-logs" class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'superadmin-logs') !== false ? 'active' : '' ?>">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      System Logs
+    </a>
+
+    <a class="logout-btn" href="/logout">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </a>
+  </aside>
 
   <!-- Main Content -->
   <div class="main-content">
-  <div class="page-wrap">
-    <div class="card-shell">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">User Management</h3>
-        <div class="btn-group" role="group" aria-label="Page actions">
-          <a href="/register" class="btn btn-sm btn-add-user" target="_blank">Add User</a>
+    <!-- Live Clock Aligned with Action Group -->
+    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+      <div></div> <!-- Spacer -->
+      <div style="min-width: 250px;">
+        <div id="liveClock" style="font-size:14px;font-weight:700;color:#1e293b;text-align:left;line-height:1.1;border-left:3px solid #3b82f6;padding-left:20px;">
+          <div id="clockDate" style="font-size:15px;color:#64748b;font-weight:600;margin-bottom:4px; white-space: nowrap;"></div>
+          <div id="clockTime" style="color:#2563eb;font-size:28px;font-weight:800;font-variant-numeric: tabular-nums; white-space: nowrap;"></div>
         </div>
       </div>
+    </div>
+    <div class="page-header">
+      <h1 class="page-title">User Management</h1>
+    </div>
 
-      <ul class="nav nav-tabs" id="userTabs" role="tablist">
-        <li class="nav-item"><a class="nav-link active" href="#" data-status="Active">Active</a></li>
-        <li class="nav-item"><a class="nav-link" href="#" data-status="Inactive">Inactive</a></li>
-      </ul>
-
-      <div class="row mt-3 mb-2">
-        <div class="col-md-5 mb-2 mb-md-0">
-          <input type="text" id="userSearchInput" class="form-control form-control-sm" placeholder="Search name, email, role, or status...">
+    <!-- Summary Cards -->
+    <?php
+      $activeCount = 0;
+      $inactiveCount = 0;
+      if (!empty($users)) {
+        foreach ($users as $u) {
+          if (($u['status'] ?? '') === 'Active') $activeCount++;
+          else $inactiveCount++;
+        }
+      }
+    ?>
+    <div class="user-stats-grid">
+      <div class="user-stat-card stat-active">
+        <div class="stat-icon icon-active">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
         </div>
-        <div class="col-md-3 mb-2 mb-md-0">
-          <select id="roleFilter" class="form-control form-control-sm">
-            <option value="">All Roles</option>
-            <option value="Admin">Admin</option>
-            <option value="Staff">Staff</option>
-            <option value="Super Admin">Super Admin</option>
-            <option value="Barangay">Barangay</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <select id="pageSize" class="form-control form-control-sm" disabled>
-            <option value="10" selected>10 / page</option>
-          </select>
+        <div class="stat-info">
+          <h3><?= $activeCount ?></h3>
+          <p>Active Users</p>
         </div>
       </div>
+      <div class="user-stat-card stat-inactive">
+        <div class="stat-icon icon-inactive">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="18" y1="9" x2="22" y2="13"></line><line x1="22" y1="9" x2="18" y2="13"></line></svg>
+        </div>
+        <div class="stat-info">
+          <h3><?= $inactiveCount ?></h3>
+          <p>Inactive Users</p>
+        </div>
+      </div>
+    </div>
 
-      <div class="table-responsive">
-        <table class="table table-sm" id="user-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="user-list">
-            <?php if (!empty($users) && is_array($users)): ?>
-              <?php foreach ($users as $user): ?>
-                <?php $userId = (int) ($user['id'] ?? 0); ?>
-                <tr class="user-row status-<?= htmlspecialchars((string) ($user['status'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-                  <td><?= htmlspecialchars((string) ($user['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                  <td><?= htmlspecialchars((string) ($user['email'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                  <td><?= htmlspecialchars((string) ($user['role'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                  <td><?= htmlspecialchars((string) ($user['status'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                  <td>
-                    <button type="button" class="btn btn-link btn-sm p-0 open-edit"
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <div class="search-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="userSearchInput" placeholder="Search by name, email or role...">
+      </div>
+      <div class="filter-group">
+        <select id="roleFilter" class="filter-select">
+          <option value="">All Roles</option>
+          <option value="Super Admin">Super Admin</option>
+          <option value="Admin">Admin</option>
+          <option value="Staff">Staff</option>
+          <option value="Barangay">Barangay</option>
+        </select>
+        <select id="statusFilter" class="filter-select">
+          <option value="Active">Show Active</option>
+          <option value="Inactive">Show Inactive</option>
+        </select>
+        <a href="/register" target="_blank" class="btn-add">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add User
+        </a>
+      </div>
+    </div>
+
+    <!-- User Table -->
+    <div class="table-container">
+      <table class="user-table" id="user-table">
+        <thead>
+          <tr>
+            <th>User Details</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="user-list">
+          <?php if (!empty($users) && is_array($users)): ?>
+            <?php $uIdx = 0; foreach ($users as $user): ?>
+              <?php 
+                $userId = (int) ($user['id'] ?? 0); 
+                $uName = htmlspecialchars((string) ($user['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+                $uEmail = htmlspecialchars((string) ($user['email'] ?? ''), ENT_QUOTES, 'UTF-8');
+                $uRole = htmlspecialchars((string) ($user['role'] ?? ''), ENT_QUOTES, 'UTF-8');
+                $uStatus = htmlspecialchars((string) ($user['status'] ?? ''), ENT_QUOTES, 'UTF-8');
+                $uInitial = !empty($uName) ? strtoupper(substr($uName, 0, 1)) : '?';
+                
+                $roleClass = 'role-staff';
+                if ($uRole === 'Super Admin') $roleClass = 'role-super';
+                else if ($uRole === 'Admin') $roleClass = 'role-admin';
+                else if ($uRole === 'Barangay') $roleClass = 'role-barangay';
+              ?>
+              <?php 
+                $rowTheme = ($uIdx % 2 === 0) ? 'row-blue' : 'row-yellow'; 
+                $avatarTheme = ($uIdx % 2 === 0) ? 'avatar-blue' : 'avatar-yellow'; 
+              ?>
+              <tr class="user-row status-<?= $uStatus ?> <?= $rowTheme ?>">
+                <td>
+                  <div class="user-info">
+                    <div class="avatar <?= $avatarTheme ?>"><?= $uInitial ?></div>
+                    <div class="user-details">
+                      <h4><?= $uName ?></h4>
+                      <p><?= $uEmail ?></p>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="role-badge <?= $roleClass ?>"><?= $uRole ?></span>
+                </td>
+                <td>
+                  <span class="status-pill status-<?= strtolower($uStatus) ?>"><?= $uStatus ?></span>
+                </td>
+                <td style="text-align: right;">
+                  <div class="action-btns" style="justify-content: flex-end;">
+                    <button type="button" class="btn-icon btn-edit open-edit"
                       data-id="<?= $userId ?>"
-                      data-name="<?= htmlspecialchars((string) ($user['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-                      data-email="<?= htmlspecialchars((string) ($user['email'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-                      data-role="<?= htmlspecialchars((string) ($user['role'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                      data-name="<?= $uName ?>"
+                      data-email="<?= $uEmail ?>"
+                      data-role="<?= $uRole ?>"
                       data-barangay-id="<?= htmlspecialchars((string) ($user['barangay_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-                      data-status="<?= htmlspecialchars((string) ($user['status'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">Edit</button>
+                      data-status="<?= $uStatus ?>" title="Edit User">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
 
-                    <form action="/edit-user" method="POST" style="display:inline-block; margin-left:8px;" class="status-form">
+                    <form action="/edit-user" method="POST" style="display:inline-block;" class="status-form">
                       <input type="hidden" name="id" value="<?= $userId ?>" required>
-                      <?php $isInactive = (($user['status'] ?? '') === 'Inactive'); ?>
-                      <button type="button" class="btn btn-link btn-sm p-0 status-btn <?= $isInactive ? '' : 'text-danger' ?>" data-action="<?= $isInactive ? 'activate' : 'deactivate' ?>">
-                        <?= $isInactive ? 'Activate' : 'Deactivate' ?>
+                      <?php $isInactive = ($uStatus === 'Inactive'); ?>
+                      <button type="button" class="btn-icon btn-status-toggle status-btn" 
+                        data-action="<?= $isInactive ? 'activate' : 'deactivate' ?>" 
+                        title="<?= $isInactive ? 'Activate User' : 'Deactivate User' ?>">
+                        <?php if ($isInactive): ?>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <?php else: ?>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        <?php endif; ?>
                       </button>
                     </form>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            <?php else: ?>
-              <tr id="no-users-row"><td colspan="5">No users found</td></tr>
-            <?php endif; ?>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="d-flex justify-content-between align-items-center mt-3" id="paginationContainer">
-        <small id="paginationInfo">Showing 0-0 of 0 users</small>
-        <div id="paginationControls" class="btn-group btn-group-sm" role="group" aria-label="User pagination"></div>
+                  </div>
+                </td>
+              </tr>
+            <?php $uIdx++; endforeach; ?>
+          <?php else: ?>
+            <tr id="no-users-row"><td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">No users found</td></tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+      
+      <div class="pagination-wrap">
+        <div class="pagination-info" id="paginationInfo"></div>
+        <div class="pagination-btns" id="paginationControls"></div>
       </div>
     </div>
   </div>
 
   <div id="edit-modal" class="modal">
     <div class="modal-content">
-      <span class="close-btn" id="edit-close-btn">&times;</span>
-      <h4>Edit User</h4>
+      <div class="modal-header">
+        <h4>Edit User Information</h4>
+        <span class="close-btn" id="edit-close-btn">&times;</span>
+      </div>
       <form id="edit-user-form" method="POST" action="/update-user">
         <input type="hidden" id="edit-user-id" name="id">
         <div class="form-group">
@@ -318,71 +589,89 @@
       const rows = Array.from(document.querySelectorAll('.user-row'));
       const searchInput = document.getElementById('userSearchInput');
       const roleFilter = document.getElementById('roleFilter');
-      const pageSizeSelect = document.getElementById('pageSize');
+      const statusFilter = document.getElementById('statusFilter');
       const paginationInfo = document.getElementById('paginationInfo');
       const paginationControls = document.getElementById('paginationControls');
-      const tabs = Array.from(document.querySelectorAll('#userTabs .nav-link'));
       let activeStatus = 'Active';
       let currentPage = 1;
 
       function getFilteredRows() {
         const search = (searchInput.value || '').trim().toLowerCase();
         const role = roleFilter.value;
+        const status = statusFilter.value;
 
         return rows.filter((row) => {
-          const status = row.children[3].textContent.trim();
-          if (status !== activeStatus) return false;
-          const roleText = row.children[2].textContent.trim();
+          const rowStatus = row.classList.contains('status-Active') ? 'Active' : 'Inactive';
+          if (rowStatus !== status) return false;
+          
+          const roleBadge = row.querySelector('.role-badge');
+          const roleText = roleBadge ? roleBadge.textContent.trim() : '';
+          
+          // Fix: roleFilter.value is empty for "All Roles"
           if (role && roleText !== role) return false;
+          
           if (!search) return true;
-          return row.textContent.toLowerCase().includes(search);
+          
+          // Better search across multiple fields
+          const name = row.querySelector('h4').textContent.toLowerCase();
+          const email = row.querySelector('p').textContent.toLowerCase();
+          return name.includes(search) || email.includes(search) || roleText.toLowerCase().includes(search);
         });
       }
+
+      statusFilter.addEventListener('change', () => {
+        currentPage = 1;
+        applyTable();
+      });
+
+      roleFilter.addEventListener('change', () => {
+        currentPage = 1;
+        applyTable();
+      });
 
       function renderPagination(totalPages) {
         paginationControls.innerHTML = '';
         if (totalPages <= 1) return;
-        const maxVisiblePages = 10;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = startPage + maxVisiblePages - 1;
-        if (endPage > totalPages) {
-          endPage = totalPages;
-          startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
 
         const prevBtn = document.createElement('button');
         prevBtn.type = 'button';
-        prevBtn.className = 'btn btn-outline-secondary';
+        prevBtn.className = 'btn btn-pagination-yellow btn-sm';
+        prevBtn.style.width = 'auto';
         prevBtn.textContent = 'Previous';
         prevBtn.disabled = currentPage === 1;
         prevBtn.addEventListener('click', function () {
           if (currentPage <= 1) return;
           currentPage -= 1;
           applyTable();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         });
         paginationControls.appendChild(prevBtn);
 
-        for (let i = startPage; i <= endPage; i++) {
+        for (let i = 1; i <= totalPages; i++) {
           const btn = document.createElement('button');
           btn.type = 'button';
-          btn.className = 'btn btn-outline-secondary' + (i === currentPage ? ' active' : '');
+          btn.className = `btn btn-pagination-blue btn-sm ${i === currentPage ? 'active' : ''}`;
+          btn.style.width = '40px';
           btn.textContent = String(i);
           btn.addEventListener('click', function () {
             currentPage = i;
             applyTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           });
           paginationControls.appendChild(btn);
         }
 
         const nextBtn = document.createElement('button');
         nextBtn.type = 'button';
-        nextBtn.className = 'btn btn-outline-secondary';
+        nextBtn.className = 'btn btn-pagination-yellow btn-sm';
+        nextBtn.style.width = 'auto';
         nextBtn.textContent = 'Next';
         nextBtn.disabled = currentPage === totalPages;
         nextBtn.addEventListener('click', function () {
           if (currentPage >= totalPages) return;
           currentPage += 1;
           applyTable();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         });
         paginationControls.appendChild(nextBtn);
       }
@@ -404,20 +693,10 @@
         renderPagination(totalPages);
       }
 
-      tabs.forEach((tab) => {
-        tab.addEventListener('click', function (e) {
-          e.preventDefault();
-          tabs.forEach((x) => x.classList.remove('active'));
-          tab.classList.add('active');
-          activeStatus = tab.getAttribute('data-status') || 'Active';
-          currentPage = 1;
-          applyTable();
-        });
-      });
-
       searchInput.addEventListener('input', function () { currentPage = 1; applyTable(); });
-      roleFilter.addEventListener('change', function () { currentPage = 1; applyTable(); });
-      pageSizeSelect.addEventListener('change', function () { currentPage = 1; applyTable(); });
+
+      // Initial call
+      applyTable();
 
       const modal = document.getElementById('edit-modal');
       const closeBtn = document.getElementById('edit-close-btn');
@@ -437,7 +716,7 @@
           editRole.value = btn.getAttribute('data-role') || 'Staff';
           document.getElementById('edit-barangay-id').value = btn.getAttribute('data-barangay-id') || '';
           syncBarangayField();
-          modal.style.display = 'block';
+          modal.style.display = 'flex';
         });
       });
 
@@ -459,7 +738,15 @@
         });
       });
 
-      applyTable();
+      function updateClock() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('clockDate').textContent = now.toLocaleDateString('en-US', options);
+        document.getElementById('clockTime').textContent = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+
     })();
   </script>
   <script>

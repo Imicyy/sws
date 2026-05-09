@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
   <title>Social Welfare System - Log In</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -331,7 +331,7 @@
     <div class="login-container">
       <div class="login-image">
         <div class="logo-circle">
-          <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>" alt="Municipality of Enrique B. Magalona seal" class="logo">
+          <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Municipality of Enrique B. Magalona seal" class="logo">
         </div>
         <h2>Municipality of<br><span class="text-gold">Enrique B. Magalona<br>Social Welfare System</span></h2>
         <p>Saraviahanon Digitalasyon Para sa Asenso</p>
