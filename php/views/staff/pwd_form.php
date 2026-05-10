@@ -3,12 +3,17 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
+	<link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
 	<title>Social Welfare System - PWD List</title>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 	<link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
 	<style>
 		body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #fffef5 0%, #eef5ff 100%); color: #1f2937; position: relative; }
+		body::before {
+			content: ""; position: fixed; top: 0; left: 260px; width: calc(100% - 260px); height: 100%;
+			background-image: url('<?= htmlspecialchars(asset_url("images/SilayLogo.png"), ENT_QUOTES) ?>');
+			background-repeat: no-repeat; background-position: center; background-size: 650px; opacity: 0.08; z-index: 0; pointer-events: none;
+		}
 		.layout { position: relative; z-index: 1; }
 		.layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
 		.sidebar { background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%); border-right: 1px solid #dbe5f3; padding: 20px 14px; position: fixed; height: 100vh; width: 260px; overflow-y: auto; box-shadow: 10px 0 24px rgba(37,99,235,0.08); display: flex; flex-direction: column; }

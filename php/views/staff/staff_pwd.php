@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
   <title>Social Welfare System - PDAO Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <style>
     :root {
@@ -18,20 +19,118 @@
       --brand-primary-dark: #1e40af;
       --brand-accent: #3b82f6;
       --brand-accent-dark: #2563eb;
+      --blue-main: #3b82f6;
     }
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: var(--text-main); }
+    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: var(--text-main); display: flex; position: relative; }
+    body::before {
+      content: ""; position: fixed; top: 0; left: 260px; width: calc(100% - 260px); height: 100%;
+      background-image: url('<?= htmlspecialchars(asset_url("images/SilayLogo.png"), ENT_QUOTES) ?>');
+      background-repeat: no-repeat; background-position: center; background-size: 650px; opacity: 0.08; z-index: 0; pointer-events: none;
+    }
     * { box-sizing: border-box; }
     html, body { width: 100%; min-height: 100%; }
-    .layout { display: flex; align-items: stretch; min-height: 100vh; width: 100%; }
-    .sidebar { flex: 0 0 260px; width: 260px; background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; overflow-y: auto; position: sticky; top: 0; height: 100vh; align-self: flex-start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
-    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
-    .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; margin-top: 16px; }
-    .nav-link { display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 14px; }
-    .nav-link.active { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22); }
-    .nav-link:hover { background: #eaf3ff; }
-    .sidebar .logout-link { margin-top: auto; background: #fee2e2; color: #991b1b; font-weight: 700; }
-    .sidebar .logout-link:hover { background: #ef4444; color: #fff; }
-    .main { flex: 1 1 auto; min-width: 0; padding: 20px; }
+    
+    .sidebar { 
+      background: linear-gradient(180deg, rgba(20, 32, 74, 0.95) 0%, rgba(35, 66, 140, 0.85) 100%), 
+                  url('<?= htmlspecialchars(asset_url("images/ebmagtownhall.png"), ENT_QUOTES) ?>') center bottom / cover no-repeat; 
+      background-blend-mode: normal; 
+      padding: 20px 14px; 
+      height: 100vh; 
+      width: 260px; 
+      box-sizing: border-box; 
+      overflow-y: auto; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15); 
+      display: flex; 
+      flex-direction: column; 
+      z-index: 1000; 
+      color: #fff; 
+    }
+    .brand { 
+      font-weight: 900; 
+      font-size: 16px; 
+      letter-spacing: 0.5px; 
+      margin-bottom: 5px; 
+      color: #ffffff !important; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .nav-title { 
+      font-size: 12px; 
+      color: #94a3b8 !important; 
+      text-transform: uppercase; 
+      margin: 8px 10px; 
+      font-weight: 600; 
+      letter-spacing: 0.5px; 
+    }
+    .sidebar .nav-link { 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: flex-start !important; 
+      text-align: left !important; 
+      min-height: 42px !important; 
+      padding: 12px 16px; 
+      margin-bottom: 8px; 
+      border-radius: 12px; 
+      background: transparent !important; 
+      color: #e2e8f0 !important; 
+      text-decoration: none !important; 
+      font-weight: 500; 
+      font-size: 17px !important; 
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
+      border: none; 
+      gap: 12px; 
+    }
+    .sidebar .nav-link.active { 
+      background: #3b82f6 !important; 
+      color: #ffffff !important; 
+      font-weight: 600; 
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; 
+    }
+    .sidebar .nav-link:hover:not(.active) { 
+      background: rgba(255, 255, 255, 0.1) !important; 
+      color: #ffffff !important; 
+      transform: translateX(2px); 
+    }
+    .logout-btn { 
+      margin-top: auto !important; 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: center !important;
+      gap: 12px;
+      padding: 12px 16px; 
+      border-radius: 12px; 
+      background: #fee2e2 !important; 
+      color: #991b1b !important; 
+      font-weight: 700 !important; 
+      text-decoration: none !important; 
+      font-size: 17px;
+      transition: all .3s ease;
+    }
+    .logout-btn:hover { 
+      background: #ef4444 !important; 
+      color: #fff !important; 
+      transform: translateY(-2px) !important; 
+      box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; 
+    }
+    .main { flex: 1; padding: 30px; margin-left: 260px; position: relative; width: calc(100% - 260px); z-index: 1; }
+    
+    /* Live Clock Styles */
+    .header-top { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+    #liveClock { 
+      min-width: 250px;
+      text-align: left;
+      line-height: 1.1;
+      border-left: 3px solid #3b82f6;
+      padding-left: 20px;
+    }
+    #clockDate { font-size: 15px; color: #64748b; font-weight: 600; margin-bottom: 4px; white-space: nowrap; }
+    #clockTime { color: #2563eb; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; padding: 14px 16px; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--panel-border); border-radius: 14px; box-shadow: 0 12px 24px rgba(59, 130, 246, 0.08); backdrop-filter: blur(2px); }
     .top .welcome { color: #6b7280; font-size: 14px; }
     .top-left { display: flex; align-items: center; gap: 12px; }
@@ -55,15 +154,15 @@
     .dept-badge { display: inline-block; padding: 4px 10px; background: #dbeafe; color: #1e40af; border-radius: 6px; font-size: 12px; font-weight: 600; }
     .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
     .filter-group { display: flex; flex-direction: column; }
-    .filter-group label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #6b7280; }
-    .filter-group select { padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #fff; transition: border-color .15s ease, box-shadow .15s ease; }
+    .filter-group label { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #6b7280; }
+    .filter-group select { padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; background: #fff; transition: border-color .15s ease, box-shadow .15s ease; }
     .filter-group select:focus,
     .table-toolbar .toolbar-search:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16); outline: none; }
     .table-container { background: #fff; border-radius: 12px; border: 1px solid var(--panel-border); overflow-x: auto; margin-top: 16px; box-shadow: inset 0 1px 0 #fff, 0 8px 22px rgba(59, 130, 246, 0.08); }
     table { margin: 0; }
-    table thead { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; font-weight: 600; font-size: 12px; }
-    table th { padding: 12px; text-align: left; border: none; white-space: nowrap; }
-    table td { padding: 12px; border-top: 1px solid #e5e7eb; vertical-align: middle; }
+    table thead { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; font-weight: 600; font-size: 14px; }
+    table th { padding: 14px; text-align: left; border: none; white-space: nowrap; }
+    table td { padding: 14px; border-top: 1px solid #e5e7eb; vertical-align: middle; font-size: 15px; }
     table tbody tr:hover { background: #f9fafb; }
     .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
     .status-active { background: #dbeafe; color: #1e40af; }
@@ -130,10 +229,16 @@
       font-weight: 700;
       box-shadow: 0 6px 12px rgba(15, 23, 42, 0.08);
     }
-    .pagination-wrap { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
-    #pwdPaginationControls button { border-radius: 8px !important; border: 1px solid #d1d5db !important; background: #fff; }
-    #pwdPaginationControls button.active,
-    #pwdPaginationControls button.btn-primary { background: var(--brand-primary) !important; border-color: var(--brand-primary) !important; }
+    /* Pagination Styles */
+    .pagination-container { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding: 16px; border-top: 1px solid #f1f5f9; background: #f8fafc; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+    .pagination-controls { display: flex; align-items: center; gap: 8px; }
+    .page-btn { padding: 8px 14px; border: 1px solid #e2e8f0; background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s ease; }
+    .page-btn:hover:not(:disabled) { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
+    .page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25); }
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pagination-info { font-size: 14px; color: #64748b; font-weight: 500; }
+    .page-ellipsis { padding: 0 8px; color: #94a3b8; font-weight: 700; }
+    .items-per-page { padding: 6px 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; font-weight: 600; color: #475569; background: #fff; margin-right: 12px; }
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -232,24 +337,40 @@
       font-size: 14px;
     }
     @media (max-width: 980px) {
-      .layout { flex-direction: column; }
-      .sidebar { flex: none; width: 100%; position: static; height: auto; max-height: none; }
+      .sidebar { position: static; height: auto; max-height: none; width: 100%; }
+      .main { margin-left: 0; width: 100%; padding: 20px; }
       .cards { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <script>window.__APP_BASE__=<?= json_encode(app_base_path(), JSON_UNESCAPED_UNICODE) ?>;</script>
-  <div class="layout">
-    <aside class="sidebar">
-      <div class="brand">ENRIQUE B. MAGALONA</div>
-      <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;"><span class="dept-badge">PDAO Department</span></div>
-      <div class="nav-title">Navigation</div>
-      <a class="nav-link active" href="<?= htmlspecialchars(app_url('/pdao-dashboard'), ENT_QUOTES, 'UTF-8') ?>">Dashboard</a>
-      <a class="nav-link logout-link" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
+  <aside class="sidebar">
+      <div class="brand">
+        <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Logo" style="width: 30px; height: 30px;">
+        <span>Enrique B. Magalona</span>
+      </div>
+      <div style="font-size: 11px; color: #94a3b8; margin-bottom: 14px; padding-left: 40px;"><span class="dept-badge">PDAO Department</span></div>
+
+      <div class="nav-title">NAVIGATION</div>
+      <a class="nav-link active" href="<?= htmlspecialchars(app_url('/pdao-dashboard'), ENT_QUOTES, 'UTF-8') ?>">
+        <i class="fas fa-chart-line"></i>
+        <span>PWD List</span>
+      </a>
+
+      <a class="logout-btn" href="<?= htmlspecialchars(app_url('/logout'), ENT_QUOTES, 'UTF-8') ?>">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
     </aside>
 
     <main class="main">
+      <div class="header-top">
+        <div id="liveClock">
+          <div id="clockDate"></div>
+          <div id="clockTime"></div>
+        </div>
+      </div>
       <div class="top">
         <div class="top-left">
           <h1 class="h4 mb-0">Person With Disability - Dashboard</h1>
@@ -273,7 +394,7 @@
       </div>
 
       <section class="panel">
-        <h2 class="h6 mb-3">Persons With Disabilities</h2>
+        <h2 style="font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 16px;">Persons With Disabilities</h2>
         <div class="filters">
           <div class="filter-group">
             <label>Barangay:</label>
@@ -358,9 +479,20 @@
           </table>
         </div>
 
-        <div class="pagination-wrap">
-          <small id="pwdPaginationInfo">Showing 0-0 of 0 records</small>
-          <div id="pwdPaginationControls" class="btn-group btn-group-sm" style="display: flex; gap: 4px;"></div>
+        <div class="pagination-container">
+          <div class="pagination-info" id="pwdPaginationInfo">Showing 0 to 0 of 0 records</div>
+          <div class="pagination-controls">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:12px; color:#64748b; font-weight:600;">Show:</span>
+              <select id="pwdItemsPerPage" class="items-per-page">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+            <div id="pwdPaginationControls" style="display:flex; gap:8px;"></div>
+          </div>
         </div>
 
         <div class="action-bar">
@@ -369,7 +501,6 @@
         </div>
       </section>
     </main>
-  </div>
 
   <div id="viewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle">
     <div class="modal-card edit-frame">
@@ -501,6 +632,21 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     const barangays = <?= json_encode($barangays ?? [], JSON_UNESCAPED_UNICODE) ?>;
+    function updateClock() {
+      const now = new Date();
+      const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      
+      const dateStr = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+      const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      const dEl = document.getElementById('clockDate');
+      const tEl = document.getElementById('clockTime');
+      if(dEl) dEl.textContent = dateStr;
+      if(tEl) tEl.textContent = timeStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
     function appPath(p) {
       var b = window.__APP_BASE__ || '';
       return b + (p.charAt(0) === '/' ? p : '/' + p);
@@ -939,7 +1085,16 @@
 
     // Pagination variables
     let pwdCurrentPage = 1;
-    const pwdItemsPerPage = 10;
+    let pwdItemsPerPage = 10;
+
+    const pwdItemsPerPageSelect = document.getElementById('pwdItemsPerPage');
+    if (pwdItemsPerPageSelect) {
+      pwdItemsPerPageSelect.addEventListener('change', function() {
+        pwdItemsPerPage = parseInt(this.value);
+        pwdCurrentPage = 1;
+        updatePwdPagination();
+      });
+    }
 
     function getPwdVisibleRows() {
       return Array.from(document.querySelectorAll('#pwdTable tbody .pwd-row')).filter(row => row.style.display !== 'none');
@@ -960,7 +1115,7 @@
       // Update pagination info
       const startItem = totalItems === 0 ? 0 : (pwdCurrentPage - 1) * pwdItemsPerPage + 1;
       const endItem = Math.min(pwdCurrentPage * pwdItemsPerPage, totalItems);
-      document.getElementById('pwdPaginationInfo').textContent = `Showing ${startItem}-${endItem} of ${totalItems} records`;
+      document.getElementById('pwdPaginationInfo').textContent = `Showing ${startItem} to ${endItem} of ${totalItems} records`;
       
       // Show/hide rows based on current page
       visibleRows.forEach((row, index) => {
@@ -980,8 +1135,8 @@
       
       // Previous button
       const prevBtn = document.createElement('button');
-      prevBtn.className = 'btn btn-sm btn-outline-secondary';
-      prevBtn.textContent = 'Previous';
+      prevBtn.className = 'page-btn';
+      prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
       prevBtn.disabled = pwdCurrentPage === 1;
       prevBtn.onclick = () => {
         if (pwdCurrentPage > 1) {
@@ -999,10 +1154,24 @@
       if (endPage - startPage + 1 < maxVisiblePages) {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
       }
+
+      if (startPage > 1) {
+        const firstBtn = document.createElement('button');
+        firstBtn.className = 'page-btn';
+        firstBtn.textContent = '1';
+        firstBtn.onclick = () => { pwdCurrentPage = 1; updatePwdPagination(); };
+        controls.appendChild(firstBtn);
+        if (startPage > 2) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'page-ellipsis';
+          ellipsis.textContent = '...';
+          controls.appendChild(ellipsis);
+        }
+      }
       
       for (let i = startPage; i <= endPage; i++) {
         const pageBtn = document.createElement('button');
-        pageBtn.className = `btn btn-sm ${i === pwdCurrentPage ? 'btn-primary' : 'btn-outline-secondary'}`;
+        pageBtn.className = `page-btn ${i === pwdCurrentPage ? 'active' : ''}`;
         pageBtn.textContent = i;
         pageBtn.onclick = () => {
           pwdCurrentPage = i;
@@ -1010,11 +1179,25 @@
         };
         controls.appendChild(pageBtn);
       }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'page-ellipsis';
+          ellipsis.textContent = '...';
+          controls.appendChild(ellipsis);
+        }
+        const lastBtn = document.createElement('button');
+        lastBtn.className = 'page-btn';
+        lastBtn.textContent = totalPages;
+        lastBtn.onclick = () => { pwdCurrentPage = totalPages; updatePwdPagination(); };
+        controls.appendChild(lastBtn);
+      }
       
       // Next button
       const nextBtn = document.createElement('button');
-      nextBtn.className = 'btn btn-sm btn-outline-secondary';
-      nextBtn.textContent = 'Next';
+      nextBtn.className = 'page-btn';
+      nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
       nextBtn.disabled = pwdCurrentPage === totalPages;
       nextBtn.onclick = () => {
         if (pwdCurrentPage < totalPages) {

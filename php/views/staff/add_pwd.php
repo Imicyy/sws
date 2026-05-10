@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
   <title>Person With Disability FORM</title>
   <link rel="stylesheet" type="text/css" href="/files/assets/css/fill.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
@@ -561,6 +561,11 @@
     body {
       background: linear-gradient(135deg, #fffde8 0%, #eef4ff 52%, #fff9d9 100%) !important;
       position: relative;
+    }
+    body::before {
+      content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background-image: url('<?= htmlspecialchars(asset_url("images/SilayLogo.png"), ENT_QUOTES) ?>');
+      background-repeat: no-repeat; background-position: center; background-size: 650px; opacity: 0.08; z-index: 0; pointer-events: none;
     }
     .page-shell {
       position: relative !important;
