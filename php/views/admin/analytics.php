@@ -225,7 +225,7 @@
       <div class="nav-title">NAVIGATION</div>
       <a class="nav-link active" href="/Analytics">
         <i class="fas fa-users"></i>
-        <span>Senior Citizen Table</span>
+        <span>Senior Citizen</span>
       </a>
       <a class="nav-link" href="/admin-alert?from=osca">
         <i class="fas fa-bell"></i>
