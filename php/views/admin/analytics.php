@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
   <title>OSCA Admin Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="/files/assets/css/admin.css">
   <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/light-theme.css?v=20260424'), ENT_QUOTES) ?>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -18,32 +19,151 @@
       --yellow-soft: #fef3c7;
       --yellow-main: #facc15;
     }
-    body { font-family: Open Sans, Segoe UI, Arial, sans-serif; margin: 0; background: var(--bg-page); color: #1f2937; }
-    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar { background: #fffef7; border-right: 1px solid var(--panel-border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: start; box-shadow: 10px 0 24px rgba(59, 130, 246, 0.08); display: flex; flex-direction: column; }
-    .brand { font-weight: 800; font-size: 13px; letter-spacing: 0.4px; margin-bottom: 18px; }
-    .nav-title { font-size: 12px; color: #6b7280; text-transform: uppercase; margin: 8px 10px; }
-    .nav-center { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; align-items: center; justify-content: center; }
-    .nav-link { display: block; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; width: 100%; max-width: 220px; text-align: center; }
-    .logout-btn { margin-top: auto; display: block; width: 100%; max-width: 220px; text-align: center; padding: 10px 12px; border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 6px 14px rgba(220,38,38,0.18); text-decoration: none; }
-    .logout-btn:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }
-    .nav-link.active { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; box-shadow: 0 8px 18px rgba(59, 130, 246, 0.24); }
-    .nav-link:hover { background: #eaf3ff; }
-    .main { padding: 20px; }
-    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.88); box-shadow: 0 10px 22px rgba(59, 130, 246, 0.08); }
+    body { font-family: Segoe UI, Arial, sans-serif; background: var(--bg-page); display: flex; position: relative; }
+    
+    /* Sidebar Styles */
+    .sidebar { 
+      background: linear-gradient(180deg, rgba(20, 32, 74, 0.95) 0%, rgba(35, 66, 140, 0.85) 100%), url('<?= htmlspecialchars(asset_url("images/ebmagtownhall.png"), ENT_QUOTES) ?>') center bottom/cover no-repeat; 
+      background-blend-mode: normal; 
+      padding: 20px 14px; 
+      height: 100vh; 
+      width: 260px; 
+      box-sizing: border-box; 
+      overflow-y: auto; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15); 
+      display: flex; 
+      flex-direction: column; 
+      z-index: 100; 
+      color: #fff; 
+    }
+    .brand { 
+      font-weight: 900; 
+      font-size: 16px; 
+      letter-spacing: 0.5px; 
+      margin-bottom: 22px; 
+      color: #ffffff !important; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .nav-title { 
+      font-size: 12px; 
+      color: #94a3b8 !important; 
+      text-transform: uppercase; 
+      margin: 8px 10px; 
+      font-weight: 600; 
+      letter-spacing: 0.5px; 
+    }
+    .sidebar .nav-link { 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: flex-start !important; 
+      text-align: left !important; 
+      min-height: 42px !important; 
+      padding: 12px 16px; 
+      margin-bottom: 8px; 
+      border-radius: 12px; 
+      background: transparent !important; 
+      color: #e2e8f0 !important; 
+      text-decoration: none !important; 
+      font-weight: 500; 
+      font-size: 17px !important; 
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
+      border: none; 
+      gap: 12px; 
+    }
+    .sidebar .nav-link.active { 
+      background: #3b82f6 !important; 
+      color: #ffffff !important; 
+      font-weight: 600; 
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; 
+    }
+    .sidebar .nav-link:hover:not(.active) { 
+      background: rgba(255, 255, 255, 0.1) !important; 
+      color: #ffffff !important; 
+      transform: translateX(2px); 
+    }
+    .logout-btn { 
+      margin-top: auto !important; 
+      display: flex !important; 
+      align-items: center !important; 
+      justify-content: center !important;
+      gap: 12px;
+      padding: 12px 16px; 
+      border-radius: 12px; 
+      background: #fee2e2 !important; 
+      color: #991b1b !important; 
+      font-weight: 700 !important; 
+      text-decoration: none !important; 
+      font-size: 17px;
+      transition: all .3s ease;
+    }
+    .logout-btn:hover { 
+      background: #ef4444 !important; 
+      color: #fff !important; 
+      transform: translateY(-2px) !important; 
+      box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; 
+    }
+    .main { flex: 1; padding: 30px; margin-left: 260px; position: relative; width: calc(100% - 260px); z-index: 1; }
+    .main::before {
+      content: ""; position: fixed; top: 0; left: 260px; right: 0; bottom: 0;
+      background: url('<?= htmlspecialchars(asset_url("images/SilayLogo.png"), ENT_QUOTES) ?>') no-repeat center;
+      background-size: 35%; opacity: 0.04; pointer-events: none; z-index: -1;
+    }
+    
+    /* Live Clock - Super Admin Style */
+    .header-top { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+    #liveClock { 
+      min-width: 250px;
+      text-align: left;
+      line-height: 1.1;
+      border-left: 3px solid #3b82f6;
+      padding-left: 20px;
+    }
+    #clockDate { font-size: 15px; color: #64748b; font-weight: 600; margin-bottom: 4px; white-space: nowrap; }
+    #clockTime { color: #2563eb; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .top { 
+      display: flex; justify-content: space-between; align-items: center; 
+      margin-bottom: 24px; padding: 18px 24px; border-radius: 16px; 
+      border: 1px solid var(--panel-border); background: rgba(255,255,255,0.9); 
+      backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+      width: 100%;
+    }
+    .header-info h1 { font-size: 28px; font-weight: 800; color: #1e293b; margin: 0; }
+    .header-info p { font-size: 16px; color: #64748b; margin: 4px 0 0 0; font-weight: 500; }
     .top .welcome { color: #6b7280; font-size: 14px; }
-    .cards { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 14px; max-width: 980px; margin: 0 auto; }
-    .card-metric { border-radius: 14px; padding: 16px; color: #1e3a8a; border: 1px solid #dbe5f3; box-shadow: 0 14px 26px rgba(59, 130, 246, 0.10); text-align: center; }
-    .card-metric .label { font-size: 12px; text-transform: uppercase; opacity: 0.9; }
-    .card-metric .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
-    .bg-yellow { background: linear-gradient(135deg, #fffbeb, #fde68a); color: #713f12; }
-    .bg-blue { background: linear-gradient(135deg, #eff6ff, #93c5fd); }
-    .bg-green { background: linear-gradient(135deg, #f0f9ff, #bfdbfe); }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; margin: 0 0 20px 0; }
+    .card-metric { 
+      border-radius: 16px; padding: 20px; color: #1e3a8a; border: 1px solid #dbe5f3; 
+      box-shadow: 0 14px 26px rgba(59, 130, 246, 0.10); text-align: left; 
+      display: flex; align-items: center; gap: 20px; transition: transform 0.3s ease;
+      background: #fff;
+    }
+    .card-metric:hover { transform: translateY(-5px); }
+    .card-icon { 
+      width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+      font-size: 22px; flex-shrink: 0;
+    }
+    .card-metric .label { font-size: 14px; text-transform: uppercase; font-weight: 700; opacity: 0.8; letter-spacing: 0.5px; }
+    .card-metric .value { font-size: 32px; font-weight: 800; margin-top: 2px; }
+    
+    .bg-yellow .card-icon { background: #fef3c7; color: #b45309; }
+    .bg-blue .card-icon { background: #dbeafe; color: #1d4ed8; }
+    .bg-green .card-icon { background: #d1fae5; color: #047857; }
+    
+    .bg-yellow { background: linear-gradient(135deg, #ffffff, #fffbeb); }
+    .bg-blue { background: linear-gradient(135deg, #ffffff, #eff6ff); }
+    .bg-green { background: linear-gradient(135deg, #ffffff, #f0fdf4); }
     .bg-red { background: linear-gradient(135deg, #fff7ed, #fed7aa); color: #9a3412; }
-    .panel { margin: 16px auto 0; max-width: 1160px; background: linear-gradient(180deg, #ffffff 0%, #fffcf3 100%); border: 1px solid var(--panel-border); border-radius: 14px; padding: 18px; box-shadow: 0 14px 26px rgba(59, 130, 246, 0.08); }
+    .panel { margin: 16px 0 0; width: 100%; background: linear-gradient(180deg, #ffffff 0%, #fffcf3 100%); border: 1px solid var(--panel-border); border-radius: 14px; padding: 22px; box-shadow: 0 14px 26px rgba(59, 130, 246, 0.08); }
     .table-responsive { margin-top: 24px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; text-align: center; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; text-align: center; }
     th { background: #eff6ff; color: #1e3a8a; font-weight: 700; }
     tr:last-child td { border-bottom: none; }
     .action-group { display: flex; gap: 6px; justify-content: center; }
@@ -74,24 +194,62 @@
       table { min-width: 600px; }
       .chart-shell { grid-template-columns: 1fr; }
     }
+
+    /* Pagination Styles */
+    .pagination-container { 
+      display: flex; justify-content: space-between; align-items: center; 
+      margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .page-info { font-size: 13px; color: #64748b; font-weight: 600; }
+    .page-btns { display: flex; gap: 6px; }
+    .page-btn { 
+      min-width: 36px; height: 36px; padding: 0 12px; border-radius: 8px; 
+      border: 1px solid #e2e8f0; background: #fff; color: #64748b; 
+      font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .page-btn:hover:not(:disabled) { background: #f8fafc; border-color: var(--blue-main); color: var(--blue-main); }
+    .page-btn.active { background: var(--blue-main); border-color: var(--blue-main); color: #fff; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-ellipsis { padding: 0 8px; color: #94a3b8; font-weight: 700; }
   </style>
 </head>
 <body>
-  <div class="layout">
     <aside class="sidebar">
-      <div class="brand">ENRIQUE B. MAGALONA</div>
-      <div class="nav-title">Navigation</div>
-      <div class="nav-center">
-        <a class="nav-link active" href="/Analytics">Senior Citizen Table</a>
-        <a class="nav-link" href="/admin-alert?from=osca">Alerts</a>
+      <div class="brand">
+        <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Logo" style="width: 30px; height: 30px;">
+        <span>Enrique B. Magalona</span>
       </div>
-      <a class="logout-btn" href="/logout">Logout</a>
+
+      <div class="nav-title">NAVIGATION</div>
+      <a class="nav-link active" href="/Analytics">
+        <i class="fas fa-users"></i>
+        <span>Senior Citizen Table</span>
+      </a>
+      <a class="nav-link" href="/admin-alert?from=osca">
+        <i class="fas fa-bell"></i>
+        <span>Alerts</span>
+      </a>
+
+      <a class="logout-btn" href="/logout">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
     </aside>
 
     <main class="main">
-      <div class="top" style="justify-content: center; text-align: center; flex-direction: column;">
-        <h1 class="h4 mb-0" style="width: 100%; text-align: center;">OSCA Admin Dashboard</h1>
-        <div class="welcome" style="width: 100%; text-align: center;">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'admin'), ENT_QUOTES, 'UTF-8') ?></div>
+      <div class="header-top">
+        <div id="liveClock">
+          <div id="clockDate"></div>
+          <div id="clockTime"></div>
+        </div>
+      </div>
+      <div class="top">
+        <div class="header-info">
+          <h1>OSCA Admin Dashboard</h1>
+          <p>Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'admin'), ENT_QUOTES, 'UTF-8') ?></p>
+        </div>
       </div>
 
       <?php
@@ -112,18 +270,33 @@
 
       <section class="cards">
         <div class="card-metric bg-yellow">
-          <div class="label">Total Barangays</div>
-          <div class="value"><?php echo $totalBarangays; ?></div>
+          <div class="card-icon">
+            <i class="fas fa-map-marked-alt"></i>
+          </div>
+          <div class="card-info">
+            <div class="label">Total Barangays</div>
+            <div class="value"><?php echo $totalBarangays; ?></div>
+          </div>
         </div>
         <div class="card-metric bg-blue">
-          <div class="label">Total Senior Citizen</div>
-          <div class="value">
-            <?php echo $totalSeniors; ?>
+          <div class="card-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="card-info">
+            <div class="label">Total Senior Citizen</div>
+            <div class="value">
+              <?php echo $totalSeniors; ?>
+            </div>
           </div>
         </div>
         <div class="card-metric bg-green">
-          <div class="label">Average per Barangay</div>
-          <div class="value"><?php echo $averagePerBarangay; ?></div>
+          <div class="card-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="card-info">
+            <div class="label">Average per Barangay</div>
+            <div class="value"><?php echo $averagePerBarangay; ?></div>
+          </div>
         </div>
       </section>
 
@@ -169,9 +342,12 @@
                   </tbody>
                 </table>
               </div>
+              <div class="pagination-container">
+                <div class="page-info" id="paginationInfo">Showing 0 to 0 of 0 entries</div>
+                <div class="page-btns" id="paginationBtns"></div>
+              </div>
       </section>
     </main>
-  </div>
 
   <!-- Report Modal -->
   <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true">
@@ -742,6 +918,22 @@ async function generateReportWithSelection() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  function updateClock() {
+    const now = new Date();
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    
+    const dateStr = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+    const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    const dEl = document.getElementById('clockDate');
+    const tEl = document.getElementById('clockTime');
+    if(dEl) dEl.textContent = dateStr;
+    if(tEl) tEl.textContent = timeStr;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
   populateYearDropdown();
   toggleReportDateInputs();
 
@@ -749,9 +941,78 @@ document.addEventListener('DOMContentLoaded', function() {
     const filter = String(e.target.value || '').toLowerCase();
     document.querySelectorAll('.table-responsive table tbody tr').forEach(function(row) {
       const barangay = (row.querySelector('td') ? row.querySelector('td').textContent : '').toLowerCase();
-      row.style.display = barangay.indexOf(filter) !== -1 ? '' : 'none';
+      if (barangay.indexOf(filter) !== -1) {
+        row.dataset.filtered = 'false';
+      } else {
+        row.dataset.filtered = 'true';
+      }
     });
+    currentPage = 1;
+    updateTablePagination();
   });
+
+  let currentPage = 1;
+  const rowsPerPage = 3;
+
+  function updateTablePagination() {
+    const rows = Array.from(document.querySelectorAll('.table-responsive table tbody tr'));
+    const visibleRows = rows.filter(r => r.dataset.filtered !== 'true');
+    const totalVisible = visibleRows.length;
+    const totalPages = Math.ceil(totalVisible / rowsPerPage);
+    
+    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    rows.forEach(r => r.style.display = 'none');
+    visibleRows.slice(start, end).forEach(r => r.style.display = '');
+
+    // Info
+    const infoEl = document.getElementById('paginationInfo');
+    if (infoEl) {
+      const displayStart = totalVisible === 0 ? 0 : start + 1;
+      const displayEnd = Math.min(end, totalVisible);
+      infoEl.textContent = `Showing ${displayStart} to ${displayEnd} of ${totalVisible} entries`;
+    }
+
+    // Buttons
+    const btnContainer = document.getElementById('paginationBtns');
+    if (btnContainer) {
+      btnContainer.innerHTML = '';
+      
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'page-btn';
+      prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.onclick = () => { currentPage--; updateTablePagination(); };
+      btnContainer.appendChild(prevBtn);
+
+      // Simple range
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+      for (let i = startPage; i <= endPage; i++) {
+        const pBtn = document.createElement('button');
+        pBtn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+        pBtn.textContent = i;
+        pBtn.onclick = () => { currentPage = i; updateTablePagination(); };
+        btnContainer.appendChild(pBtn);
+      }
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'page-btn';
+      nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+      nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+      nextBtn.onclick = () => { currentPage++; updateTablePagination(); };
+      btnContainer.appendChild(nextBtn);
+    }
+  }
+
+  // Initial call
+  updateTablePagination();
 
   document.getElementById('generateReportBtn').addEventListener('click', function() {
     const now = new Date();

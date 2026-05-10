@@ -45,7 +45,7 @@
     }
     .brand { 
       font-weight: 900; 
-      font-size: 14px; 
+      font-size: 16px; 
       letter-spacing: 0.5px; 
       margin-bottom: 22px; 
       color: #ffffff !important; 
@@ -56,7 +56,7 @@
       white-space: nowrap;
     }
     .nav-title { 
-      font-size: 10px; 
+      font-size: 12px; 
       color: #94a3b8 !important; 
       text-transform: uppercase; 
       margin: 8px 10px; 
@@ -76,7 +76,7 @@
       color: #e2e8f0 !important; 
       text-decoration: none !important; 
       font-weight: 500; 
-      font-size: 15px !important; 
+      font-size: 17px !important; 
       transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
       border: none; 
       gap: 12px; 
@@ -104,7 +104,7 @@
       color: #991b1b !important; 
       font-weight: 700 !important; 
       text-decoration: none !important; 
-      font-size: 15px;
+      font-size: 17px;
       transition: all .3s ease;
     }
     .logout-btn:hover { 
@@ -151,8 +151,8 @@
       backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
       width: 100%;
     }
-    .header-info h1 { font-size: 22px; font-weight: 800; color: #1e293b; margin: 0; }
-    .header-info p { font-size: 14px; color: #64748b; margin: 4px 0 0 0; font-weight: 500; }
+    .header-info h1 { font-size: 28px; font-weight: 800; color: #1e293b; margin: 0; }
+    .header-info p { font-size: 16px; color: #64748b; margin: 4px 0 0 0; font-weight: 500; }
     .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; margin: 0 0 20px 0; }
     .card-metric { 
       border-radius: 16px; padding: 20px; color: #1e3a8a; border: 1px solid #dbe5f3; 
@@ -165,8 +165,8 @@
       width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; 
       font-size: 22px; flex-shrink: 0;
     }
-    .card-metric .label { font-size: 12px; text-transform: uppercase; font-weight: 700; opacity: 0.8; letter-spacing: 0.5px; }
-    .card-metric .value { font-size: 28px; font-weight: 800; margin-top: 2px; }
+    .card-metric .label { font-size: 14px; text-transform: uppercase; font-weight: 700; opacity: 0.8; letter-spacing: 0.5px; }
+    .card-metric .value { font-size: 32px; font-weight: 800; margin-top: 2px; }
     .bg-yellow .card-icon { background: #fef3c7; color: #b45309; }
     .bg-blue .card-icon { background: #dbeafe; color: #1d4ed8; }
     .bg-green .card-icon { background: #d1fae5; color: #047857; }
@@ -196,8 +196,8 @@
     .page-btn.active { background: var(--blue-main); border-color: var(--blue-main); color: #fff; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); }
     .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .page-ellipsis { padding: 0 8px; color: #94a3b8; font-weight: 700; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; text-align: center; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; text-align: center; }
     th { background: #eff6ff; color: #1e3a8a; font-weight: 700; }
     tr:last-child td { border-bottom: none; }
     .action-group { display: flex; gap: 6px; justify-content: center; }
