@@ -40,17 +40,62 @@
     .panel { margin-top: 16px; background: linear-gradient(180deg, #ffffff 0%, #fffcf3 100%); border: 1px solid var(--panel-border); border-radius: 14px; padding: 18px; box-shadow: 0 14px 26px rgba(59, 130, 246, 0.08); }
     .quick a { display: inline-block; margin-right: 10px; margin-bottom: 10px; padding: 9px 12px; border-radius: 10px; background: #eaf3ff; color: #1e40af; text-decoration: none; }
     .quick a:hover { background: #dbeafe; }
-    @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; max-height: none; }
       .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
+
+    .user-profile { 
+      padding: 14px; 
+      margin-bottom: 20px; 
+      background: #f8fafc; 
+      border-radius: 12px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center;
+      text-align: center;
+      gap: 6px; 
+      border: 1px solid #e2e8f0; 
+    }
+    .user-name { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; justify-content: center; }
+    .user-email { font-size: 13px; color: #94a3b8; word-break: break-all; font-weight: 500; }
+    
+    .profile-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .nav-title { font-size: 13px; color: #6b7280; text-transform: uppercase; margin: 12px 10px 8px; font-weight: 700; }
+    .nav-link { display: block; padding: 12px 14px; margin-bottom: 6px; border-radius: 8px; color: #1f2937; text-decoration: none; font-size: 16px; font-weight: 600; }
   </style>
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar">
       <div class="brand">ENRIQUE B. MAGALONA</div>
+      
+      <div class="user-profile">
+        <div class="profile-icon-wrapper">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div class="user-name">
+          <span><?= htmlspecialchars($_SESSION['user']['name'] ?? 'Admin User', ENT_QUOTES) ?></span>
+        </div>
+        <div class="user-email">
+          <?= htmlspecialchars($_SESSION['user']['email'] ?? 'admin@example.com', ENT_QUOTES) ?>
+        </div>
+      </div>
+
       <div class="nav-title">Navigation</div>
       <a class="nav-link active" href="/Index">Dashboard</a>
       <a class="nav-link" href="/Analytics">Senior Citizen Table</a>
@@ -62,7 +107,6 @@
     <main class="main">
       <div class="top">
         <h1 class="h4 mb-0">Admin Dashboard</h1>
-        <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'admin'), ENT_QUOTES, 'UTF-8') ?></div>
       </div>
 
       <section class="cards">

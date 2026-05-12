@@ -713,6 +713,13 @@ class Controller
         $htmlBody = '<p>Your verification code is <strong>' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</strong>.</p>'
             . '<p>This code will expire in 10 minutes.</p>';
 
+        return $this->sendEmail($toEmail, $subject, $textBody, $htmlBody);
+    }
+
+    private function sendEmail(string $toEmail, string $subject, string $textBody, ?string $htmlBody = null, &$errorOut = null): bool
+    {
+        $htmlBody = $htmlBody ?? '<p>' . nl2br(htmlspecialchars($textBody, ENT_QUOTES, 'UTF-8')) . '</p>';
+
         $smtpUser = getenv('SMTP_USER') ?: '';
         $smtpPass = getenv('SMTP_PASS') ?: '';
         $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
@@ -729,30 +736,53 @@ class Controller
                 $mail->Username = $smtpUser;
                 $mail->Password = $smtpPass;
                 $mail->Port = $smtpPort;
+                $mail->CharSet = 'UTF-8';
+                
                 if ($smtpSecure) {
                     $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
                 } else {
                     $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
                 }
 
-                $mail->setFrom($from);
+                $mail->setFrom($from, 'SWS Alert System');
                 $mail->addAddress($toEmail);
                 $mail->isHTML(true);
                 $mail->Subject = $subject;
                 $mail->Body = $htmlBody;
                 $mail->AltBody = $textBody;
+                
+                // Disable debug output to prevent corrupting JSON
+                $mail->SMTPDebug = 0; 
+                
+                // SSL Options for local/Docker compatibility
+                $mail->SMTPOptions = array(
+                    'ssl' => array(
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'allow_self_signed' => true
+                    )
+                );
+                
                 $mail->send();
                 return true;
             } catch (Throwable $e) {
-                // Fall back to mail() below.
+                $errorOut = "PHPMailer Error: " . $e->getMessage();
+                return false;
             }
         }
 
+        $errorOut = "PHPMailer not configured or class missing. Falling back to mail().";
         $headers = [];
         $headers[] = 'From: ' . $from;
         $headers[] = 'MIME-Version: 1.0';
-        $headers[] = 'Content-Type: text/plain; charset=UTF-8';
-        return mail($toEmail, $subject, $textBody, implode("\r\n", $headers));
+        $headers[] = 'Content-Type: text/html; charset=UTF-8';
+        
+        // Suppress warnings from mail() to prevent corrupting JSON
+        $ok = @mail($toEmail, $subject, $htmlBody, implode("\r\n", $headers));
+        if (!$ok) {
+            $errorOut .= " mail() function also failed.";
+        }
+        return $ok;
     }
 
     private function ensureUserVerificationColumns(): void
@@ -782,52 +812,15 @@ class Controller
 
     private function sendRegistrationVerificationEmail(string $toEmail, string $code): bool
     {
-        $subject = 'Verify your Social Welfare System account';
-        $textBody = "Welcome to Social Welfare System.\n\nYour verification code is: {$code}\n\nThis code expires in 24 hours.";
-        $htmlBody = '<p>Welcome to Social Welfare System.</p>'
+        return $this->sendEmail(
+            $toEmail,
+            'Verify your Social Welfare System account',
+            "Welcome to Social Welfare System.\n\nYour verification code is: {$code}\n\nThis code expires in 24 hours.",
+            '<p>Welcome to Social Welfare System.</p>'
             . '<p>Your verification code is:</p>'
             . '<p style="font-size:18px;font-weight:700;letter-spacing:2px;">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</p>'
-            . '<p>This code expires in 24 hours.</p>';
-
-        $smtpUser = getenv('SMTP_USER') ?: '';
-        $smtpPass = getenv('SMTP_PASS') ?: '';
-        $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-        $smtpPort = (int) (getenv('SMTP_PORT') ?: 587);
-        $smtpSecure = strtolower((string) (getenv('SMTP_SECURE') ?: 'false')) === 'true';
-        $from = getenv('SMTP_FROM') ?: ($smtpUser !== '' ? $smtpUser : 'no-reply@example.com');
-
-        if (class_exists('PHPMailer\\PHPMailer\\PHPMailer') && $smtpUser !== '' && $smtpPass !== '') {
-            try {
-                $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-                $mail->isSMTP();
-                $mail->Host = $smtpHost;
-                $mail->SMTPAuth = true;
-                $mail->Username = $smtpUser;
-                $mail->Password = $smtpPass;
-                $mail->Port = $smtpPort;
-                if ($smtpSecure) {
-                    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-                } else {
-                    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-                }
-                $mail->setFrom($from);
-                $mail->addAddress($toEmail);
-                $mail->isHTML(true);
-                $mail->Subject = $subject;
-                $mail->Body = $htmlBody;
-                $mail->AltBody = $textBody;
-                $mail->send();
-                return true;
-            } catch (Throwable $e) {
-                // Fall back to mail() below.
-            }
-        }
-
-        $headers = [];
-        $headers[] = 'From: ' . $from;
-        $headers[] = 'MIME-Version: 1.0';
-        $headers[] = 'Content-Type: text/plain; charset=UTF-8';
-        return mail($toEmail, $subject, $textBody, implode("\r\n", $headers));
+            . '<p>This code expires in 24 hours.</p>'
+        );
     }
 
     private function computePolygonCentroid(array $feature): ?array
@@ -3584,7 +3577,7 @@ class Controller
     {
         $this->ensureNotificationsTables();
         $history = $this->queryAll(
-            'SELECT target_role, subject, created_at, created_by_name 
+            'SELECT id, target_role, subject, message, created_at, created_by_name 
              FROM notifications 
              ORDER BY created_at DESC 
              LIMIT 50'
@@ -3630,6 +3623,13 @@ class Controller
                     ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
         );
+
+        // Auto-cleanup: delete alerts older than 24 hours
+        try {
+            $this->execute("DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 24 HOUR");
+        } catch (Throwable $e) {
+            error_log('[NotificationsCleanup] Failed to prune old alerts: ' . $e->getMessage());
+        }
     }
 
     private function normalizeSelectionValues(mixed $values): array
@@ -3907,6 +3907,77 @@ class Controller
             $this->jsonResponse(['success' => true]);
         } catch (Throwable $e) {
             $this->jsonResponse(['success' => false, 'message' => 'Failed to mark notification as read'], 500);
+        }
+    }
+
+    public function deleteNotification(?int $id = null): void
+    {
+        $id = $id ?? (int) ($_GET['id'] ?? 0);
+        if ($id <= 0) {
+            $this->jsonResponse(['success' => false, 'error' => 'Invalid notification ID: ' . $id], 400);
+        }
+
+        try {
+            $this->execute('DELETE FROM notifications WHERE id = ?', [$id]);
+            $this->jsonResponse(['success' => true, 'message' => 'Notification deleted']);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteAllNotifications(): void
+    {
+        try {
+            $this->execute('DELETE FROM notifications');
+            $this->jsonResponse(['success' => true, 'message' => 'All notifications cleared']);
+        } catch (Throwable $e) {
+            $this->jsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function sendExportCode(): void
+    {
+        $sessionUser = $_SESSION['user'] ?? null;
+        if (!is_array($sessionUser) || empty($sessionUser['email'])) {
+            $this->jsonResponse(['success' => false, 'message' => 'User email not found or session expired'], 400);
+        }
+
+        $code = $this->generateVerificationCode();
+        $_SESSION['export_code'] = $code;
+        $_SESSION['export_code_expires'] = time() + 300; // 5 minutes
+
+        $errorMsg = '';
+        $success = $this->sendEmail(
+            (string) $sessionUser['email'],
+            'Alert Export Verification Code',
+            "Your verification code for exporting alert history is: {$code}. This code will expire in 5 minutes.",
+            null,
+            $errorMsg
+        );
+
+        if ($success) {
+            $this->jsonResponse(['success' => true, 'message' => 'Code sent to your registered email.']);
+        } else {
+            $this->jsonResponse(['success' => false, 'message' => 'Email failed: ' . $errorMsg], 500);
+        }
+    }
+
+    public function verifyExportCode(): void
+    {
+        $body = $this->input();
+        $code = trim((string) ($body['code'] ?? ''));
+        $storedCode = (string) ($_SESSION['export_code'] ?? '');
+        $expires = (int) ($_SESSION['export_code_expires'] ?? 0);
+
+        if ($storedCode === '' || time() > $expires) {
+            $this->jsonResponse(['success' => false, 'message' => 'Code expired or not requested.'], 400);
+        }
+
+        if ($code === $storedCode) {
+            unset($_SESSION['export_code'], $_SESSION['export_code_expires']);
+            $this->jsonResponse(['success' => true]);
+        } else {
+            $this->jsonResponse(['success' => false, 'message' => 'Invalid verification code.'], 400);
         }
     }
 

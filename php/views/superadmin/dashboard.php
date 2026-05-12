@@ -109,11 +109,41 @@
       font-size: 16px;
       font-weight: 700;
       color: #fff;
-      padding: 0 10px;
-      margin-bottom: 8px;
-      word-break: break-word;
-      opacity: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+    .user-email { 
+      font-size: 13px; 
+      color: #94a3b8; 
+      word-break: break-all; 
+      font-weight: 500; 
       text-align: center;
+    }
+    
+    .profile-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .user-profile {
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     /* Main Content */
@@ -389,9 +419,22 @@
       <span>ENRIQUE B. MAGALONA</span>
     </div>
     
-    <div class="user-name" style="color: #fff; opacity: 1; font-weight: 700; margin-top: 10px;"><?= htmlspecialchars((string)($user['name'] ?? 'Super Admin'), ENT_QUOTES, 'UTF-8') ?></div>
-    
     <div class="nav-title">Navigation</div>
+    
+    <div class="user-profile">
+      <div class="profile-icon-wrapper">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <div class="user-name">
+        <span><?= htmlspecialchars($_SESSION['user']['name'] ?? 'Super Admin', ENT_QUOTES) ?></span>
+      </div>
+      <div class="user-email">
+        <?= htmlspecialchars($_SESSION['user']['email'] ?? 'superadmin@example.com', ENT_QUOTES) ?>
+      </div>
+    </div>
     
     <a href="/index-superadmin" class="nav-link <?= strpos($_SERVER['REQUEST_URI'], 'index-superadmin') !== false ? 'active' : '' ?>">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -432,7 +475,7 @@
       <header class="dashboard-header">
         <div class="admin-info">
           <h1>Welcome, Super Admin</h1>
-          <p><?= htmlspecialchars((string)($_SESSION['email'] ?? 'admin@example.com'), ENT_QUOTES, 'UTF-8') ?></p>
+          <p>System Overview & Maintenance Panel</p>
         </div>
         
         <div class="header-actions">

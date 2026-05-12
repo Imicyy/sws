@@ -22,6 +22,33 @@
     .nav-link:hover { background: #eaf3ff; }
     .sidebar .logout-link { margin-top: auto; background: #fee2e2; color: #991b1b; font-weight: 700; }
     .sidebar .logout-link:hover { background: #ef4444; color: #fff; }
+
+    .user-profile { 
+      padding: 16px; 
+      margin-bottom: 20px; 
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 14px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center;
+      text-align: center;
+      gap: 6px; 
+      border: 1px solid rgba(0, 0, 0, 0.05); 
+    }
+    .user-name { font-size: 16px; font-weight: 700; color: #1e2937; display: flex; align-items: center; gap: 8px; justify-content: center; }
+    .user-email { font-size: 13px; color: #64748b; word-break: break-all; font-weight: 500; }
+    
+    .profile-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      background: #eaf3ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      border: 1px solid #dbeafe;
+    }
     .main { padding: 20px; }
     .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.88); box-shadow: 0 10px 22px rgba(59, 130, 246, 0.08); }
     .top .welcome { color: #6b7280; font-size: 14px; }
@@ -65,6 +92,22 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="brand">ENRIQUE B. MAGALONA</div>
+      
+      <div class="user-profile">
+        <div class="profile-icon-wrapper">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #3b82f6;">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div class="user-name">
+          <span><?= htmlspecialchars($_SESSION['user']['name'] ?? 'Staff User', ENT_QUOTES) ?></span>
+        </div>
+        <div class="user-email">
+          <?= htmlspecialchars($_SESSION['user']['email'] ?? 'staff@example.com', ENT_QUOTES) ?>
+        </div>
+      </div>
+
       <div class="nav-title">Navigation</div>
       <a class="nav-link active" href="/staff-dashboard">Dashboard</a>
       <a class="nav-link" href="/Pwd-form">PWD Form</a>
@@ -80,7 +123,6 @@
           <a class="add-pwd-btn" href="/add_pwd">Add PWD</a>
           <h1 class="h4 mb-0">Staff Dashboard</h1>
         </div>
-        <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
       </div>
 
       <section class="cards">

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars(asset_url('images/SilayLogo.jpg'), ENT_QUOTES) ?>">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>">
   <title>Admin Alert Management</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -41,12 +41,39 @@
       text-transform: uppercase;
       white-space: nowrap;
     }
+    .user-profile { 
+      padding: 16px; 
+      margin-bottom: 20px; 
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 14px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center;
+      text-align: center;
+      gap: 6px; 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+    }
+    .user-name { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; justify-content: center; }
+    .user-email { font-size: 13px; color: #94a3b8; word-break: break-all; font-weight: 500; }
+    
+    .profile-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
     .nav-title { 
-      font-size: 10px; 
+      font-size: 12px; 
       color: #94a3b8 !important; 
       text-transform: uppercase; 
-      margin: 8px 10px; 
-      font-weight: 600; 
+      margin: 12px 10px 8px; 
+      font-weight: 700; 
       letter-spacing: 0.5px; 
     }
     .sidebar .nav-link { 
@@ -54,15 +81,15 @@
       align-items: center !important; 
       justify-content: flex-start !important; 
       text-align: left !important; 
-      min-height: 42px !important; 
-      padding: 12px 16px; 
+      min-height: 48px !important; 
+      padding: 14px 18px; 
       margin-bottom: 8px; 
       border-radius: 12px; 
       background: transparent !important; 
       color: #e2e8f0 !important; 
       text-decoration: none !important; 
-      font-weight: 500; 
-      font-size: 15px !important; 
+      font-weight: 600; 
+      font-size: 17px !important; 
       transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
       border: none; 
       gap: 12px; 
@@ -99,6 +126,19 @@
       transform: translateY(-2px) !important; 
       box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; 
     }
+
+    .user-profile { 
+      padding: 16px; 
+      margin-bottom: 20px; 
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 14px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 4px; 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+    }
+    .user-name { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .user-email { font-size: 11px; color: #94a3b8; word-break: break-all; font-weight: 500; }
     
     .main { flex: 1; padding: 30px; margin-left: 260px; position: relative; width: calc(100% - 260px); display: flex; flex-direction: column; align-items: center; z-index: 1; }
     .main::before {
@@ -160,13 +200,47 @@
     .history-search i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; }
     .history-search input { padding-left: 48px; }
     
-    .alert-table th { background: #f8fafc; padding: 22px 24px; text-align: left; font-size: 14px; font-weight: 800; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
-    .alert-table td { padding: 24px; border-bottom: 1px solid #f1f5f9; font-size: 16px; color: #1e293b; }
+    .alert-table th { background: #f8fafc; padding: 22px 24px; text-align: left; font-size: 16px; font-weight: 800; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+    .alert-table td { padding: 24px; border-bottom: 1px solid #f1f5f9; font-size: 18px; color: #1e293b; }
     
     .channel-badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; }
     .badge-staff { background: #eff6ff; color: #3b82f6; }
     .badge-barangay { background: #f0fdf4; color: #10b981; }
     .badge-all { background: #fef2f2; color: #ef4444; }
+
+    /* New Advanced UI Styles */
+    .history-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; background: #f8fafc; padding: 12px 20px; border-radius: 14px; border: 1px solid #e2e8f0; }
+    .toolbar-actions { display: flex; gap: 8px; margin-left: auto; }
+    .btn-icon { background: white; border: 1px solid #e2e8f0; padding: 8px; border-radius: 10px; color: #64748b; cursor: pointer; transition: all 0.2s; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
+    .btn-icon:hover { background: #f1f5f9; color: #3b82f6; border-color: #3b82f6; transform: translateY(-1px); }
+    .btn-icon.danger:hover { color: #ef4444; border-color: #ef4444; background: #fef2f2; }
+    
+    .toggle-wrapper { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #64748b; }
+    .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:checked + .slider:before { transform: translateX(14px); }
+
+    .channel-select { width: 160px; padding: 8px 12px; font-size: 13px; font-weight: 600; border-radius: 10px; background: white; border: 1px solid #e2e8f0; }
+    
+    .alert-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .alert-table tr { transition: all 0.2s; }
+    .alert-table tr:hover { background-color: #f8fafc; }
+    .alert-table th { position: sticky; top: 0; z-index: 10; }
+    
+    .row-actions { transition: all 0.2s; display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-action { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .btn-action:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+    .btn-action.delete:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+
+    .bulk-checkbox { width: 18px !important; height: 18px !important; margin: 0 !important; cursor: pointer; accent-color: #3b82f6; }
+    .col-cb { width: 40px; text-align: center !important; }
+    .col-actions { width: 120px; text-align: right !important; }
+    
+    .history-card-header { padding: 0 0 20px 0; display: flex; justify-content: space-between; align-items: center; }
+    .history-card-header h2 { font-size: 18px; font-weight: 800; color: #1e3a8a; margin: 0; }
   </style>
 </head>
 <body>
@@ -175,6 +249,21 @@
       <div class="brand">
         <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Logo" style="width: 30px; height: 30px;">
         <span>Enrique B. Magalona</span>
+      </div>
+
+      <div class="user-profile">
+        <div class="profile-icon-wrapper">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div class="user-name">
+          <span><?= htmlspecialchars($_SESSION['user']['name'] ?? 'Admin User', ENT_QUOTES) ?></span>
+        </div>
+        <div class="user-email">
+          <?= htmlspecialchars($_SESSION['user']['email'] ?? 'admin@example.com', ENT_QUOTES) ?>
+        </div>
       </div>
 
       <div class="nav-title">Navigation</div>
@@ -270,25 +359,52 @@
 
         <div class="alert-column-right">
           <div class="panel">
-            <div class="history-header">
-              <h2 class="panel-title" style="margin-bottom: 0; border-bottom: 0; padding-bottom: 0;">
-                <i class="fas fa-history"></i>
-                <span>Alert History</span>
-              </h2>
-              <div class="history-search">
+            <div class="history-card-header">
+              <h2><i class="fas fa-history mr-2"></i>Alert History</h2>
+              <div class="toggle-wrapper">
+                <span>Auto-Refresh</span>
+                <label class="switch">
+                  <input type="checkbox" id="autoRefreshToggle">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="history-toolbar">
+              <select id="channelFilter" class="channel-select">
+                <option value="all">All Channels</option>
+                <option value="staff">Staff Only</option>
+                <option value="barangay">Barangay Only</option>
+              </select>
+              
+              <div class="history-search" style="margin-bottom: 0;">
                 <i class="fas fa-search"></i>
-                <input type="text" id="historySearch" placeholder="Filter alerts...">
+                <input type="text" id="historySearch" placeholder="Search alerts...">
+              </div>
+
+              <div class="toolbar-actions">
+                <button class="btn-icon" id="refreshBtn" title="Refresh Now">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="btn-icon" id="exportBtn" title="Export to CSV">
+                  <i class="fas fa-file-export"></i>
+                </button>
+                <button class="btn-icon danger" id="clearBtn" title="Clear History">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
               </div>
             </div>
             
-            <div class="table-responsive" style="margin-top: 0; border-radius: 12px; border: 1px solid #f1f5f9;">
+            <div class="table-responsive" style="margin-top: 0; border-radius: 12px; border: 1px solid #f1f5f9; max-height: 600px;">
               <table class="alert-table">
                 <thead>
                   <tr>
+                    <th class="col-cb"><input type="checkbox" id="selectAll" class="bulk-checkbox"></th>
                     <th>Channel</th>
-                    <th>Type</th>
+                    <th>Sender</th>
                     <th>Subject</th>
                     <th>Sent At</th>
+                    <th class="col-actions">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="historyBody">
@@ -299,17 +415,26 @@
                         $badgeClass = 'badge-all';
                         if($room === 'staff') $badgeClass = 'badge-staff';
                         if($room === 'barangay') $badgeClass = 'badge-barangay';
+                        $id = $row['id'] ?? 0;
                       ?>
-                      <tr>
+                      <tr data-id="<?= $id ?>" data-channel="<?= htmlspecialchars($room) ?>" data-subject="<?= htmlspecialchars($row['subject'] ?? '') ?>" data-message="<?= htmlspecialchars($row['message'] ?? '') ?>">
+                        <td class="col-cb"><input type="checkbox" class="bulk-checkbox row-select"></td>
                         <td><span class="channel-badge <?= $badgeClass ?>"><?= htmlspecialchars($room) ?></span></td>
-                        <td>Manual</td>
+                        <td style="color: #64748b; font-size: 14px; font-weight: 600;"><?= htmlspecialchars($row['created_by_name'] ?? 'Admin') ?></td>
                         <td style="font-weight: 600;"><?= htmlspecialchars($row['subject'] ?? '—') ?></td>
-                        <td style="color: #64748b;"><?= htmlspecialchars(date('m/d/Y, h:i:s A', strtotime($row['created_at']))) ?></td>
+                        <td style="color: #64748b; font-size: 13px;"><?= htmlspecialchars(date('m/d/Y, h:i:s A', strtotime($row['created_at']))) ?></td>
+                        <td class="col-actions">
+                          <div class="row-actions">
+                            <button class="btn-action view-alert" title="View Details"><i class="fas fa-eye"></i></button>
+                            <button class="btn-action resend-alert" title="Resend Alert"><i class="fas fa-redo"></i></button>
+                            <button class="btn-action delete-alert danger" title="Delete Alert"><i class="fas fa-trash-alt"></i></button>
+                          </div>
+                        </td>
                       </tr>
                     <?php endforeach; ?>
                   <?php else: ?>
                     <tr>
-                      <td colspan="4" style="padding: 40px; text-align: center; color: #94a3b8; font-weight: 600;">
+                      <td colspan="6" style="padding: 40px; text-align: center; color: #94a3b8; font-weight: 600;">
                         <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
                         No alert history recorded yet
                       </td>
@@ -318,6 +443,10 @@
                 </tbody>
               </table>
             </div>
+            <p style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-top: 16px; text-align: center;">
+              <i class="fas fa-info-circle mr-1"></i>
+              Alert history is automatically cleared after 24 hours
+            </p>
           </div>
         </div>
       </div>
@@ -327,6 +456,8 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
   <script>
+    const currentUserName = <?= json_encode(($_SESSION['user']['name'] ?? $_SESSION['user']['email'] ?? 'Admin')) ?>;
+
     function showResponseMessage(message, isSuccess) {
       const responseBox = document.getElementById('response');
       const output = document.getElementById('responseOutput');
@@ -576,40 +707,339 @@
       }
     });
 
-    // Add alert to the history table
-    function addAlertLog(message, room) {
-      const tbody = document.getElementById('historyBody');
-      if (!tbody) return;
-      if (tbody.querySelector('td') && tbody.querySelector('td').textContent.includes('No alert history yet')) {
-        tbody.innerHTML = '';
-      }
-      const tr = document.createElement('tr');
-      const now = new Date().toLocaleString();
-      const type = 'Manual';
-      const subject = document.getElementById('subject').value || '—';
-      
-      let badgeClass = 'badge-all';
-      if(room === 'staff') badgeClass = 'badge-staff';
-      if(room === 'barangay') badgeClass = 'badge-barangay';
+    // Alert History Logic
+    let autoRefreshInterval = null;
 
-      tr.innerHTML = `
-        <td><span class="channel-badge ${badgeClass}">${room}</span></td>
-        <td>${escapeHtml(type)}</td>
-        <td style="font-weight: 600;">${escapeHtml(subject)}</td>
-        <td style="color: #64748b;">${escapeHtml(now)}</td>
-      `;
-      tbody.insertBefore(tr, tbody.firstChild);
+    function startAutoRefresh() {
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+      autoRefreshInterval = setInterval(() => {
+        refreshHistory(true);
+      }, 10000); // refresh every 10s
     }
 
-    // Live filtering for history
-    document.getElementById('historySearch').addEventListener('input', function(e) {
-      const filter = e.target.value.toLowerCase();
+    function stopAutoRefresh() {
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+      autoRefreshInterval = null;
+    }
+
+    async function refreshHistory(isAuto = false) {
+      try {
+        const res = await fetch('/admin-alert'); // This might be better as an API call, but we'll use the current page fetch or specialized API if available
+        // Since we don't have a specialized history API yet that returns just JSON for the admin history,
+        // we'll fetch the whole page and extract the tbody or just reload the data if we had an API.
+        // For now, let's assume we want to refresh the table.
+        
+        const response = await fetch('/api/notifications'); // Wait, /api/notifications is for users.
+        // Let's use a full page reload or a specialized endpoint.
+        // Actually, let's just use window.location.reload() for now or fetch the page and swap the tbody.
+        if (!isAuto) {
+          const btn = document.getElementById('refreshBtn');
+          if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
+
+        const res2 = await fetch(window.location.href);
+        const html = await res2.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newBody = doc.getElementById('historyBody');
+        if (newBody) {
+          document.getElementById('historyBody').innerHTML = newBody.innerHTML;
+          applyFilters(); // re-apply search/channel filters
+        }
+
+        if (!isAuto) {
+          const btn = document.getElementById('refreshBtn');
+          if (btn) btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        }
+      } catch (err) {
+        console.error('Refresh failed', err);
+      }
+    }
+
+    function applyFilters() {
+      const search = document.getElementById('historySearch').value.toLowerCase();
+      const channel = document.getElementById('channelFilter').value;
       const rows = document.querySelectorAll('#historyBody tr');
+      
       rows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return; // skip empty state
         const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none';
+        const rowChannel = row.dataset.channel;
+        
+        const matchesSearch = text.includes(search);
+        const matchesChannel = channel === 'all' || rowChannel === channel;
+        
+        row.style.display = (matchesSearch && matchesChannel) ? '' : 'none';
+      });
+    }
+
+    // Event Listeners for History
+    document.getElementById('autoRefreshToggle').addEventListener('change', function() {
+      if (this.checked) startAutoRefresh();
+      else stopAutoRefresh();
+    });
+
+    document.getElementById('channelFilter').addEventListener('change', applyFilters);
+    document.getElementById('historySearch').addEventListener('input', applyFilters);
+    document.getElementById('refreshBtn').addEventListener('click', () => refreshHistory());
+
+    document.getElementById('selectAll').addEventListener('change', function() {
+      const checked = this.checked;
+      document.querySelectorAll('.row-select').forEach(cb => {
+        if (cb.closest('tr').style.display !== 'none') cb.checked = checked;
       });
     });
+
+    document.getElementById('exportBtn').addEventListener('click', async function() {
+      const rows = Array.from(document.querySelectorAll('#historyBody tr:not([style*="display: none"])'));
+      if (rows.length === 0 || rows[0].querySelector('td[colspan]')) {
+        Swal.fire('No data', 'Nothing to export', 'info');
+        return;
+      }
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      
+      let monthOptions = '';
+      months.forEach((m, i) => {
+        monthOptions += `<option value="${m}" ${i === now.getMonth() ? 'selected' : ''}>${m}</option>`;
+      });
+
+      const { value: formValues } = await Swal.fire({
+        title: 'Authorize Export',
+        html: `
+          <div style="text-align: left; padding: 5px;">
+            <div style="margin-bottom: 24px;">
+              <label style="display: block; font-size: 13px; font-weight: 800; color: #64748b; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">1. Report Period</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <select id="swal-month" class="swal2-select" style="margin: 0; width: 100%; height: 50px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 15px; font-weight: 600;">${monthOptions}</select>
+                <input id="swal-year" type="number" class="swal2-input" value="${currentYear}" style="margin: 0; width: 100%; height: 50px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 15px; font-weight: 600;">
+              </div>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <label style="display: block; font-size: 13px; font-weight: 800; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px;">2. Identity Verification</label>
+                <button id="send-code-btn" type="button" style="padding: 8px 14px; font-size: 12px; font-weight: 800; background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; border-radius: 10px; cursor: pointer; transition: all 0.2s;">Get Code</button>
+              </div>
+              <input id="swal-code" type="text" maxlength="6" class="swal2-input" placeholder="••••••" style="margin: 0; width: 100%; height: 55px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; font-size: 24px; font-weight: 800; letter-spacing: 8px; color: #1e293b;">
+              <p id="code-status-msg" style="font-size: 12px; color: #64748b; margin: 10px 0 0 0; text-align: center; font-weight: 600;"></p>
+            </div>
+          </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Validate & Download',
+        confirmButtonColor: '#3b82f6',
+        didOpen: () => {
+          const sendBtn = document.getElementById('send-code-btn');
+          const statusMsg = document.getElementById('code-status-msg');
+          
+          sendBtn.addEventListener('click', async function() {
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            statusMsg.textContent = 'Contacting security server...';
+            
+            try {
+              const res = await fetch('/api/notifications/send-export-code', { 
+                method: 'POST',
+                headers: { 'Accept': 'application/json' }
+              });
+              
+              const contentType = res.headers.get('content-type');
+              if (!contentType || !contentType.includes('application/json')) {
+                const text = await res.text();
+                console.error('Server returned non-JSON:', text);
+                throw new Error('Server error: Please check your SMTP configuration in the .env file.');
+              }
+              
+              const data = await res.json();
+              if (data.success) {
+                statusMsg.style.color = '#10b981';
+                statusMsg.textContent = 'Check your email for the 6-digit code.';
+                sendBtn.textContent = 'Sent!';
+                sendBtn.style.background = '#dcfce7';
+                sendBtn.style.color = '#10b981';
+                sendBtn.style.borderColor = '#bbf7d0';
+              } else {
+                throw new Error(data.message || 'Failed to send code');
+              }
+            } catch (err) {
+              statusMsg.style.color = '#ef4444';
+              statusMsg.textContent = err.message;
+              sendBtn.disabled = false;
+              sendBtn.textContent = 'Retry';
+              console.error('Export Error:', err);
+            }
+          });
+        },
+        preConfirm: async () => {
+          const code = document.getElementById('swal-code').value;
+          if (!code || code.length < 6) {
+            Swal.showValidationMessage('Please enter the 6-digit verification code');
+            return false;
+          }
+          
+          try {
+            const res = await fetch('/api/notifications/verify-export-code', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({ code })
+            });
+            
+            const contentType = res.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              throw new Error('Security server returned an invalid response.');
+            }
+            
+            const data = await res.json();
+            if (!data.success) {
+              Swal.showValidationMessage(data.message || 'Invalid or expired code');
+              return false;
+            }
+            
+            return {
+              month: document.getElementById('swal-month').value,
+              year: document.getElementById('swal-year').value
+            };
+          } catch (err) {
+            Swal.showValidationMessage(err.message);
+            return false;
+          }
+        }
+      });
+
+      if (!formValues) return;
+
+      let csv = `Alert History Report - ${formValues.month} ${formValues.year}\n`;
+      csv += 'Channel,Sender,Subject,Sent At\n';
+      
+      rows.forEach(row => {
+        const cols = row.querySelectorAll('td');
+        if (cols.length < 5) return;
+        const channel = cols[1].textContent.trim();
+        const sender = cols[2].textContent.trim();
+        const subject = cols[3].textContent.trim();
+        const date = cols[4].textContent.trim();
+        csv += `"${channel}","${sender}","${subject}","${date}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `alert_report_${formValues.month}_${formValues.year}.csv`;
+      a.click();
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', async function() {
+      const selected = Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.closest('tr').dataset.id);
+      
+      const result = await Swal.fire({
+        title: selected.length > 0 ? `Delete ${selected.length} alerts?` : 'Clear all history?',
+        text: "This action cannot be undone!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Yes, delete!'
+      });
+
+      if (result.isConfirmed) {
+        if (selected.length === 0) {
+           // Clear all history
+           try {
+             const res = await fetch('/api/notifications/delete-all', { method: 'POST' });
+             if (res.ok) {
+               Swal.fire('Cleared!', 'All alert history has been removed.', 'success');
+               refreshHistory();
+             } else {
+               Swal.fire('Error', 'Failed to clear history.', 'error');
+             }
+           } catch (e) {
+             Swal.fire('Error', 'Failed to clear history: ' + e.message, 'error');
+           }
+           return;
+        }
+
+        let successCount = 0;
+        for (const id of selected) {
+          try {
+            const res = await fetch(`/api/notifications/delete/${id}`, { method: 'POST' });
+            if (res.ok) successCount++;
+          } catch (e) {}
+        }
+        
+        Swal.fire('Deleted!', `${successCount} alerts removed.`, 'success');
+        refreshHistory();
+      }
+    });
+
+    // Row Action Delegation
+    document.getElementById('historyBody').addEventListener('click', async function(e) {
+      const btn = e.target.closest('.btn-action');
+      if (!btn) return;
+      
+      const tr = btn.closest('tr');
+      const id = tr.dataset.id;
+      const subject = tr.dataset.subject;
+      const message = tr.dataset.message;
+      const channel = tr.dataset.channel;
+
+      if (btn.classList.contains('view-alert')) {
+        Swal.fire({
+          title: subject || 'Notification Details',
+          html: `<div style="text-align: left; padding: 10px;">
+                  <p><strong>Channel:</strong> ${channel}</p>
+                  <hr>
+                  <p style="white-space: pre-wrap;">${message}</p>
+                 </div>`,
+          confirmButtonText: 'Close'
+        });
+      } else if (btn.classList.contains('resend-alert')) {
+        document.getElementById('room').value = channel;
+        document.getElementById('room').dispatchEvent(new Event('change'));
+        document.getElementById('subject').value = subject;
+        document.getElementById('message').value = message;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        Swal.fire('Loaded', 'Alert details populated into the form.', 'success');
+      } else if (btn.classList.contains('delete-alert')) {
+        const result = await Swal.fire({
+          title: 'Are you sure?',
+          text: "Delete this alert from history?",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#ef4444',
+          confirmButtonText: 'Yes, delete it!'
+        });
+        if (result.isConfirmed) {
+          try {
+            const res = await fetch(`/api/notifications/delete/${id}`, { 
+              method: 'POST',
+              headers: { 'Accept': 'application/json' }
+            });
+            
+            const data = await res.json();
+            if (res.ok && data.success) {
+              Swal.fire('Deleted!', 'Alert has been removed.', 'success');
+              refreshHistory();
+            } else {
+              Swal.fire('Error', data.error || data.message || 'Failed to delete alert.', 'error');
+            }
+          } catch (err) {
+            Swal.fire('Error', 'Network error or server unavailable: ' + err.message, 'error');
+          }
+        }
+      }
+    });
+
+    // Replace addAlertLog to support new structure
+    function addAlertLog(message, room) {
+      refreshHistory(); // simplest way to get the new ID and structure
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
       function updateClock() {

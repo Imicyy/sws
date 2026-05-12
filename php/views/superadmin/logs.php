@@ -53,6 +53,47 @@
     }
     .logout-btn:hover { background: #ef4444; color: #fff !important; transform: translateY(-2px); }
 
+    .user-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+    .user-email { 
+      font-size: 13px; 
+      color: rgba(255, 255, 255, 0.6); 
+      word-break: break-all; 
+      font-weight: 500; 
+      text-align: center;
+    }
+    
+    .profile-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .user-profile {
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
     /* Main Content */
     .main-content { margin-left: 260px; flex: 1; padding: 32px; position: relative; z-index: 1; }
     .main-content::before {
@@ -229,9 +270,22 @@
       <span>ENRIQUE B. MAGALONA</span>
     </div>
     
-    <div class="user-name"><?= htmlspecialchars((string)($user['name'] ?? 'Super Admin'), ENT_QUOTES, 'UTF-8') ?></div>
-    
     <div class="nav-title">Main Navigation</div>
+    
+    <div class="user-profile">
+      <div class="profile-icon-wrapper">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <div class="user-name">
+        <span><?= htmlspecialchars($_SESSION['user']['name'] ?? 'Super Admin', ENT_QUOTES) ?></span>
+      </div>
+      <div class="user-email">
+        <?= htmlspecialchars($_SESSION['user']['email'] ?? 'superadmin@example.com', ENT_QUOTES) ?>
+      </div>
+    </div>
     <a href="/index-superadmin" class="nav-link">
       <i class="fas fa-th-large"></i> Dashboard
     </a>

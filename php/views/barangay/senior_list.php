@@ -41,6 +41,33 @@
     .sidebar .nav-link:hover:not(.active) { background: rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; transform: translateX(2px); border: none !important; }
     .sidebar .logout-link { background: #fee2e2 !important; color: #991b1b !important; font-weight: 700 !important; border: none !important; border-radius: 12px; }
     .sidebar .logout-link:hover { background: #ef4444 !important; color: #fff !important; transform: translateY(-2px) !important; box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; border: none !important; }
+
+    .user-profile { 
+      padding: 16px; 
+      margin-bottom: 20px; 
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 14px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center;
+      text-align: center;
+      gap: 6px; 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+    }
+    .user-name { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; justify-content: center; }
+    .user-email { font-size: 13px; color: #94a3b8; word-break: break-all; font-weight: 500; }
+    
+    .profile-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
     .nav-fallback-item { padding: 8px 10px; margin-bottom: 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1f2937; cursor: pointer; }
     .nav-fallback-item.active { background: #3b82f6; color: #fff; }
     .main { padding: 24px; margin-left: 260px; }
@@ -159,6 +186,22 @@
         <img src="<?= htmlspecialchars(asset_url('images/SilayLogo.png'), ENT_QUOTES) ?>" alt="Logo" style="height: 32px; width: 32px; object-fit: contain;">
         <span>ENRIQUE B. MAGALONA</span>
       </div>
+
+      <div class="user-profile">
+        <div class="profile-icon-wrapper">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div class="user-name">
+          <span><?= htmlspecialchars($_SESSION['user']['name'] ?? 'Barangay User', ENT_QUOTES) ?></span>
+        </div>
+        <div class="user-email">
+          <?= htmlspecialchars($_SESSION['user']['email'] ?? 'barangay@example.com', ENT_QUOTES) ?>
+        </div>
+      </div>
+
       <div class="nav-title">Navigation</div>
       <a class="nav-link" href="<?= htmlspecialchars(app_url('/barangay'), ENT_QUOTES, 'UTF-8') ?>">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>

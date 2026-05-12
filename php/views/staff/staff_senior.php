@@ -114,6 +114,33 @@
       transform: translateY(-2px) !important; 
       box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; 
     }
+
+    .user-profile { 
+      padding: 16px; 
+      margin-bottom: 20px; 
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 14px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center;
+      text-align: center;
+      gap: 6px; 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+    }
+    .user-name-profile { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; justify-content: center; }
+    .user-email { font-size: 13px; color: #94a3b8; word-break: break-all; font-weight: 500; }
+    
+    .profile-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
     .user-name {
       font-size: 14px;
       font-weight: 700;
@@ -345,6 +372,21 @@
       </div>
       <div style="font-size: 11px; color: #94a3b8; margin-bottom: 14px; padding-left: 40px;"><span class="dept-badge">OSCA Department</span></div>
 
+      <div class="user-profile">
+        <div class="profile-icon-wrapper">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div class="user-name-profile">
+          <span><?= htmlspecialchars($_SESSION['user']['name'] ?? 'Staff User', ENT_QUOTES) ?></span>
+        </div>
+        <div class="user-email">
+          <?= htmlspecialchars($_SESSION['user']['email'] ?? 'staff@example.com', ENT_QUOTES) ?>
+        </div>
+      </div>
+
       <div class="nav-title">NAVIGATION</div>
       <a class="nav-link active" href="/osca-dashboard">
         <i class="fas fa-chart-line"></i>
@@ -384,7 +426,6 @@
             <i class="feather icon-user-plus"></i>
             <span>Add Senior</span>
           </a>
-          <div class="welcome">Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?></div>
         </div>
       </div>
 

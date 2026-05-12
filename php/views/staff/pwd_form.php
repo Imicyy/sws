@@ -24,6 +24,34 @@
 		.nav-link:hover { background: #eaf2ff; }
 		.sidebar .logout-link { margin-top: auto; background: #fee2e2; color: #991b1b; font-weight: 700; }
 		.sidebar .logout-link:hover { background: #ef4444; color: #fff; }
+
+		.user-profile { 
+			padding: 16px; 
+			margin-bottom: 20px; 
+			background: rgba(255, 255, 255, 0.4); 
+			border-radius: 14px; 
+			display: flex; 
+			flex-direction: column; 
+			align-items: center;
+			text-align: center;
+			gap: 6px; 
+			border: 1px solid rgba(37, 99, 235, 0.1); 
+		}
+		.user-name { font-size: 16px; font-weight: 700; color: #1e3a8a; display: flex; align-items: center; gap: 8px; justify-content: center; }
+		.user-email { font-size: 13px; color: #4b5563; word-break: break-all; font-weight: 500; }
+		
+		.profile-icon-wrapper {
+			width: 56px;
+			height: 56px;
+			background: #fff;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-bottom: 10px;
+			border: 1px solid #dbeafe;
+			box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+		}
 		.main { margin-left: 260px; padding: 20px; }
 		.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 		.top h1 { margin: 0; font-size: 28px; font-weight: 600; }
@@ -78,6 +106,22 @@
 			<div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;">
 				<span style="display: inline-block; padding: 4px 10px; background: #dbeafe; color: #1e40af; border-radius: 6px; font-weight: 600;">PDAO Department</span>
 			</div>
+			
+			<div class="user-profile">
+				<div class="profile-icon-wrapper">
+					<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #3b82f6;">
+						<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+						<circle cx="12" cy="7" r="4"></circle>
+					</svg>
+				</div>
+				<div class="user-name">
+					<span><?= htmlspecialchars($_SESSION['user']['name'] ?? 'Staff User', ENT_QUOTES) ?></span>
+				</div>
+				<div class="user-email">
+					<?= htmlspecialchars($_SESSION['user']['email'] ?? 'staff@example.com', ENT_QUOTES) ?>
+				</div>
+			</div>
+
 			<div class="nav-title">Navigation</div>
 			<a class="nav-link" href="/pdao-dashboard">Dashboard</a>
 			<a class="nav-link active" href="/Pwd-form">PWD List</a>
@@ -90,9 +134,6 @@
 				<div class="top-left">
 					<a class="add-pwd-btn" href="/add_pwd">Add PWD</a>
 					<h1>PERSONS WITH DISABILITIES (PWD)</h1>
-				</div>
-				<div style="color: #6b7280; font-size: 14px;">
-					Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'staff'), ENT_QUOTES, 'UTF-8') ?>
 				</div>
 			</div>
 

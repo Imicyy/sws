@@ -172,6 +172,18 @@ $router->add('GET', '/api/notifications', static function () use ($controller) {
 $router->add('POST', '/api/notifications/mark-read', static function () use ($controller) {
     $controller->markNotificationRead();
 }, [$requireAuth]);
+$router->add('POST', '/api/notifications/delete/{id}', static function (array $params) use ($controller) {
+    $controller->deleteNotification((int)($params['id'] ?? 0));
+}, [$requireAuth]);
+$router->add('POST', '/api/notifications/delete-all', static function () use ($controller) {
+    $controller->deleteAllNotifications();
+}, [$requireAuth]);
+$router->add('POST', '/api/notifications/send-export-code', static function () use ($controller) {
+    $controller->sendExportCode();
+}, [$requireAuth]);
+$router->add('POST', '/api/notifications/verify-export-code', static function () use ($controller) {
+    $controller->verifyExportCode();
+}, [$requireAuth]);
 
 $router->add('GET', '/api/birthdays', static function () use ($controller) {
     $controller->getBirthdays();

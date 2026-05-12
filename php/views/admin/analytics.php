@@ -52,11 +52,11 @@
       white-space: nowrap;
     }
     .nav-title { 
-      font-size: 12px; 
+      font-size: 13px; 
       color: #94a3b8 !important; 
       text-transform: uppercase; 
-      margin: 8px 10px; 
-      font-weight: 600; 
+      margin: 12px 10px 8px; 
+      font-weight: 700; 
       letter-spacing: 0.5px; 
     }
     .sidebar .nav-link { 
@@ -64,15 +64,15 @@
       align-items: center !important; 
       justify-content: flex-start !important; 
       text-align: left !important; 
-      min-height: 42px !important; 
-      padding: 12px 16px; 
+      min-height: 48px !important; 
+      padding: 14px 18px; 
       margin-bottom: 8px; 
       border-radius: 12px; 
       background: transparent !important; 
       color: #e2e8f0 !important; 
       text-decoration: none !important; 
-      font-weight: 500; 
-      font-size: 17px !important; 
+      font-weight: 600; 
+      font-size: 18px !important; 
       transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
       border: none; 
       gap: 12px; 
@@ -108,6 +108,33 @@
       color: #fff !important; 
       transform: translateY(-2px) !important; 
       box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2) !important; 
+    }
+
+    .user-profile { 
+      padding: 16px; 
+      margin-bottom: 20px; 
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 14px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center;
+      text-align: center;
+      gap: 6px; 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+    }
+    .user-name { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; justify-content: center; }
+    .user-email { font-size: 13px; color: #94a3b8; word-break: break-all; font-weight: 500; }
+    
+    .profile-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .main { flex: 1; padding: 30px; margin-left: 260px; position: relative; width: calc(100% - 260px); z-index: 1; }
     .main::before {
@@ -222,6 +249,21 @@
         <span>Enrique B. Magalona</span>
       </div>
 
+      <div class="user-profile">
+        <div class="profile-icon-wrapper">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div class="user-name">
+          <span><?= htmlspecialchars($_SESSION['user']['name'] ?? 'Admin User', ENT_QUOTES) ?></span>
+        </div>
+        <div class="user-email">
+          <?= htmlspecialchars($_SESSION['user']['email'] ?? 'admin@example.com', ENT_QUOTES) ?>
+        </div>
+      </div>
+
       <div class="nav-title">NAVIGATION</div>
       <a class="nav-link active" href="/Analytics">
         <i class="fas fa-users"></i>
@@ -248,7 +290,6 @@
       <div class="top">
         <div class="header-info">
           <h1>OSCA Admin Dashboard</h1>
-          <p>Signed in as <?= htmlspecialchars((string) ($user['email'] ?? 'admin'), ENT_QUOTES, 'UTF-8') ?></p>
         </div>
       </div>
 
