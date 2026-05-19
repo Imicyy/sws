@@ -537,7 +537,10 @@
   <div id="seniorViewFrameModal" class="senior-frame-modal" role="dialog" aria-modal="true" aria-labelledby="seniorViewFrameTitle">
     <div class="senior-frame-card">
       <div class="senior-frame-header">
-        <h3 id="seniorViewFrameTitle">View Senior Citizen Information</h3>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <h3 id="seniorViewFrameTitle" style="margin:0;">View Senior Citizen Information</h3>
+          <div id="seniorSubmittedMeta" style="font-size:12px;color:#6b7280;font-weight:normal;">Submitted by: <span id="seniorSubmittedBy">—</span> • Submitted at: <span id="seniorSubmittedAt">—</span></div>
+        </div>
         <button type="button" class="senior-frame-close" data-close-senior-frame="seniorViewFrameModal">&times;</button>
       </div>
       <div class="senior-frame-body">
@@ -569,15 +572,15 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 1100px;">
       <div class="modal-content" style="background:#fff;border-radius:12px;border:none;box-shadow:0 20px 50px rgba(0,0,0,.25);overflow:hidden;">
         <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e5e7eb;background:#fff;color:#0f172a;">
-          <h5 class="modal-title" id="viewSeniorModalTitle">View Senior Citizen Information</h5>
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <h5 class="modal-title" id="viewSeniorModalTitle" style="margin:0;">View Senior Citizen Information</h5>
+            <div id="seniorSubmittedMeta" style="font-size:12px;color:#6b7280;">Submitted by: <span id="seniorSubmittedBy">—</span> • Submitted at: <span id="seniorSubmittedAt">—</span></div>
+          </div>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#0f172a;opacity:.9;text-shadow:none;">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body" style="max-height: 75vh; overflow-y: auto; padding: 12px;">
-          <div id="viewSeniorMeta" class="mb-3" style="display: flex; flex-wrap: wrap; gap: 12px; color: #374151; font-size: 13px;">
-           
-          </div>
 
           <div class="mb-3 edit-log-wrapper" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px;overflow:auto;max-height:220px;background:#fff;">
             <div class="edit-log-title" style="margin:0 0 8px 0;font-size:14px;line-height:1.2;color:#1d4ed8;font-weight:700;">Edit Logs</div>
@@ -2455,16 +2458,15 @@
     }
 
     function viewRenderSubmittedMetaFromRecord(senior) {
-      const meta = document.getElementById('viewSeniorMeta');
-      if (!meta) return;
+      const byEl = document.getElementById('seniorSubmittedBy');
+      const atEl = document.getElementById('seniorSubmittedAt');
 
       const submittedBy = (senior && (senior.created_by || senior.createdBy)) ? String(senior.created_by || senior.createdBy) : 'Unknown';
       const submittedAtRaw = (senior && (senior.created_at || senior.createdAt)) ? String(senior.created_at || senior.createdAt) : '';
       const submittedAt = submittedAtRaw ? viewFormatDateTime(submittedAtRaw) : 'N/A';
 
-      meta.innerHTML =
-        '<div style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#f9fafb;"><strong style="color:#0f766e;">Submitted by:</strong> ' + escapeHtml(submittedBy) + '</div>' +
-        '<div style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#f9fafb;"><strong style="color:#0f766e;">Submitted at:</strong> ' + escapeHtml(submittedAt) + '</div>';
+      if (byEl) byEl.textContent = submittedBy;
+      if (atEl) atEl.textContent = submittedAt;
     }
 
     function loadSeniorEditLogs(residentId) {
@@ -2931,6 +2933,16 @@
           if (seniorId > 0) {
             currentViewSeniorId = String(seniorId);
             currentViewSeniorData = senior;
+            
+            // Populate metadata
+            const byEl = document.getElementById('seniorSubmittedBy');
+            const atEl = document.getElementById('seniorSubmittedAt');
+            const by = senior.created_by || senior.createdBy || senior.added_by || senior.addedBy || 'Unknown';
+            const atRaw = senior.created_at || senior.createdAt || '';
+            const at = viewFormatDateTime(atRaw);
+            if (byEl) byEl.textContent = String(by || 'Unknown');
+            if (atEl) atEl.textContent = at || 'N/A';
+
             openSeniorFrameModal(
               seniorViewFrameModal,
               seniorViewFrame,

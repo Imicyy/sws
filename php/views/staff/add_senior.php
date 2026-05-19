@@ -564,6 +564,51 @@ $soloBarangay = $restrictSeniorBarangay && count($barangayKeys) === 1 ? (string)
       border-color: #93c5fd;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     }
+    .logs-panel {
+      margin-bottom: 14px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .logs-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f766e;
+    }
+    .logs-wrapper {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      overflow: auto;
+      max-height: 240px;
+      background: #ffffff;
+    }
+    .logs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .logs-table th,
+    .logs-table td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .logs-table th {
+      background: #f8fafc;
+      color: #374151;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .logs-empty {
+      color: #6b7280;
+      font-size: 13px;
+      padding: 10px 0 2px;
+    }
   </style>
 </head>
 <body class="<?= $isModal ? 'modal-mode' : '' ?><?= $isViewMode ? ' view-mode' : '' ?>">
@@ -579,6 +624,15 @@ $soloBarangay = $restrictSeniorBarangay && count($barangayKeys) === 1 ? (string)
         </div>
       </div>
     </div>
+
+    <?php if ($isViewMode): ?>
+      <section class="logs-panel" id="editLogsPanel">
+        <h2 class="logs-title">Edit Logs</h2>
+        <div class="logs-wrapper" id="editLogsContainer">
+          <div class="logs-empty">Loading edit logs...</div>
+        </div>
+      </section>
+    <?php endif; ?>
 
     <form id="housingForm" class="form-panel" action="<?= $isEditMode ? '/update-senior' : '/add-data' ?>" method="post">
       <input type="hidden" id="residentId" name="residentId" value="<?= (int) (($editSenior['_id'] ?? 0)) ?>">
@@ -1641,8 +1695,86 @@ $soloBarangay = $restrictSeniorBarangay && count($barangayKeys) === 1 ? (string)
         if (nextBtnNav) nextBtnNav.textContent = 'Close';
       }
 
+      async function loadSeniorEditLogs() {
+        if (!isViewMode) return;
+
+        const container = document.getElementById('editLogsContainer');
+        if (!container) return;
+
+        const residentId = Number((editSenior && (editSenior.id || editSenior._id)) || 0);
+        if (residentId <= 0) {
+          container.innerHTML = '<div class="logs-empty">No logs available: invalid Senior ID.</div>';
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/senior-edit-logs/' + encodeURIComponent(String(residentId)), {
+            headers: { Accept: 'application/json' }
+          });
+          const payload = await response.json();
+
+          if (!response.ok || !payload || payload.success === false) {
+            container.innerHTML = '<div class="logs-empty">Unable to load edit logs.</div>';
+            return;
+          }
+
+          const logs = Array.isArray(payload.data) ? payload.data : [];
+          if (logs.length === 0) {
+            container.innerHTML = '<div class="logs-empty">No edits recorded yet.</div>';
+            return;
+          }
+
+          container.innerHTML = '<table class="logs-table"><thead><tr><th>Field</th><th>Old Value</th><th>New Value</th><th>Editor</th><th>Date and Time</th></tr></thead><tbody>' +
+            logs.map(function (log) {
+              return '<tr>' +
+                '<td>' + escapeHtml(log.field || '') + '</td>' +
+                '<td>' + escapeHtml(log.old_value || 'N/A') + '</td>' +
+                '<td>' + escapeHtml(log.new_value || 'N/A') + '</td>' +
+                '<td>' + escapeHtml(log.edited_by || 'Unknown') + '</td>' +
+                '<td>' + escapeHtml(formatEditedAt(log.edited_at)) + '</td>' +
+              '</tr>';
+            }).join('') +
+            '</tbody></table>';
+        } catch (error) {
+          container.innerHTML = '<div class="logs-empty">Network error while loading edit logs.</div>';
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function formatEditedAt(value) {
+        const raw = String(value || '').trim();
+        if (!raw) {
+          return 'N/A';
+        }
+
+        const date = new Date(raw.replace(' ', 'T') + '+08:00');
+        if (Number.isNaN(date.getTime())) {
+          return raw;
+        }
+
+        return new Intl.DateTimeFormat('en-PH', {
+          timeZone: 'Asia/Manila',
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        }).format(date);
+      }
+
       applyEditSeniorData();
       applyViewMode();
+      loadSeniorEditLogs();
 
       renderStep(0);
     });
