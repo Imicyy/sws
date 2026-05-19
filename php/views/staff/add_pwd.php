@@ -743,7 +743,7 @@ $soloBarangay = $restrictPwdBarangay && count($barangayKeys) === 1 ? (string) $b
               <div class="form-group"><label>Phone Number</label><input type="tel" name="contacts[1][phone]" maxlength="11" pattern="09\d{9}" title="Phone number must start with 09 and be 11 digits" required></div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Email Address</label><input type="email" name="contacts[1][email]" maxlength="100" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="Please enter a valid email address"></div>
+              <div class="form-group"><label>Email Address</label><input type="email" name="contacts[1][email]" maxlength="100" pattern="^[^@\s]+@[^@\s]+$" title="Email address must contain '@'"></div>
             </div>
           </div>
         </div>
@@ -1088,13 +1088,21 @@ $soloBarangay = $restrictPwdBarangay && count($barangayKeys) === 1 ? (string) $b
       function isLikelyDirtyText(value) {
         const raw = String(value || '').trim();
         if (!raw) return false;
-        const lettersOnly = raw.replace(/[^A-Z]/gi, '');
-        if (lettersOnly.length < 12 || /\s/.test(raw)) return false;
-        const vowels = (lettersOnly.match(/[AEIOU]/gi) || []).length;
-        const vowelRatio = vowels / lettersOnly.length;
-        const hasLongConsonantRun = /[BCDFGHJKLMNPQRSTVWXYZ]{6,}/i.test(lettersOnly);
-        const hasRepeating = /(.)\1{4,}/i.test(lettersOnly);
-        return hasLongConsonantRun || hasRepeating || vowelRatio < 0.2;
+        
+        const words = raw.split(/\s+/);
+        for (const word of words) {
+          if (!word) continue;
+          const lettersOnly = word.replace(/[^A-Z]/gi, '');
+          if (lettersOnly.length === 0) continue;
+          
+          if (/(.)\1\1/i.test(lettersOnly)) return true;
+          if (/[BCDFGHJKLMNPQRSTVWXZ]{5,}/i.test(lettersOnly)) return true;
+          
+          const vowels = (lettersOnly.match(/[AEIOUY]/gi) || []).length;
+          if (lettersOnly.length >= 4 && vowels === 0) return true;
+          if (lettersOnly.length >= 8 && (vowels / lettersOnly.length) < 0.15) return true;
+        }
+        return false;
       }
 
       function showDirtyDataWarning(label) {
@@ -1113,14 +1121,17 @@ $soloBarangay = $restrictPwdBarangay && count($barangayKeys) === 1 ? (string) $b
 
       function validateDirtyTextFields() {
         const checks = [
-          ['#firstName', 'First Name'],
-          ['#middleName', 'Middle Name'],
-          ['#lastName', 'Last Name'],
-          ['#placeOfBirth', 'Place of Birth'],
-          ['#religion', 'Religion'],
-          ['#fatherName', "Father's Name"],
-          ['#motherName', "Mother's Name"],
-          ['#guardianName', "Guardian's Name"]
+          ['#first_name', 'First Name'],
+          ['#middle_name', 'Middle Name'],
+          ['#last_name', 'Last Name'],
+          ['#place_of_birth', 'Place of Birth'],
+          ['#spouse_name', 'Spouse Name'],
+          ['#fatherLastName', "Father's Last Name"],
+          ['#fatherFirstName', "Father's First Name"],
+          ['#fatherMiddleName', "Father's Middle Name"],
+          ['#motherLastName', "Mother's Last Name"],
+          ['#motherFirstName', "Mother's First Name"],
+          ['#motherMiddleName', "Mother's Middle Name"]
         ];
         for (const pair of checks) {
           const el = document.querySelector(pair[0]);
@@ -1440,7 +1451,7 @@ $soloBarangay = $restrictPwdBarangay && count($barangayKeys) === 1 ? (string) $b
               <div class="form-group"><label>Phone Number</label><input type="tel" name="contacts[${contactId}][phone]" maxlength="11" pattern="09\\d{9}" title="Phone number must start with 09 and be 11 digits" required value="${String(safePhone).replace(/"/g, '&quot;')}"></div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Email Address</label><input type="email" name="contacts[${contactId}][email]" maxlength="100" pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$" title="Please enter a valid email address" value="${String(safeEmail).replace(/"/g, '&quot;')}"></div>
+              <div class="form-group"><label>Email Address (Must contain '@')</label><input type="email" name="contacts[${contactId}][email]" maxlength="100" pattern="^[^@\\s]+@[^@\\s]+$" title="Email address must contain '@'" value="${String(safeEmail).replace(/"/g, '&quot;')}"></div>
             </div>
           `;
           return wrapper;

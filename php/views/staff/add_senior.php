@@ -648,7 +648,7 @@ $soloBarangay = $restrictSeniorBarangay && count($barangayKeys) === 1 ? (string)
               <div class="form-group"><label>Phone Number</label><input type="tel" name="contacts[1][phone]" maxlength="11" pattern="\d{11}" title="Please enter exactly 11 digits" required></div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Email Address</label><input type="email" name="contacts[1][email]" required></div>
+              <div class="form-group"><label>Email Address</label><input type="email" name="contacts[1][email]"></div>
               <div class="form-group"><button type="button" class="delete-child">Remove</button></div>
             </div>
           </div>
@@ -963,13 +963,21 @@ $soloBarangay = $restrictSeniorBarangay && count($barangayKeys) === 1 ? (string)
       function isLikelyDirtyText(value) {
         const raw = String(value || '').trim();
         if (!raw) return false;
-        const lettersOnly = raw.replace(/[^A-Z]/gi, '');
-        if (lettersOnly.length < 12 || /\s/.test(raw)) return false;
-        const vowels = (lettersOnly.match(/[AEIOU]/gi) || []).length;
-        const vowelRatio = vowels / lettersOnly.length;
-        const hasLongConsonantRun = /[BCDFGHJKLMNPQRSTVWXYZ]{6,}/i.test(lettersOnly);
-        const hasRepeating = /(.)\1{4,}/i.test(lettersOnly);
-        return hasLongConsonantRun || hasRepeating || vowelRatio < 0.2;
+        
+        const words = raw.split(/\s+/);
+        for (const word of words) {
+          if (!word) continue;
+          const lettersOnly = word.replace(/[^A-Z]/gi, '');
+          if (lettersOnly.length === 0) continue;
+          
+          if (/(.)\1\1/i.test(lettersOnly)) return true;
+          if (/[BCDFGHJKLMNPQRSTVWXZ]{5,}/i.test(lettersOnly)) return true;
+          
+          const vowels = (lettersOnly.match(/[AEIOUY]/gi) || []).length;
+          if (lettersOnly.length >= 4 && vowels === 0) return true;
+          if (lettersOnly.length >= 8 && (vowels / lettersOnly.length) < 0.15) return true;
+        }
+        return false;
       }
 
       function showDirtyDataWarning(label) {
@@ -1432,7 +1440,7 @@ $soloBarangay = $restrictSeniorBarangay && count($barangayKeys) === 1 ? (string)
             <div class="form-group"><label>Phone Number</label><input type="tel" name="contacts[${contactCounter}][phone]" maxlength="11" pattern="\\d{11}" title="Please enter exactly 11 digits" required></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>Email Address</label><input type="email" name="contacts[${contactCounter}][email]" required></div>
+            <div class="form-group"><label>Email Address</label><input type="email" name="contacts[${contactCounter}][email]"></div>
             <div class="form-group"><button type="button" class="delete-child">Remove</button></div>
           </div>
         `;

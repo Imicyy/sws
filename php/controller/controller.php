@@ -172,19 +172,41 @@ class Controller
             return false;
         }
 
-        $lettersOnly = preg_replace('/[^A-Za-z]/', '', $raw) ?? '';
-        $letterLen = strlen($lettersOnly);
-        if ($letterLen < 12 || preg_match('/\s/', $raw) === 1) {
+        $words = preg_split('/\s+/', $raw);
+        if ($words === false) {
             return false;
         }
 
-        preg_match_all('/[AEIOUaeiou]/', $lettersOnly, $vowels);
-        $vowelCount = isset($vowels[0]) && is_array($vowels[0]) ? count($vowels[0]) : 0;
-        $vowelRatio = $letterLen > 0 ? ($vowelCount / $letterLen) : 0.0;
-        $hasLongConsonantRun = preg_match('/[BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz]{6,}/', $lettersOnly) === 1;
-        $hasRepeating = preg_match('/(.)\1{4,}/', $lettersOnly) === 1;
+        foreach ($words as $word) {
+            if ($word === '') {
+                continue;
+            }
+            $lettersOnly = preg_replace('/[^A-Za-z]/', '', $word) ?? '';
+            $letterLen = strlen($lettersOnly);
+            if ($letterLen === 0) {
+                continue;
+            }
 
-        return $hasLongConsonantRun || $hasRepeating || $vowelRatio < 0.2;
+            if (preg_match('/(.)\1\1/i', $lettersOnly) === 1) {
+                return true;
+            }
+
+            if (preg_match('/[BCDFGHJKLMNPQRSTVWXZ]{5,}/i', $lettersOnly) === 1) {
+                return true;
+            }
+
+            preg_match_all('/[AEIOUYaeiouy]/', $lettersOnly, $vowelsMatches);
+            $vowelCount = isset($vowelsMatches[0]) && is_array($vowelsMatches[0]) ? count($vowelsMatches[0]) : 0;
+
+            if ($letterLen >= 4 && $vowelCount === 0) {
+                return true;
+            }
+            if ($letterLen >= 8 && ($vowelCount / $letterLen) < 0.15) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function firstDirtyFieldLabel(array $checks): ?string

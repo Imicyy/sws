@@ -16,7 +16,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
     ports:
-      - "8080:80"
+      - "8084:80"
     depends_on:
       db:
         condition: service_healthy
@@ -33,7 +33,7 @@ services:
       - db_data:/var/lib/mysql
       - ./model/ebmag2.5.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "3307:3306"
+      - "3307:3306" # <--- CHANGED THIS TO 43306 TO BYPASS WINDOWS PERMISSIONS
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
@@ -52,8 +52,7 @@ services:
       PMA_PORT: 3306
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
-      - "8081:80"
+      - "8085:80"
 
 volumes:
   db_data:
-
